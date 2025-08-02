@@ -111,6 +111,26 @@ export default function ProductsPage({ onBack }: ProductsPageProps) {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    
+    // Validate required fields
+    if (!formData.name.trim()) {
+      toast({
+        title: t("common.error"),
+        description: "Product name is required",
+        variant: "destructive",
+      });
+      return;
+    }
+    
+    if (!formData.pricePerLiter || parseFloat(formData.pricePerLiter) <= 0) {
+      toast({
+        title: t("common.error"),
+        description: "Valid price is required",
+        variant: "destructive",
+      });
+      return;
+    }
+
     if (editingProduct) {
       updateMutation.mutate({ id: editingProduct.id, product: formData });
     } else {
@@ -129,8 +149,8 @@ export default function ProductsPage({ onBack }: ProductsPageProps) {
     setIsDialogOpen(true);
   };
 
-  const handleDelete = (id: string) => {
-    if (confirm("Are you sure you want to delete this product?")) {
+  const handleDelete = (id: string, productName: string) => {
+    if (window.confirm(`Are you sure you want to delete "${productName}"? This action cannot be undone.`)) {
       deleteMutation.mutate(id);
     }
   };
@@ -303,7 +323,7 @@ export default function ProductsPage({ onBack }: ProductsPageProps) {
                     <Button
                       variant="outline"
                       size="sm"
-                      onClick={() => handleDelete(product.id)}
+                      onClick={() => handleDelete(product.id, product.name)}
                       data-testid={`delete-product-${product.id}`}
                     >
                       <Trash2 className="h-4 w-4" />
