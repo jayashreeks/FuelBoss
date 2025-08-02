@@ -86,7 +86,6 @@ export const products = pgTable("products", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
   retailOutletId: varchar("retail_outlet_id").references(() => retailOutlets.id).notNull(),
   name: text("name").notNull(),
-  type: fuelTypeEnum("type").notNull(),
   pricePerLiter: decimal("price_per_liter", { precision: 10, scale: 2 }).notNull(),
   isActive: boolean("is_active").default(true),
   createdAt: timestamp("created_at").defaultNow(),

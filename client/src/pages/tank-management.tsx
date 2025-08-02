@@ -233,7 +233,7 @@ export default function TankManagementPage({ onBack }: TankManagementPageProps) 
                   <SelectContent>
                     {products.map((product: any) => (
                       <SelectItem key={product.id} value={product.id}>
-                        {product.name} ({product.type})
+                        {product.name}
                       </SelectItem>
                     ))}
                   </SelectContent>

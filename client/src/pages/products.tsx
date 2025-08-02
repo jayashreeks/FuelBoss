@@ -27,7 +27,6 @@ export default function ProductsPage({ onBack }: ProductsPageProps) {
   const [formData, setFormData] = useState<InsertProduct>({
     retailOutletId: "",
     name: "",
-    type: "petrol" as const,
     pricePerLiter: "0",
   });
 
@@ -103,7 +102,6 @@ export default function ProductsPage({ onBack }: ProductsPageProps) {
     setFormData({
       retailOutletId: "",
       name: "",
-      type: "petrol" as const,
       pricePerLiter: "0",
     });
     setEditingProduct(null);
@@ -143,7 +141,6 @@ export default function ProductsPage({ onBack }: ProductsPageProps) {
     setFormData({
       retailOutletId: product.retailOutletId,
       name: product.name,
-      type: product.type,
       pricePerLiter: product.pricePerLiter,
     });
     setIsDialogOpen(true);
@@ -225,22 +222,7 @@ export default function ProductsPage({ onBack }: ProductsPageProps) {
                 />
               </div>
 
-              <div className="space-y-2">
-                <Label htmlFor="type">Fuel Type</Label>
-                <Select
-                  value={formData.type}
-                  onValueChange={(value: any) => setFormData({ ...formData, type: value })}
-                >
-                  <SelectTrigger data-testid="select-fuel-type">
-                    <SelectValue placeholder="Select fuel type" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="petrol">Petrol</SelectItem>
-                    <SelectItem value="diesel">Diesel</SelectItem>
-                    <SelectItem value="premium">Premium</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
+
 
               <div className="space-y-2">
                 <Label htmlFor="pricePerLiter">Price per Liter (₹)</Label>
