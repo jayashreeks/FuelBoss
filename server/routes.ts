@@ -290,6 +290,71 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Managers routes - simple mock endpoints for now
+  app.get('/api/managers', isAuthenticated, async (req: any, res) => {
+    try {
+      // Return empty array for now since managers table doesn't exist yet
+      res.json([]);
+    } catch (error) {
+      console.error("Error fetching managers:", error);
+      res.status(500).json({ message: "Failed to fetch managers" });
+    }
+  });
+
+  app.post('/api/managers', isAuthenticated, async (req: any, res) => {
+    try {
+      // Mock successful creation
+      res.json({ 
+        id: `mock-${Date.now()}`,
+        ...req.body,
+        isActive: true,
+        createdAt: new Date(),
+        updatedAt: new Date()
+      });
+    } catch (error) {
+      console.error("Error creating manager:", error);
+      res.status(400).json({ message: "Failed to create manager" });
+    }
+  });
+
+  // Settings routes - simple mock endpoints for now
+  app.get('/api/settings', isAuthenticated, async (req: any, res) => {
+    try {
+      // Return default settings
+      res.json({
+        id: "default-settings",
+        fuelPrices: {
+          petrol: 100.00,
+          diesel: 95.00,
+          premium: 105.00
+        },
+        appSettings: {
+          enableNotifications: true,
+          autoBackup: true,
+          showLowStockAlerts: true,
+          requireShiftConfirmation: false
+        }
+      });
+    } catch (error) {
+      console.error("Error fetching settings:", error);
+      res.status(500).json({ message: "Failed to fetch settings" });
+    }
+  });
+
+  app.put('/api/settings', isAuthenticated, async (req: any, res) => {
+    try {
+      // Mock successful update
+      res.json({ 
+        id: "default-settings",
+        ...req.body,
+        updatedAt: new Date()
+      });
+    } catch (error) {
+      console.error("Error updating settings:", error);
+      res.status(400).json({ message: "Failed to update settings" });
+    }
+  });
+
   const httpServer = createServer(app);
   return httpServer;
 }

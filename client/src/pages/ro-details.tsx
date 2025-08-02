@@ -27,10 +27,9 @@ export default function RODetailsPage({ onBack }: RODetailsPageProps) {
   const [formData, setFormData] = useState({
     name: "",
     address: "",
-    contactNumber: "",
-    email: "",
-    licenseNumber: "",
-    gstNumber: "",
+    phoneNumber: "",
+    sapcode: "",
+    oilCompany: "",
   });
 
   // Update form data when retail outlet data is loaded
@@ -39,10 +38,9 @@ export default function RODetailsPage({ onBack }: RODetailsPageProps) {
       setFormData({
         name: retailOutlet.name || "",
         address: retailOutlet.address || "",
-        contactNumber: retailOutlet.contactNumber || "",
-        email: retailOutlet.email || "",
-        licenseNumber: retailOutlet.licenseNumber || "",
-        gstNumber: retailOutlet.gstNumber || "",
+        phoneNumber: retailOutlet.phoneNumber || "",
+        sapcode: retailOutlet.sapcode || "",
+        oilCompany: retailOutlet.oilCompany || "",
       });
     }
   });

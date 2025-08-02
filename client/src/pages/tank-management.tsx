@@ -19,11 +19,11 @@ interface TankManagementPageProps {
 }
 
 const tankSchema = z.object({
-  name: z.string().min(1, "Tank name is required"),
-  fuelType: z.enum(["petrol", "diesel", "cng"]),
+  tankNumber: z.string().min(1, "Tank number is required"),
+  fuelType: z.enum(["petrol", "diesel", "premium"]),
   capacity: z.number().min(1, "Capacity must be greater than 0"),
-  currentLevel: z.number().min(0, "Current level cannot be negative"),
-  minThreshold: z.number().min(0, "Minimum threshold cannot be negative"),
+  currentStock: z.number().min(0, "Current stock cannot be negative"),
+  minimumLevel: z.number().min(0, "Minimum level cannot be negative"),
 });
 
 type TankForm = z.infer<typeof tankSchema>;
@@ -42,11 +42,11 @@ export default function TankManagementPage({ onBack }: TankManagementPageProps) 
   const form = useForm<TankForm>({
     resolver: zodResolver(tankSchema),
     defaultValues: {
-      name: "",
+      tankNumber: "",
       fuelType: "petrol",
       capacity: 0,
-      currentLevel: 0,
-      minThreshold: 0,
+      currentStock: 0,
+      minimumLevel: 0,
     },
   });
 
