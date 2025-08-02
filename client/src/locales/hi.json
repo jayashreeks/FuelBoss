@@ -1,0 +1,79 @@
+{
+  "app": {
+    "name": "फ्यूलफ्लो",
+    "tagline": "पेट्रोल पंप प्रबंधन"
+  },
+  "navigation": {
+    "dashboard": "डैशबोर्ड",
+    "dataEntry": "डेटा एंट्री",
+    "staff": "स्टाफ",
+    "reports": "रिपोर्ट"
+  },
+  "menu": {
+    "roDetails": "आरओ विवरण",
+    "tankManagement": "टैंक प्रबंधन",
+    "dispensingUnits": "डिस्पेंसिंग यूनिट",
+    "managerAccess": "मैनेजर एक्सेस",
+    "languageSettings": "भाषा सेटिंग्स",
+    "settings": "सेटिंग्स"
+  },
+  "dashboard": {
+    "tankInventory": "टैंक इन्वेंटरी",
+    "shiftSales": "शिफ्ट सेल्स",
+    "currentStock": "वर्तमान स्टॉक",
+    "capacity": "क्षमता",
+    "filled": "भरा हुआ",
+    "normal": "सामान्य",
+    "lowStock": "कम स्टॉक",
+    "empty": "खाली"
+  },
+  "dataEntry": {
+    "title": "शिफ्ट डेटा एंट्री",
+    "selectShift": "शिफ्ट चुनें",
+    "manager": "मैनेजर",
+    "cashSales": "नकद बिक्री",
+    "creditSales": "क्रेडिट बिक्री",
+    "upiSales": "यूपीआई बिक्री",
+    "cardSales": "कार्ड बिक्री",
+    "submit": "डेटा सबमिट करें"
+  },
+  "staff": {
+    "title": "स्टाफ प्रबंधन",
+    "addStaff": "स्टाफ जोड़ें",
+    "active": "सक्रिय",
+    "inactive": "निष्क्रिय"
+  },
+  "reports": {
+    "title": "रिपोर्ट",
+    "salesOverview": "बिक्री अवलोकन",
+    "thisWeek": "इस सप्ताह",
+    "thisMonth": "इस महीने",
+    "paymentMethods": "भुगतान के तरीके"
+  },
+  "setup": {
+    "welcome": "फ्यूलफ्लो में आपका स्वागत है",
+    "setupRO": "आइए अपना रिटेल आउटलेट सेट करें",
+    "roName": "आरओ नाम",
+    "sapcode": "SAP कोड",
+    "oilCompany": "तेल कंपनी",
+    "address": "पता",
+    "phoneNumber": "फोन नंबर",
+    "complete": "सेटअप पूरा करें"
+  },
+  "common": {
+    "save": "सेव करें",
+    "cancel": "रद्द करें",
+    "edit": "संपादित करें",
+    "delete": "हटाएं",
+    "loading": "लोड हो रहा है...",
+    "error": "त्रुटि हुई",
+    "success": "सफलता",
+    "petrol": "पेट्रोल",
+    "diesel": "डीजल",
+    "premium": "प्रीमियम",
+    "cash": "नकद",
+    "credit": "क्रेडिट",
+    "upi": "यूपीआई",
+    "card": "कार्ड"
+  }
+}

@@ -1,0 +1,79 @@
+{
+  "app": {
+    "name": "FuelFlow",
+    "tagline": "Petrol Pump Management"
+  },
+  "navigation": {
+    "dashboard": "Dashboard",
+    "dataEntry": "Data Entry",
+    "staff": "Staff",
+    "reports": "Reports"
+  },
+  "menu": {
+    "roDetails": "RO Details",
+    "tankManagement": "Tank Management",
+    "dispensingUnits": "Dispensing Units",
+    "managerAccess": "Manager Access",
+    "languageSettings": "Language Settings",
+    "settings": "Settings"
+  },
+  "dashboard": {
+    "tankInventory": "Tank Inventory",
+    "shiftSales": "Shift Sales",
+    "currentStock": "Current Stock",
+    "capacity": "Capacity",
+    "filled": "filled",
+    "normal": "Normal",
+    "lowStock": "Low Stock",
+    "empty": "Empty"
+  },
+  "dataEntry": {
+    "title": "Shift Data Entry",
+    "selectShift": "Select Shift",
+    "manager": "Manager",
+    "cashSales": "Cash Sales",
+    "creditSales": "Credit Sales",
+    "upiSales": "UPI Sales",
+    "cardSales": "Card Sales",
+    "submit": "Submit Data"
+  },
+  "staff": {
+    "title": "Staff Management",
+    "addStaff": "Add Staff",
+    "active": "Active",
+    "inactive": "Inactive"
+  },
+  "reports": {
+    "title": "Reports",
+    "salesOverview": "Sales Overview",
+    "thisWeek": "This Week",
+    "thisMonth": "This Month",
+    "paymentMethods": "Payment Methods"
+  },
+  "setup": {
+    "welcome": "Welcome to FuelFlow",
+    "setupRO": "Let's set up your Retail Outlet",
+    "roName": "RO Name",
+    "sapcode": "SAP Code",
+    "oilCompany": "Oil Company",
+    "address": "Address",
+    "phoneNumber": "Phone Number",
+    "complete": "Complete Setup"
+  },
+  "common": {
+    "save": "Save",
+    "cancel": "Cancel",
+    "edit": "Edit",
+    "delete": "Delete",
+    "loading": "Loading...",
+    "error": "Error occurred",
+    "success": "Success",
+    "petrol": "Petrol",
+    "diesel": "Diesel",
+    "premium": "Premium",
+    "cash": "Cash",
+    "credit": "Credit",
+    "upi": "UPI",
+    "card": "Card"
+  }
+}
