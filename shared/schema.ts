@@ -58,8 +58,8 @@ export const fuelTypeEnum = pgEnum("fuel_type", ["petrol", "diesel", "premium"])
 export const tanks = pgTable("tanks", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
   retailOutletId: varchar("retail_outlet_id").references(() => retailOutlets.id).notNull(),
+  productId: varchar("product_id").references(() => products.id).notNull(),
   tankNumber: varchar("tank_number").notNull(),
-  fuelType: fuelTypeEnum("fuel_type").notNull(),
   capacity: decimal("capacity", { precision: 10, scale: 2 }).notNull(),
   currentStock: decimal("current_stock", { precision: 10, scale: 2 }).default("0"),
   minimumLevel: decimal("minimum_level", { precision: 10, scale: 2 }).default("500"),
@@ -76,6 +76,18 @@ export const dispensingUnits = pgTable("dispensing_units", {
   unitNumber: varchar("unit_number").notNull(),
   brand: varchar("brand"),
   model: varchar("model"),
+  isActive: boolean("is_active").default(true),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+// Products
+export const products = pgTable("products", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  retailOutletId: varchar("retail_outlet_id").references(() => retailOutlets.id).notNull(),
+  name: text("name").notNull(),
+  type: fuelTypeEnum("type").notNull(),
+  pricePerLiter: decimal("price_per_liter", { precision: 10, scale: 2 }).notNull(),
   isActive: boolean("is_active").default(true),
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
@@ -127,16 +139,29 @@ export const retailOutletsRelations = relations(retailOutlets, ({ one, many }) =
     fields: [retailOutlets.ownerId],
     references: [users.id],
   }),
+  products: many(products),
   tanks: many(tanks),
   dispensingUnits: many(dispensingUnits),
   staff: many(staff),
   shiftSales: many(shiftSales),
 }));
 
+export const productsRelations = relations(products, ({ one, many }) => ({
+  retailOutlet: one(retailOutlets, {
+    fields: [products.retailOutletId],
+    references: [retailOutlets.id],
+  }),
+  tanks: many(tanks),
+}));
+
 export const tanksRelations = relations(tanks, ({ one, many }) => ({
   retailOutlet: one(retailOutlets, {
     fields: [tanks.retailOutletId],
     references: [retailOutlets.id],
+  }),
+  product: one(products, {
+    fields: [tanks.productId],
+    references: [products.id],
   }),
   dispensingUnits: many(dispensingUnits),
 }));
@@ -206,6 +231,12 @@ export const insertShiftSalesSchema = createInsertSchema(shiftSales).omit({
   updatedAt: true,
 });
 
+export const insertProductSchema = createInsertSchema(products).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
 // Types
 export type UpsertUser = typeof users.$inferInsert;
 export type User = typeof users.$inferSelect;
@@ -219,3 +250,5 @@ export type InsertStaff = z.infer<typeof insertStaffSchema>;
 export type Staff = typeof staff.$inferSelect;
 export type InsertShiftSales = z.infer<typeof insertShiftSalesSchema>;
 export type ShiftSales = typeof shiftSales.$inferSelect;
+export type InsertProduct = z.infer<typeof insertProductSchema>;
+export type Product = typeof products.$inferSelect;

@@ -20,7 +20,7 @@ interface TankManagementPageProps {
 
 const tankSchema = z.object({
   tankNumber: z.string().min(1, "Tank number is required"),
-  fuelType: z.enum(["petrol", "diesel", "premium"]),
+  productId: z.string().min(1, "Product is required"),
   capacity: z.number().min(1, "Capacity must be greater than 0"),
   currentStock: z.number().min(0, "Current stock cannot be negative"),
   minimumLevel: z.number().min(0, "Minimum level cannot be negative"),
@@ -39,11 +39,15 @@ export default function TankManagementPage({ onBack }: TankManagementPageProps) 
     queryKey: ["/api/tanks"],
   });
 
+  const { data: products = [] } = useQuery({
+    queryKey: ["/api/products"],
+  });
+
   const form = useForm<TankForm>({
     resolver: zodResolver(tankSchema),
     defaultValues: {
       tankNumber: "",
-      fuelType: "petrol",
+      productId: "",
       capacity: 0,
       currentStock: 0,
       minimumLevel: 0,
@@ -52,10 +56,7 @@ export default function TankManagementPage({ onBack }: TankManagementPageProps) 
 
   const createMutation = useMutation({
     mutationFn: async (data: TankForm) => {
-      return apiRequest("/api/tanks", {
-        method: "POST",
-        body: data,
-      });
+      return apiRequest("/api/tanks", "POST", data);
     },
     onSuccess: () => {
       toast({
@@ -77,10 +78,7 @@ export default function TankManagementPage({ onBack }: TankManagementPageProps) 
 
   const updateMutation = useMutation({
     mutationFn: async ({ id, data }: { id: string; data: TankForm }) => {
-      return apiRequest(`/api/tanks/${id}`, {
-        method: "PATCH",
-        body: data,
-      });
+      return apiRequest(`/api/tanks/${id}`, "PUT", data);
     },
     onSuccess: () => {
       toast({
@@ -103,9 +101,7 @@ export default function TankManagementPage({ onBack }: TankManagementPageProps) 
 
   const deleteMutation = useMutation({
     mutationFn: async (id: string) => {
-      return apiRequest(`/api/tanks/${id}`, {
-        method: "DELETE",
-      });
+      return apiRequest(`/api/tanks/${id}`, "DELETE");
     },
     onSuccess: () => {
       toast({
@@ -134,11 +130,11 @@ export default function TankManagementPage({ onBack }: TankManagementPageProps) 
   const handleEdit = (tank: any) => {
     setEditingTank(tank);
     form.reset({
-      name: tank.name,
-      fuelType: tank.fuelType,
+      tankNumber: tank.tankNumber,
+      productId: tank.productId,
       capacity: tank.capacity,
-      currentLevel: tank.currentLevel,
-      minThreshold: tank.minThreshold,
+      currentStock: tank.currentStock,
+      minimumLevel: tank.minimumLevel,
     });
     setIsDialogOpen(true);
   };
@@ -213,63 +209,78 @@ export default function TankManagementPage({ onBack }: TankManagementPageProps) 
             </DialogHeader>
             <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-4">
               <div className="space-y-2">
-                <Label htmlFor="name">{t("tankManagement.tankName")}</Label>
+                <Label htmlFor="tankNumber">Tank Number</Label>
                 <Input
-                  id="name"
-                  {...form.register("name")}
-                  data-testid="input-tank-name"
+                  id="tankNumber"
+                  {...form.register("tankNumber")}
+                  data-testid="input-tank-number"
+                  placeholder="Tank 1, Tank 2, etc."
                 />
-                {form.formState.errors.name && (
-                  <p className="text-sm text-red-600">{form.formState.errors.name.message}</p>
+                {form.formState.errors.tankNumber && (
+                  <p className="text-sm text-red-600">{form.formState.errors.tankNumber.message}</p>
                 )}
               </div>
 
               <div className="space-y-2">
-                <Label>{t("tankManagement.fuelType")}</Label>
+                <Label>Product</Label>
                 <Select
-                  value={form.watch("fuelType")}
-                  onValueChange={(value) => form.setValue("fuelType", value as any)}
+                  value={form.watch("productId")}
+                  onValueChange={(value) => form.setValue("productId", value)}
                 >
-                  <SelectTrigger data-testid="select-fuel-type">
-                    <SelectValue />
+                  <SelectTrigger data-testid="select-product">
+                    <SelectValue placeholder="Select a product" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="petrol">{t("tankManagement.petrol")}</SelectItem>
-                    <SelectItem value="diesel">{t("tankManagement.diesel")}</SelectItem>
-                    <SelectItem value="cng">{t("tankManagement.cng")}</SelectItem>
+                    {products.map((product: any) => (
+                      <SelectItem key={product.id} value={product.id}>
+                        {product.name} ({product.type})
+                      </SelectItem>
+                    ))}
                   </SelectContent>
                 </Select>
+                {form.formState.errors.productId && (
+                  <p className="text-sm text-red-600">{form.formState.errors.productId.message}</p>
+                )}
               </div>
 
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <Label htmlFor="capacity">{t("tankManagement.capacity")} (L)</Label>
+                  <Label htmlFor="capacity">Capacity (L)</Label>
                   <Input
                     id="capacity"
                     type="number"
                     {...form.register("capacity", { valueAsNumber: true })}
                     data-testid="input-capacity"
                   />
+                  {form.formState.errors.capacity && (
+                    <p className="text-sm text-red-600">{form.formState.errors.capacity.message}</p>
+                  )}
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="currentLevel">{t("tankManagement.currentLevel")} (L)</Label>
+                  <Label htmlFor="currentStock">Current Stock (L)</Label>
                   <Input
-                    id="currentLevel"
+                    id="currentStock"
                     type="number"
-                    {...form.register("currentLevel", { valueAsNumber: true })}
-                    data-testid="input-current-level"
+                    {...form.register("currentStock", { valueAsNumber: true })}
+                    data-testid="input-current-stock"
                   />
+                  {form.formState.errors.currentStock && (
+                    <p className="text-sm text-red-600">{form.formState.errors.currentStock.message}</p>
+                  )}
                 </div>
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="minThreshold">{t("tankManagement.minThreshold")} (L)</Label>
+                <Label htmlFor="minimumLevel">Minimum Level (L)</Label>
                 <Input
-                  id="minThreshold"
+                  id="minimumLevel"
                   type="number"
-                  {...form.register("minThreshold", { valueAsNumber: true })}
-                  data-testid="input-min-threshold"
+                  {...form.register("minimumLevel", { valueAsNumber: true })}
+                  data-testid="input-minimum-level"
                 />
+                {form.formState.errors.minimumLevel && (
+                  <p className="text-sm text-red-600">{form.formState.errors.minimumLevel.message}</p>
+                )}
               </div>
 
               <div className="flex space-x-3 pt-4">

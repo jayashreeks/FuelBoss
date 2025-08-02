@@ -20,6 +20,7 @@ import Reports from "@/pages/reports";
 import Setup from "@/pages/setup";
 import NotFound from "@/pages/not-found";
 import RODetailsPage from "@/pages/ro-details";
+import ProductsPage from "@/pages/products";
 import TankManagementPage from "@/pages/tank-management";
 import DispensingUnitsPage from "@/pages/dispensing-units";
 import ManagerAccessPage from "@/pages/manager-access";
@@ -92,6 +93,8 @@ function MainApp() {
       switch (currentPage) {
         case "roDetails":
           return <RODetailsPage onBack={handleBackToMain} />;
+        case "products":
+          return <ProductsPage onBack={handleBackToMain} />;
         case "tankManagement":
           return <TankManagementPage onBack={handleBackToMain} />;
         case "dispensingUnits":

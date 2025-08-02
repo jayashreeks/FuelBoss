@@ -1,6 +1,7 @@
 import {
   users,
   retailOutlets,
+  products,
   tanks,
   dispensingUnits,
   staff,
@@ -9,6 +10,8 @@ import {
   type UpsertUser,
   type RetailOutlet,
   type InsertRetailOutlet,
+  type Product,
+  type InsertProduct,
   type Tank,
   type InsertTank,
   type DispensingUnit,
@@ -30,6 +33,12 @@ export interface IStorage {
   getRetailOutletByOwnerId(ownerId: string): Promise<RetailOutlet | undefined>;
   createRetailOutlet(outlet: InsertRetailOutlet): Promise<RetailOutlet>;
   updateRetailOutlet(id: string, outlet: Partial<InsertRetailOutlet>): Promise<RetailOutlet>;
+  
+  // Product operations
+  getProductsByRetailOutletId(retailOutletId: string): Promise<Product[]>;
+  createProduct(product: InsertProduct): Promise<Product>;
+  updateProduct(id: string, product: Partial<InsertProduct>): Promise<Product>;
+  deleteProduct(id: string): Promise<void>;
   
   // Tank operations
   getTanksByRetailOutletId(retailOutletId: string): Promise<Tank[]>;
@@ -111,6 +120,39 @@ export class DatabaseStorage implements IStorage {
       .where(eq(retailOutlets.id, id))
       .returning();
     return updatedOutlet;
+  }
+
+  // Product operations
+  async getProductsByRetailOutletId(retailOutletId: string): Promise<Product[]> {
+    return await db
+      .select()
+      .from(products)
+      .where(and(eq(products.retailOutletId, retailOutletId), eq(products.isActive, true)))
+      .orderBy(products.name);
+  }
+
+  async createProduct(product: InsertProduct): Promise<Product> {
+    const [newProduct] = await db
+      .insert(products)
+      .values(product)
+      .returning();
+    return newProduct;
+  }
+
+  async updateProduct(id: string, product: Partial<InsertProduct>): Promise<Product> {
+    const [updatedProduct] = await db
+      .update(products)
+      .set({ ...product, updatedAt: new Date() })
+      .where(eq(products.id, id))
+      .returning();
+    return updatedProduct;
+  }
+
+  async deleteProduct(id: string): Promise<void> {
+    await db
+      .update(products)
+      .set({ isActive: false, updatedAt: new Date() })
+      .where(eq(products.id, id));
   }
 
   // Tank operations

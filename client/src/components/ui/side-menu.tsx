@@ -6,6 +6,7 @@ import {
   Menu, 
   X, 
   Fuel, 
+  Package,
   Truck, 
   Gauge as GaugeIcon, 
   Users, 
@@ -36,6 +37,11 @@ export function SideMenu({ onMenuItemClick }: SideMenuProps) {
       id: "roDetails",
       label: t("menu.roDetails"),
       icon: Fuel,
+    },
+    {
+      id: "products",
+      label: "Products",
+      icon: Package,
     },
     {
       id: "tankManagement",

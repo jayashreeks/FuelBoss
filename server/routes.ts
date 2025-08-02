@@ -4,6 +4,7 @@ import { storage } from "./storage";
 import { setupAuth, isAuthenticated } from "./replitAuth";
 import {
   insertRetailOutletSchema,
+  insertProductSchema,
   insertTankSchema,
   insertDispensingUnitSchema,
   insertStaffSchema,
@@ -62,6 +63,64 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Error updating retail outlet:", error);
       res.status(400).json({ message: "Failed to update retail outlet" });
+    }
+  });
+
+  // Product routes
+  app.get('/api/products', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const outlet = await storage.getRetailOutletByOwnerId(userId);
+      if (!outlet) {
+        return res.status(404).json({ message: "Retail outlet not found" });
+      }
+      const products = await storage.getProductsByRetailOutletId(outlet.id);
+      res.json(products);
+    } catch (error) {
+      console.error("Error fetching products:", error);
+      res.status(500).json({ message: "Failed to fetch products" });
+    }
+  });
+
+  app.post('/api/products', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const outlet = await storage.getRetailOutletByOwnerId(userId);
+      if (!outlet) {
+        return res.status(404).json({ message: "Retail outlet not found" });
+      }
+      const validatedData = insertProductSchema.parse({
+        ...req.body,
+        retailOutletId: outlet.id,
+      });
+      const product = await storage.createProduct(validatedData);
+      res.json(product);
+    } catch (error) {
+      console.error("Error creating product:", error);
+      res.status(400).json({ message: "Failed to create product" });
+    }
+  });
+
+  app.put('/api/products/:id', isAuthenticated, async (req: any, res) => {
+    try {
+      const { id } = req.params;
+      const validatedData = insertProductSchema.partial().parse(req.body);
+      const product = await storage.updateProduct(id, validatedData);
+      res.json(product);
+    } catch (error) {
+      console.error("Error updating product:", error);
+      res.status(400).json({ message: "Failed to update product" });
+    }
+  });
+
+  app.delete('/api/products/:id', isAuthenticated, async (req: any, res) => {
+    try {
+      const { id } = req.params;
+      await storage.deleteProduct(id);
+      res.json({ message: "Product deleted successfully" });
+    } catch (error) {
+      console.error("Error deleting product:", error);
+      res.status(500).json({ message: "Failed to delete product" });
     }
   });
 
