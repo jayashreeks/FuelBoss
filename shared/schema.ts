@@ -47,22 +47,26 @@ export const retailOutlets = pgTable("retail_outlets", {
   oilCompany: varchar("oil_company"),
   address: text("address"),
   phoneNumber: varchar("phone_number"),
+  contactNumber: varchar("contact_number"),
+  email: varchar("email"),
+  licenseNumber: varchar("license_number"),
+  gstNumber: varchar("gst_number"),
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
 });
 
 // Fuel Types
-export const fuelTypeEnum = pgEnum("fuel_type", ["petrol", "diesel", "premium"]);
+export const fuelTypeEnum = pgEnum("fuel_type", ["petrol", "diesel", "cng"]);
 
 // Tanks
 export const tanks = pgTable("tanks", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
   retailOutletId: varchar("retail_outlet_id").references(() => retailOutlets.id).notNull(),
-  tankNumber: varchar("tank_number").notNull(),
+  name: text("name").notNull(),
   fuelType: fuelTypeEnum("fuel_type").notNull(),
   capacity: decimal("capacity", { precision: 10, scale: 2 }).notNull(),
-  currentStock: decimal("current_stock", { precision: 10, scale: 2 }).default("0"),
-  minimumLevel: decimal("minimum_level", { precision: 10, scale: 2 }).default("500"),
+  currentLevel: decimal("current_level", { precision: 10, scale: 2 }).default("0"),
+  minThreshold: decimal("min_threshold", { precision: 10, scale: 2 }).default("500"),
   isActive: boolean("is_active").default(true),
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
@@ -73,9 +77,8 @@ export const dispensingUnits = pgTable("dispensing_units", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
   retailOutletId: varchar("retail_outlet_id").references(() => retailOutlets.id).notNull(),
   tankId: varchar("tank_id").references(() => tanks.id).notNull(),
-  unitNumber: varchar("unit_number").notNull(),
-  brand: varchar("brand"),
-  model: varchar("model"),
+  name: text("name").notNull(),
+  nozzles: integer("nozzles").notNull().default(2),
   isActive: boolean("is_active").default(true),
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
@@ -90,6 +93,29 @@ export const staff = pgTable("staff", {
   phoneNumber: varchar("phone_number"),
   role: varchar("role").notNull(), // manager, operator, attendant
   isActive: boolean("is_active").default(true),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+// Managers
+export const managers = pgTable("managers", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  retailOutletId: varchar("retail_outlet_id").references(() => retailOutlets.id).notNull(),
+  name: text("name").notNull(),
+  email: varchar("email").notNull(),
+  phone: varchar("phone").notNull(),
+  permissions: jsonb("permissions").notNull(),
+  isActive: boolean("is_active").default(true),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+// Settings
+export const settings = pgTable("settings", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  retailOutletId: varchar("retail_outlet_id").references(() => retailOutlets.id).notNull(),
+  fuelPrices: jsonb("fuel_prices"),
+  appSettings: jsonb("app_settings"),
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
 });
@@ -130,6 +156,8 @@ export const retailOutletsRelations = relations(retailOutlets, ({ one, many }) =
   tanks: many(tanks),
   dispensingUnits: many(dispensingUnits),
   staff: many(staff),
+  managers: many(managers),
+  settings: many(settings),
   shiftSales: many(shiftSales),
 }));
 
@@ -175,6 +203,20 @@ export const shiftSalesRelations = relations(shiftSales, ({ one }) => ({
   }),
 }));
 
+export const managersRelations = relations(managers, ({ one }) => ({
+  retailOutlet: one(retailOutlets, {
+    fields: [managers.retailOutletId],
+    references: [retailOutlets.id],
+  }),
+}));
+
+export const settingsRelations = relations(settings, ({ one }) => ({
+  retailOutlet: one(retailOutlets, {
+    fields: [settings.retailOutletId],
+    references: [retailOutlets.id],
+  }),
+}));
+
 // Insert schemas
 export const insertRetailOutletSchema = createInsertSchema(retailOutlets).omit({
   id: true,
@@ -206,6 +248,18 @@ export const insertShiftSalesSchema = createInsertSchema(shiftSales).omit({
   updatedAt: true,
 });
 
+export const insertManagerSchema = createInsertSchema(managers).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export const insertSettingsSchema = createInsertSchema(settings).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
 // Types
 export type UpsertUser = typeof users.$inferInsert;
 export type User = typeof users.$inferSelect;
@@ -219,3 +273,7 @@ export type InsertStaff = z.infer<typeof insertStaffSchema>;
 export type Staff = typeof staff.$inferSelect;
 export type InsertShiftSales = z.infer<typeof insertShiftSalesSchema>;
 export type ShiftSales = typeof shiftSales.$inferSelect;
+export type InsertManager = z.infer<typeof insertManagerSchema>;
+export type Manager = typeof managers.$inferSelect;
+export type InsertSettings = z.infer<typeof insertSettingsSchema>;
+export type Settings = typeof settings.$inferSelect;

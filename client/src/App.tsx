@@ -19,12 +19,18 @@ import StaffManagement from "@/pages/staff-management";
 import Reports from "@/pages/reports";
 import Setup from "@/pages/setup";
 import NotFound from "@/pages/not-found";
+import RODetailsPage from "@/pages/ro-details";
+import TankManagementPage from "@/pages/tank-management";
+import DispensingUnitsPage from "@/pages/dispensing-units";
+import ManagerAccessPage from "@/pages/manager-access";
+import SettingsPage from "@/pages/settings";
 
 function MainApp() {
   const { user, isAuthenticated, isLoading } = useAuth();
   const { t, i18n } = useTranslation();
   const [activeTab, setActiveTab] = useState("dashboard");
   const [showSetup, setShowSetup] = useState(false);
+  const [currentPage, setCurrentPage] = useState<string | null>(null);
 
   // Check if user has retail outlet setup
   const { data: retailOutlet, isLoading: outletLoading } = useQuery({
@@ -53,8 +59,12 @@ function MainApp() {
   };
 
   const handleMenuItemClick = (item: string) => {
-    // Handle menu item clicks - could show modals or navigate to different views
     console.log("Menu item clicked:", item);
+    setCurrentPage(item);
+  };
+
+  const handleBackToMain = () => {
+    setCurrentPage(null);
   };
 
   if (isLoading || (isAuthenticated && outletLoading)) {
@@ -77,6 +87,25 @@ function MainApp() {
   }
 
   const renderActiveContent = () => {
+    // If a menu page is selected, show that instead of tab content
+    if (currentPage) {
+      switch (currentPage) {
+        case "roDetails":
+          return <RODetailsPage onBack={handleBackToMain} />;
+        case "tankManagement":
+          return <TankManagementPage onBack={handleBackToMain} />;
+        case "dispensingUnits":
+          return <DispensingUnitsPage onBack={handleBackToMain} />;
+        case "managerAccess":
+          return <ManagerAccessPage onBack={handleBackToMain} />;
+        case "settings":
+          return <SettingsPage onBack={handleBackToMain} />;
+        default:
+          return <Dashboard />;
+      }
+    }
+
+    // Otherwise show tab-based content
     switch (activeTab) {
       case "dashboard":
         return <Dashboard />;
@@ -130,8 +159,10 @@ function MainApp() {
         {renderActiveContent()}
       </main>
 
-      {/* Bottom Navigation */}
-      <BottomNavigation activeTab={activeTab} onTabChange={setActiveTab} />
+      {/* Bottom Navigation - hide when viewing menu pages */}
+      {!currentPage && (
+        <BottomNavigation activeTab={activeTab} onTabChange={setActiveTab} />
+      )}
     </div>
   );
 }
