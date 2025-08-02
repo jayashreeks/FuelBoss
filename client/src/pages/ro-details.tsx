@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useTranslation } from "react-i18next";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
@@ -33,7 +33,7 @@ export default function RODetailsPage({ onBack }: RODetailsPageProps) {
   });
 
   // Update form data when retail outlet data is loaded
-  useState(() => {
+  useEffect(() => {
     if (retailOutlet) {
       setFormData({
         name: retailOutlet.name || "",
@@ -43,12 +43,12 @@ export default function RODetailsPage({ onBack }: RODetailsPageProps) {
         oilCompany: retailOutlet.oilCompany || "",
       });
     }
-  });
+  }, [retailOutlet]);
 
   const updateMutation = useMutation({
     mutationFn: async (data: any) => {
       return apiRequest(`/api/retail-outlet/${retailOutlet.id}`, {
-        method: "PATCH",
+        method: "PUT",
         body: data,
       });
     },
@@ -79,10 +79,9 @@ export default function RODetailsPage({ onBack }: RODetailsPageProps) {
       setFormData({
         name: retailOutlet.name || "",
         address: retailOutlet.address || "",
-        contactNumber: retailOutlet.contactNumber || "",
-        email: retailOutlet.email || "",
-        licenseNumber: retailOutlet.licenseNumber || "",
-        gstNumber: retailOutlet.gstNumber || "",
+        phoneNumber: retailOutlet.phoneNumber || "",
+        sapcode: retailOutlet.sapcode || "",
+        oilCompany: retailOutlet.oilCompany || "",
       });
     }
     setIsEditing(false);
@@ -162,13 +161,13 @@ export default function RODetailsPage({ onBack }: RODetailsPageProps) {
 
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label htmlFor="contactNumber">{t("roDetails.contactNumber")}</Label>
+                <Label htmlFor="phoneNumber">{t("setup.phoneNumber")}</Label>
                 <div className="relative">
                   <Phone className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
                   <Input
-                    id="contactNumber"
-                    value={formData.contactNumber}
-                    onChange={(e) => setFormData({ ...formData, contactNumber: e.target.value })}
+                    id="phoneNumber"
+                    value={formData.phoneNumber}
+                    onChange={(e) => setFormData({ ...formData, phoneNumber: e.target.value })}
                     disabled={!isEditing}
                     className="pl-10"
                     data-testid="input-contact"
@@ -177,44 +176,26 @@ export default function RODetailsPage({ onBack }: RODetailsPageProps) {
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="email">{t("roDetails.email")}</Label>
-                <div className="relative">
-                  <Mail className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
-                  <Input
-                    id="email"
-                    type="email"
-                    value={formData.email}
-                    onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                    disabled={!isEditing}
-                    className="pl-10"
-                    data-testid="input-email"
-                  />
-                </div>
+                <Label htmlFor="sapcode">{t("setup.sapcode")}</Label>
+                <Input
+                  id="sapcode"
+                  value={formData.sapcode}
+                  onChange={(e) => setFormData({ ...formData, sapcode: e.target.value })}
+                  disabled={!isEditing}
+                  data-testid="input-sapcode"
+                />
               </div>
             </div>
 
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label htmlFor="licenseNumber">{t("roDetails.licenseNumber")}</Label>
-                <Input
-                  id="licenseNumber"
-                  value={formData.licenseNumber}
-                  onChange={(e) => setFormData({ ...formData, licenseNumber: e.target.value })}
-                  disabled={!isEditing}
-                  data-testid="input-license"
-                />
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="gstNumber">{t("roDetails.gstNumber")}</Label>
-                <Input
-                  id="gstNumber"
-                  value={formData.gstNumber}
-                  onChange={(e) => setFormData({ ...formData, gstNumber: e.target.value })}
-                  disabled={!isEditing}
-                  data-testid="input-gst"
-                />
-              </div>
+            <div className="space-y-2">
+              <Label htmlFor="oilCompany">{t("setup.oilCompany")}</Label>
+              <Input
+                id="oilCompany"
+                value={formData.oilCompany}
+                onChange={(e) => setFormData({ ...formData, oilCompany: e.target.value })}
+                disabled={!isEditing}
+                data-testid="input-oil-company"
+              />
             </div>
 
             {isEditing && (
