@@ -265,7 +265,8 @@ export default function TankManagementPage({ onBack }: TankManagementPageProps) 
                   <Input
                     id="length"
                     type="number"
-                    step="0.1"
+                    step="0.01"
+                    placeholder="e.g. 1.5"
                     {...form.register("length", { valueAsNumber: true })}
                     data-testid="input-length"
                   />
@@ -278,7 +279,8 @@ export default function TankManagementPage({ onBack }: TankManagementPageProps) 
                   <Input
                     id="diameter"
                     type="number"
-                    step="0.1"
+                    step="0.01"
+                    placeholder="e.g. 2.5"
                     {...form.register("diameter", { valueAsNumber: true })}
                     data-testid="input-diameter"
                   />
