@@ -210,7 +210,7 @@ export default function DispensingUnitsPage({ onBack }: DispensingUnitsPageProps
               {t("dispensingUnits.addDU")}
             </Button>
           </DialogTrigger>
-          <DialogContent>
+          <DialogContent className="max-h-[90vh] overflow-y-auto">
             <DialogHeader>
               <DialogTitle>
                 {editingDU ? t("dispensingUnits.editDU") : t("dispensingUnits.addDU")}
@@ -219,7 +219,8 @@ export default function DispensingUnitsPage({ onBack }: DispensingUnitsPageProps
                 {editingDU ? t("dispensingUnits.editDescription") : t("dispensingUnits.addDescription")}
               </DialogDescription>
             </DialogHeader>
-            <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-4">
+            <div className="max-h-[60vh] overflow-y-auto pr-2">
+              <form id="du-form" onSubmit={form.handleSubmit(handleSubmit)} className="space-y-4">
               <div className="space-y-2">
                 <Label htmlFor="name">{t("dispensingUnits.duName")}</Label>
                 <Input
@@ -310,27 +311,29 @@ export default function DispensingUnitsPage({ onBack }: DispensingUnitsPageProps
                 ))}
               </div>
 
-              <div className="flex space-x-3 pt-4">
-                <Button
-                  type="submit"
-                  disabled={createMutation.isPending || updateMutation.isPending}
-                  className="flex-1"
-                  data-testid="save-du-button"
-                >
-                  {(createMutation.isPending || updateMutation.isPending) ? 
-                    t("common.saving") : t("common.save")}
-                </Button>
-                <Button
-                  type="button"
-                  variant="outline"
-                  onClick={() => setIsDialogOpen(false)}
-                  className="flex-1"
-                  data-testid="cancel-du-button"
-                >
-                  {t("common.cancel")}
-                </Button>
-              </div>
-            </form>
+              </form>
+            </div>
+            <div className="flex space-x-3 pt-4 border-t bg-white sticky bottom-0">
+              <Button
+                type="submit"
+                form="du-form"
+                disabled={createMutation.isPending || updateMutation.isPending}
+                className="flex-1"
+                data-testid="save-du-button"
+              >
+                {(createMutation.isPending || updateMutation.isPending) ? 
+                  t("common.saving") : t("common.save")}
+              </Button>
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => setIsDialogOpen(false)}
+                className="flex-1"
+                data-testid="cancel-du-button"
+              >
+                {t("common.cancel")}
+              </Button>
+            </div>
           </DialogContent>
         </Dialog>
       </div>
