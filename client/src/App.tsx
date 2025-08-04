@@ -89,9 +89,13 @@ function MainApp() {
 
   if (!isAnyUserAuthenticated) {
     // Handle routing for non-authenticated users
-    if (window.location.pathname === '/login') {
+    const pathname = window.location.pathname;
+    
+    if (pathname === '/login') {
       return <UnifiedLogin />;
     }
+    
+    // Default to landing page for root and unknown routes
     return <Landing />;
   }
 

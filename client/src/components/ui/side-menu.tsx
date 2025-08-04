@@ -86,9 +86,17 @@ export function SideMenu({ onMenuItemClick, currentUser, userRole = "dealer" }: 
     setOpen(false);
   };
 
-  const handleLogout = () => {
+  const handleLogout = async () => {
     if (userRole === "manager") {
-      // Manager logout - simple session clear
+      try {
+        // Manager logout - clear session via API
+        await fetch("/api/manager/logout", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" }
+        });
+      } catch (error) {
+        console.error("Logout error:", error);
+      }
       window.location.href = "/login";
     } else {
       // Dealer logout via Replit Auth

@@ -504,6 +504,27 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Manager logout endpoint
+  app.post('/api/manager/logout', async (req, res) => {
+    try {
+      const session = req.session as any;
+      session.managerId = null;
+      session.userType = null;
+      
+      req.session.destroy((err) => {
+        if (err) {
+          console.error("Session destruction error:", err);
+          return res.status(500).json({ success: false, message: "Logout failed" });
+        }
+        res.clearCookie('connect.sid');
+        res.json({ success: true, message: "Logged out successfully" });
+      });
+    } catch (error) {
+      console.error("Manager logout error:", error);
+      res.status(500).json({ success: false, message: "Logout failed" });
+    }
+  });
+
   const httpServer = createServer(app);
   return httpServer;
 }
