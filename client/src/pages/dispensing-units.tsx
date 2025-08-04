@@ -52,22 +52,20 @@ export default function DispensingUnitsPage({ onBack }: DispensingUnitsPageProps
     queryKey: ["/api/tanks"],
   });
 
+  const getDefaultCalibrationDate = () => {
+    const date = new Date();
+    date.setFullYear(date.getFullYear() + 1);
+    return date;
+  };
+
   const form = useForm<DUForm>({
     resolver: zodResolver(duSchema),
     defaultValues: {
       name: "",
       numberOfNozzles: 2,
       nozzles: [
-        { tankId: "", calibrationValidUntil: (() => {
-          const date = new Date();
-          date.setFullYear(date.getFullYear() + 1);
-          return date;
-        })() },
-        { tankId: "", calibrationValidUntil: (() => {
-          const date = new Date();
-          date.setFullYear(date.getFullYear() + 1);
-          return date;
-        })() }
+        { tankId: "", calibrationValidUntil: getDefaultCalibrationDate() },
+        { tankId: "", calibrationValidUntil: getDefaultCalibrationDate() }
       ],
     },
   });
@@ -77,11 +75,9 @@ export default function DispensingUnitsPage({ onBack }: DispensingUnitsPageProps
   // Update nozzles array when number of nozzles changes
   useEffect(() => {
     const currentNozzles = form.getValues("nozzles");
-    const defaultCalibrationDate = new Date();
-    defaultCalibrationDate.setFullYear(defaultCalibrationDate.getFullYear() + 1); // 1 year from today
     
     const newNozzles = Array.from({ length: numberOfNozzles }, (_, index) => 
-      currentNozzles[index] || { tankId: "", calibrationValidUntil: defaultCalibrationDate }
+      currentNozzles[index] || { tankId: "", calibrationValidUntil: getDefaultCalibrationDate() }
     );
     form.setValue("nozzles", newNozzles);
   }, [numberOfNozzles, form]);
@@ -174,7 +170,14 @@ export default function DispensingUnitsPage({ onBack }: DispensingUnitsPageProps
 
   const handleAddNew = () => {
     setEditingDU(null);
-    form.reset();
+    form.reset({
+      name: "",
+      numberOfNozzles: 2,
+      nozzles: [
+        { tankId: "", calibrationValidUntil: getDefaultCalibrationDate() },
+        { tankId: "", calibrationValidUntil: getDefaultCalibrationDate() }
+      ],
+    });
     setIsDialogOpen(true);
   };
 
