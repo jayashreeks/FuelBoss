@@ -110,7 +110,6 @@ export const staff = pgTable("staff", {
   name: text("name").notNull(),
   phoneNumber: varchar("phone_number"),
   role: varchar("role").notNull(), // manager, attendant
-  loginId: varchar("login_id"), // User ID for manager login
   password: varchar("password"), // Password for manager login (only for managers)
   isActive: boolean("is_active").default(true),
   createdAt: timestamp("created_at").defaultNow(),

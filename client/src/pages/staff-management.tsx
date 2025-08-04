@@ -22,17 +22,16 @@ const staffSchema = z.object({
   name: z.string().min(1, "Name is required"),
   phoneNumber: z.string().optional(),
   role: z.string().min(1, "Role is required"),
-  loginId: z.string().optional(),
   password: z.string().optional(),
 }).refine((data) => {
-  // If role is manager, require loginId and password
+  // If role is manager, require phoneNumber and password
   if (data.role === "manager") {
-    return data.loginId && data.loginId.length > 0 && data.password && data.password.length > 0;
+    return data.phoneNumber && data.phoneNumber.length > 0 && data.password && data.password.length > 0;
   }
   return true;
 }, {
-  message: "Login ID and Password are required for managers",
-  path: ["loginId"],
+  message: "Phone number and Password are required for managers",
+  path: ["phoneNumber"],
 });
 
 type StaffForm = z.infer<typeof staffSchema>;
@@ -54,7 +53,6 @@ export default function StaffManagement() {
       name: "",
       phoneNumber: "",
       role: "",
-      loginId: "",
       password: "",
     },
   });
@@ -164,7 +162,6 @@ export default function StaffManagement() {
       name: staff.name,
       phoneNumber: staff.phoneNumber || "",
       role: staff.role,
-      loginId: staff.loginId || "",
       password: staff.password || "",
     });
     setIsDialogOpen(true);
@@ -182,7 +179,6 @@ export default function StaffManagement() {
       name: "",
       phoneNumber: "",
       role: "",
-      loginId: "",
       password: "",
     });
     setIsDialogOpen(true);
@@ -253,7 +249,12 @@ export default function StaffManagement() {
                   name="phoneNumber"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Phone Number</FormLabel>
+                      <FormLabel>
+                        Phone Number 
+                        {form.watch("role") === "manager" && (
+                          <span className="text-blue-600 text-xs ml-1">(Login ID)</span>
+                        )}
+                      </FormLabel>
                       <FormControl>
                         <Input placeholder="Enter phone number" {...field} data-testid="input-staff-phone" />
                       </FormControl>
@@ -284,42 +285,26 @@ export default function StaffManagement() {
                   )}
                 />
 
-                {/* Login credentials - only show for managers */}
+                {/* Password field - only show for managers */}
                 {form.watch("role") === "manager" && (
-                  <>
-                    <FormField
-                      control={form.control}
-                      name="loginId"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Login ID (User ID)</FormLabel>
-                          <FormControl>
-                            <Input placeholder="Enter login ID for manager" {...field} data-testid="input-staff-login-id" />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-
-                    <FormField
-                      control={form.control}
-                      name="password"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Password</FormLabel>
-                          <FormControl>
-                            <Input 
-                              type="password" 
-                              placeholder="Enter password for manager" 
-                              {...field} 
-                              data-testid="input-staff-password" 
-                            />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                  </>
+                  <FormField
+                    control={form.control}
+                    name="password"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Password</FormLabel>
+                        <FormControl>
+                          <Input 
+                            type="password" 
+                            placeholder="Enter password for manager" 
+                            {...field} 
+                            data-testid="input-staff-password" 
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
                 )}
 
                 <div className="flex gap-2 pt-4">

@@ -37,10 +37,10 @@ export function StaffCard({ staffMember, onEdit, onDelete }: StaffCardProps) {
                   {staffMember.phoneNumber}
                 </p>
               )}
-              {staffMember.role === "manager" && staffMember.loginId && (
+              {staffMember.role === "manager" && staffMember.phoneNumber && (
                 <div className="space-y-1">
                   <p className="text-xs text-blue-600 font-medium" data-testid={`staff-login-${staffMember.id}`}>
-                    Login ID: {staffMember.loginId}
+                    Login ID: {staffMember.phoneNumber}
                   </p>
                   {staffMember.password && (
                     <div className="flex items-center space-x-2">
