@@ -20,14 +20,8 @@ interface ManagerAccessPageProps {
 
 const managerSchema = z.object({
   name: z.string().min(1, "Manager name is required"),
-  email: z.string().email("Valid email is required"),
-  phone: z.string().min(10, "Valid phone number is required"),
-  permissions: z.object({
-    canViewReports: z.boolean(),
-    canManageStaff: z.boolean(),
-    canEditPrices: z.boolean(),
-    canViewFinancials: z.boolean(),
-  }),
+  email: z.string().email("Valid email is required").optional().or(z.literal("")),
+  phoneNumber: z.string().min(10, "Valid phone number is required"),
 });
 
 type ManagerForm = z.infer<typeof managerSchema>;
@@ -39,31 +33,30 @@ export default function ManagerAccessPage({ onBack }: ManagerAccessPageProps) {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingManager, setEditingManager] = useState<any>(null);
 
-  const { data: managers = [], isLoading } = useQuery({
-    queryKey: ["/api/managers"],
+  const { data: staff = [], isLoading } = useQuery({
+    queryKey: ["/api/staff"],
   });
+
+  // Filter staff to get only managers
+  const managers = staff.filter((member: any) => member.role === "manager");
 
   const form = useForm<ManagerForm>({
     resolver: zodResolver(managerSchema),
     defaultValues: {
       name: "",
       email: "",
-      phone: "",
-      permissions: {
-        canViewReports: true,
-        canManageStaff: false,
-        canEditPrices: false,
-        canViewFinancials: false,
-      },
+      phoneNumber: "",
     },
   });
 
   const createMutation = useMutation({
     mutationFn: async (data: ManagerForm) => {
-      return apiRequest("/api/managers", {
-        method: "POST",
-        body: data,
-      });
+      const staffData = {
+        name: data.name,
+        phoneNumber: data.phoneNumber,
+        role: "manager"
+      };
+      return apiRequest("/api/staff", "POST", staffData);
     },
     onSuccess: () => {
       toast({
@@ -72,7 +65,7 @@ export default function ManagerAccessPage({ onBack }: ManagerAccessPageProps) {
       });
       setIsDialogOpen(false);
       form.reset();
-      queryClient.invalidateQueries({ queryKey: ["/api/managers"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/staff"] });
     },
     onError: (error) => {
       toast({
@@ -85,10 +78,12 @@ export default function ManagerAccessPage({ onBack }: ManagerAccessPageProps) {
 
   const updateMutation = useMutation({
     mutationFn: async ({ id, data }: { id: string; data: ManagerForm }) => {
-      return apiRequest(`/api/managers/${id}`, {
-        method: "PATCH",
-        body: data,
-      });
+      const staffData = {
+        name: data.name,
+        phoneNumber: data.phoneNumber,
+        role: "manager"
+      };
+      return apiRequest(`/api/staff/${id}`, "PUT", staffData);
     },
     onSuccess: () => {
       toast({
@@ -98,7 +93,7 @@ export default function ManagerAccessPage({ onBack }: ManagerAccessPageProps) {
       setIsDialogOpen(false);
       setEditingManager(null);
       form.reset();
-      queryClient.invalidateQueries({ queryKey: ["/api/managers"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/staff"] });
     },
     onError: (error) => {
       toast({
@@ -111,17 +106,14 @@ export default function ManagerAccessPage({ onBack }: ManagerAccessPageProps) {
 
   const toggleStatusMutation = useMutation({
     mutationFn: async ({ id, isActive }: { id: string; isActive: boolean }) => {
-      return apiRequest(`/api/managers/${id}/status`, {
-        method: "PATCH",
-        body: { isActive },
-      });
+      return apiRequest(`/api/staff/${id}`, "PUT", { isActive });
     },
     onSuccess: () => {
       toast({
         title: t("common.success"),
         description: t("managerAccess.statusUpdateSuccess"),
       });
-      queryClient.invalidateQueries({ queryKey: ["/api/managers"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/staff"] });
     },
     onError: (error) => {
       toast({
@@ -134,16 +126,14 @@ export default function ManagerAccessPage({ onBack }: ManagerAccessPageProps) {
 
   const deleteMutation = useMutation({
     mutationFn: async (id: string) => {
-      return apiRequest(`/api/managers/${id}`, {
-        method: "DELETE",
-      });
+      return apiRequest(`/api/staff/${id}`, "DELETE");
     },
     onSuccess: () => {
       toast({
         title: t("common.success"),
         description: t("managerAccess.deleteSuccess"),
       });
-      queryClient.invalidateQueries({ queryKey: ["/api/managers"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/staff"] });
     },
     onError: (error) => {
       toast({
@@ -166,21 +156,19 @@ export default function ManagerAccessPage({ onBack }: ManagerAccessPageProps) {
     setEditingManager(manager);
     form.reset({
       name: manager.name,
-      email: manager.email,
-      phone: manager.phone,
-      permissions: manager.permissions || {
-        canViewReports: true,
-        canManageStaff: false,
-        canEditPrices: false,
-        canViewFinancials: false,
-      },
+      email: manager.email || "",
+      phoneNumber: manager.phoneNumber,
     });
     setIsDialogOpen(true);
   };
 
   const handleAddNew = () => {
     setEditingManager(null);
-    form.reset();
+    form.reset({
+      name: "",
+      email: "",
+      phoneNumber: "",
+    });
     setIsDialogOpen(true);
   };
 
@@ -264,74 +252,18 @@ export default function ManagerAccessPage({ onBack }: ManagerAccessPageProps) {
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="phone">{t("managerAccess.phone")}</Label>
+                <Label htmlFor="phoneNumber">{t("managerAccess.phone")}</Label>
                 <Input
-                  id="phone"
-                  {...form.register("phone")}
+                  id="phoneNumber"
+                  {...form.register("phoneNumber")}
                   data-testid="input-manager-phone"
                 />
-                {form.formState.errors.phone && (
-                  <p className="text-sm text-red-600">{form.formState.errors.phone.message}</p>
+                {form.formState.errors.phoneNumber && (
+                  <p className="text-sm text-red-600">{form.formState.errors.phoneNumber.message}</p>
                 )}
               </div>
 
-              <div className="space-y-4">
-                <Label className="text-base font-medium">{t("managerAccess.permissions")}</Label>
-                
-                <div className="space-y-3">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <Label htmlFor="canViewReports">{t("managerAccess.canViewReports")}</Label>
-                      <p className="text-sm text-gray-600">{t("managerAccess.canViewReportsDesc")}</p>
-                    </div>
-                    <Switch
-                      id="canViewReports"
-                      checked={form.watch("permissions.canViewReports")}
-                      onCheckedChange={(checked) => form.setValue("permissions.canViewReports", checked)}
-                      data-testid="switch-view-reports"
-                    />
-                  </div>
 
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <Label htmlFor="canManageStaff">{t("managerAccess.canManageStaff")}</Label>
-                      <p className="text-sm text-gray-600">{t("managerAccess.canManageStaffDesc")}</p>
-                    </div>
-                    <Switch
-                      id="canManageStaff"
-                      checked={form.watch("permissions.canManageStaff")}
-                      onCheckedChange={(checked) => form.setValue("permissions.canManageStaff", checked)}
-                      data-testid="switch-manage-staff"
-                    />
-                  </div>
-
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <Label htmlFor="canEditPrices">{t("managerAccess.canEditPrices")}</Label>
-                      <p className="text-sm text-gray-600">{t("managerAccess.canEditPricesDesc")}</p>
-                    </div>
-                    <Switch
-                      id="canEditPrices"
-                      checked={form.watch("permissions.canEditPrices")}
-                      onCheckedChange={(checked) => form.setValue("permissions.canEditPrices", checked)}
-                      data-testid="switch-edit-prices"
-                    />
-                  </div>
-
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <Label htmlFor="canViewFinancials">{t("managerAccess.canViewFinancials")}</Label>
-                      <p className="text-sm text-gray-600">{t("managerAccess.canViewFinancialsDesc")}</p>
-                    </div>
-                    <Switch
-                      id="canViewFinancials"
-                      checked={form.watch("permissions.canViewFinancials")}
-                      onCheckedChange={(checked) => form.setValue("permissions.canViewFinancials", checked)}
-                      data-testid="switch-view-financials"
-                    />
-                  </div>
-                </div>
-              </div>
 
               <div className="flex space-x-3 pt-4">
                 <Button
@@ -389,8 +321,7 @@ export default function ManagerAccessPage({ onBack }: ManagerAccessPageProps) {
                       <h3 className="font-medium" data-testid={`manager-name-${manager.id}`}>
                         {manager.name}
                       </h3>
-                      <p className="text-sm text-gray-600">{manager.email}</p>
-                      <p className="text-sm text-gray-600">{manager.phone}</p>
+                      <p className="text-sm text-gray-600">{manager.phoneNumber}</p>
                       <span className={`inline-block px-2 py-1 rounded-full text-xs font-medium mt-1 ${
                         manager.isActive 
                           ? "text-green-700 bg-green-100" 
@@ -432,32 +363,7 @@ export default function ManagerAccessPage({ onBack }: ManagerAccessPageProps) {
                   </div>
                 </div>
 
-                {/* Permissions */}
-                <div className="border-t pt-3">
-                  <h4 className="text-sm font-medium mb-2">{t("managerAccess.permissions")}</h4>
-                  <div className="grid grid-cols-2 gap-2">
-                    {manager.permissions?.canViewReports && (
-                      <span className="text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded">
-                        {t("managerAccess.viewReports")}
-                      </span>
-                    )}
-                    {manager.permissions?.canManageStaff && (
-                      <span className="text-xs bg-green-100 text-green-800 px-2 py-1 rounded">
-                        {t("managerAccess.manageStaff")}
-                      </span>
-                    )}
-                    {manager.permissions?.canEditPrices && (
-                      <span className="text-xs bg-yellow-100 text-yellow-800 px-2 py-1 rounded">
-                        {t("managerAccess.editPrices")}
-                      </span>
-                    )}
-                    {manager.permissions?.canViewFinancials && (
-                      <span className="text-xs bg-purple-100 text-purple-800 px-2 py-1 rounded">
-                        {t("managerAccess.viewFinancials")}
-                      </span>
-                    )}
-                  </div>
-                </div>
+
               </CardContent>
             </Card>
           ))}
