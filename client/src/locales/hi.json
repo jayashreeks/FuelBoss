@@ -15,7 +15,8 @@
     "dispensingUnits": "डिस्पेंसिंग यूनिट",
     "managerAccess": "मैनेजर एक्सेस",
     "languageSettings": "भाषा सेटिंग्स",
-    "settings": "सेटिंग्स"
+    "settings": "सेटिंग्स",
+    "logout": "लॉगआउट"
   },
   "dashboard": {
     "tankInventory": "टैंक इन्वेंटरी",

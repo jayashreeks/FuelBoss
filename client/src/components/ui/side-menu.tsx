@@ -12,7 +12,8 @@ import {
   Users, 
   Languages, 
   Settings,
-  User
+  User,
+  LogOut
 } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { useAuth } from "@/hooks/useAuth";
@@ -105,6 +106,17 @@ export function SideMenu({ onMenuItemClick }: SideMenuProps) {
                 </button>
               );
             })}
+            
+            <div className="pt-4 border-t">
+              <a
+                href="/api/logout"
+                className="flex items-center space-x-3 p-3 rounded-lg hover:bg-gray-100 transition-colors w-full text-left text-red-600"
+                data-testid="menu-logout"
+              >
+                <LogOut className="w-5 h-5" />
+                <span>{t("menu.logout")}</span>
+              </a>
+            </div>
             
             <div className="pt-4 border-t">
               <div className="flex items-center space-x-3 p-3">

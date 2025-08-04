@@ -15,7 +15,8 @@
     "dispensingUnits": "Dispensing Units",
     "managerAccess": "Manager Access",
     "languageSettings": "Language Settings",
-    "settings": "Settings"
+    "settings": "Settings",
+    "logout": "Logout"
   },
   "dashboard": {
     "tankInventory": "Tank Inventory",
