@@ -22,7 +22,7 @@ export default function RODetailsPage({ onBack }: RODetailsPageProps) {
 
   const { data: retailOutlet, isLoading } = useQuery({
     queryKey: ["/api/retail-outlet"],
-  });
+  }) as { data: any, isLoading: boolean };
 
   const [formData, setFormData] = useState({
     name: "",
@@ -36,21 +36,18 @@ export default function RODetailsPage({ onBack }: RODetailsPageProps) {
   useEffect(() => {
     if (retailOutlet) {
       setFormData({
-        name: retailOutlet.name || "",
-        address: retailOutlet.address || "",
-        phoneNumber: retailOutlet.phoneNumber || "",
-        sapcode: retailOutlet.sapcode || "",
-        oilCompany: retailOutlet.oilCompany || "",
+        name: retailOutlet?.name || "",
+        address: retailOutlet?.address || "",
+        phoneNumber: retailOutlet?.phoneNumber || "",
+        sapcode: retailOutlet?.sapcode || "",
+        oilCompany: retailOutlet?.oilCompany || "",
       });
     }
   }, [retailOutlet]);
 
   const updateMutation = useMutation({
     mutationFn: async (data: any) => {
-      return apiRequest(`/api/retail-outlet/${retailOutlet.id}`, {
-        method: "PUT",
-        body: data,
-      });
+      return apiRequest(`/api/retail-outlet/${retailOutlet.id}`, "PUT", data);
     },
     onSuccess: () => {
       toast({
@@ -77,11 +74,11 @@ export default function RODetailsPage({ onBack }: RODetailsPageProps) {
   const handleCancel = () => {
     if (retailOutlet) {
       setFormData({
-        name: retailOutlet.name || "",
-        address: retailOutlet.address || "",
-        phoneNumber: retailOutlet.phoneNumber || "",
-        sapcode: retailOutlet.sapcode || "",
-        oilCompany: retailOutlet.oilCompany || "",
+        name: retailOutlet?.name || "",
+        address: retailOutlet?.address || "",
+        phoneNumber: retailOutlet?.phoneNumber || "",
+        sapcode: retailOutlet?.sapcode || "",
+        oilCompany: retailOutlet?.oilCompany || "",
       });
     }
     setIsEditing(false);
