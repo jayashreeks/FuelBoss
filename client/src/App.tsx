@@ -5,6 +5,7 @@ import { queryClient } from "./lib/queryClient";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { useAuth } from "@/hooks/useAuth";
+import { useManagerAuth } from "@/hooks/useManagerAuth";
 import { useQuery } from "@tanstack/react-query";
 import { BottomNavigation } from "@/components/ui/bottom-navigation";
 import { SideMenu } from "@/components/ui/side-menu";
@@ -13,6 +14,7 @@ import "./lib/i18n";
 
 // Pages
 import Landing from "@/pages/landing";
+import UnifiedLogin from "@/pages/manager-login";
 import Dashboard from "@/pages/dashboard";
 import DataEntry from "@/pages/data-entry";
 import StaffManagement from "@/pages/staff-management";
@@ -28,25 +30,31 @@ import SettingsPage from "@/pages/settings";
 
 function MainApp() {
   const { user, isAuthenticated, isLoading } = useAuth();
+  const { manager, isManagerAuthenticated, isLoading: managerLoading } = useManagerAuth();
   const { t, i18n } = useTranslation();
   const [activeTab, setActiveTab] = useState("dashboard");
   const [showSetup, setShowSetup] = useState(false);
   const [currentPage, setCurrentPage] = useState<string | null>(null);
+  
+  // Combined authentication state
+  const isAnyUserAuthenticated = isAuthenticated || isManagerAuthenticated;
+  const isLoadingAuth = isLoading || managerLoading;
+  const currentUser = user || manager;
 
-  // Check if user has retail outlet setup
+  // Check if user has retail outlet setup - only for dealers
   const { data: retailOutlet, isLoading: outletLoading } = useQuery({
     queryKey: ["/api/retail-outlet"],
-    enabled: isAuthenticated && !!user,
+    enabled: isAuthenticated && !!user, // Only dealers need retail outlet
     retry: false,
   });
 
   // Set language from user preference or localStorage
   useEffect(() => {
-    const savedLanguage = localStorage.getItem('language') || user?.language || 'en';
+    const savedLanguage = localStorage.getItem('language') || currentUser?.language || 'en';
     i18n.changeLanguage(savedLanguage);
-  }, [user, i18n]);
+  }, [currentUser, i18n]);
 
-  // Show setup if user is authenticated but no retail outlet
+  // Show setup if dealer is authenticated but no retail outlet
   useEffect(() => {
     if (isAuthenticated && !outletLoading && !retailOutlet) {
       setShowSetup(true);
@@ -68,7 +76,7 @@ function MainApp() {
     setCurrentPage(null);
   };
 
-  if (isLoading || (isAuthenticated && outletLoading)) {
+  if (isLoadingAuth || (isAuthenticated && outletLoading)) {
     return (
       <div className="min-h-screen bg-surface flex items-center justify-center">
         <div className="text-center">
@@ -79,8 +87,44 @@ function MainApp() {
     );
   }
 
-  if (!isAuthenticated) {
+  if (!isAnyUserAuthenticated) {
+    // Handle routing for non-authenticated users
+    if (window.location.pathname === '/login') {
+      return <UnifiedLogin />;
+    }
     return <Landing />;
+  }
+
+  // Managers skip setup and go directly to their allowed functions
+  if (isManagerAuthenticated && !isAuthenticated) {
+    // Manager-only interface (limited functionality)
+    return (
+      <div className="min-h-screen bg-surface">
+        <div className="flex">
+          <div className="w-64 fixed h-full">
+            <SideMenu
+              currentUser={currentUser}
+              onMenuItemClick={handleMenuItemClick}
+              userRole="manager"
+            />
+          </div>
+          <div className="flex-1 ml-64">
+            <div className="p-4">
+              {currentPage === "dataEntry" ? (
+                <DataEntry onBack={handleBackToMain} />
+              ) : currentPage === "reports" ? (
+                <Reports onBack={handleBackToMain} />
+              ) : (
+                <div className="text-center py-8">
+                  <h2 className="text-xl font-semibold mb-4">Manager Dashboard</h2>
+                  <p className="text-gray-600">Select an option from the menu to continue.</p>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      </div>
+    );
   }
 
   if (showSetup) {

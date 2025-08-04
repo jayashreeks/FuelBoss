@@ -73,6 +73,7 @@ export interface IStorage {
   createStaff(staffMember: InsertStaff): Promise<Staff>;
   updateStaff(id: string, staffMember: Partial<InsertStaff>): Promise<Staff>;
   deleteStaff(id: string): Promise<void>;
+  getManagerByCredentials(phoneNumber: string, password: string): Promise<Staff | undefined>;
   
   // Shift Sales operations
   getShiftSalesByRetailOutletId(retailOutletId: string, limit?: number): Promise<ShiftSales[]>;
@@ -309,6 +310,21 @@ export class DatabaseStorage implements IStorage {
       .update(staff)
       .set({ isActive: false, updatedAt: new Date() })
       .where(eq(staff.id, id));
+  }
+
+  async getManagerByCredentials(phoneNumber: string, password: string): Promise<Staff | undefined> {
+    const [manager] = await db
+      .select()
+      .from(staff)
+      .where(
+        and(
+          eq(staff.phoneNumber, phoneNumber),
+          eq(staff.password, password),
+          eq(staff.role, "manager"),
+          eq(staff.isActive, true)
+        )
+      );
+    return manager;
   }
 
   // Shift Sales operations

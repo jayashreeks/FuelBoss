@@ -434,6 +434,76 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Manager login endpoint
+  app.post("/api/manager/login", async (req, res) => {
+    try {
+      const { phoneNumber, password } = req.body;
+      
+      if (!phoneNumber || !password) {
+        return res.status(400).json({ 
+          success: false, 
+          message: "Phone number and password are required" 
+        });
+      }
+
+      // Find manager with matching phone number and password
+      const manager = await storage.getManagerByCredentials(phoneNumber, password);
+      
+      if (!manager) {
+        return res.status(401).json({ 
+          success: false, 
+          message: "Invalid credentials" 
+        });
+      }
+
+      // Create manager session (simplified for now)
+      (req.session as any).managerId = manager.id;
+      (req.session as any).userType = "manager";
+      
+      res.json({ 
+        success: true, 
+        message: "Login successful",
+        user: {
+          id: manager.id,
+          name: manager.name,
+          role: "manager",
+          phoneNumber: manager.phoneNumber
+        }
+      });
+    } catch (error) {
+      console.error("Manager login error:", error);
+      res.status(500).json({ 
+        success: false, 
+        message: "Login failed" 
+      });
+    }
+  });
+
+  // Manager auth check
+  app.get('/api/auth/manager', async (req, res) => {
+    try {
+      const session = req.session as any;
+      if (!session.managerId || session.userType !== "manager") {
+        return res.status(401).json({ message: "Unauthorized" });
+      }
+
+      const manager = await storage.getStaffById(session.managerId);
+      if (!manager || manager.role !== "manager" || !manager.isActive) {
+        return res.status(401).json({ message: "Unauthorized" });
+      }
+
+      res.json({
+        id: manager.id,
+        name: manager.name,
+        role: "manager",
+        phoneNumber: manager.phoneNumber
+      });
+    } catch (error) {
+      console.error("Manager auth error:", error);
+      res.status(500).json({ message: "Authentication failed" });
+    }
+  });
+
   const httpServer = createServer(app);
   return httpServer;
 }

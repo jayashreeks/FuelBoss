@@ -7,7 +7,7 @@ export default function Landing() {
   const { t } = useTranslation();
 
   const handleLogin = () => {
-    window.location.href = "/api/login";
+    window.location.href = "/login";
   };
 
   return (

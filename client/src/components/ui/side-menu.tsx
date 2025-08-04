@@ -21,19 +21,24 @@ import { useState } from "react";
 
 interface SideMenuProps {
   onMenuItemClick?: (item: string) => void;
+  currentUser?: any;
+  userRole?: "dealer" | "manager";
 }
 
-export function SideMenu({ onMenuItemClick }: SideMenuProps) {
+export function SideMenu({ onMenuItemClick, currentUser, userRole = "dealer" }: SideMenuProps) {
   const { t, i18n } = useTranslation();
   const { user } = useAuth();
   const [open, setOpen] = useState(false);
+  
+  const displayUser = currentUser || user;
 
   const handleLanguageChange = (language: string) => {
     i18n.changeLanguage(language);
     localStorage.setItem('language', language);
   };
 
-  const menuItems = [
+  // Define menu items based on user role
+  const dealerMenuItems = [
     {
       id: "roDetails",
       label: t("menu.roDetails"),
@@ -54,7 +59,6 @@ export function SideMenu({ onMenuItemClick }: SideMenuProps) {
       label: t("menu.dispensingUnits"),
       icon: GaugeIcon,
     },
-
     {
       id: "settings",
       label: t("menu.settings"),
@@ -62,9 +66,34 @@ export function SideMenu({ onMenuItemClick }: SideMenuProps) {
     },
   ];
 
+  const managerMenuItems = [
+    {
+      id: "dataEntry",
+      label: "Data Entry",
+      icon: Package,
+    },
+    {
+      id: "reports",
+      label: "Reports",
+      icon: Users,
+    },
+  ];
+
+  const menuItems = userRole === "manager" ? managerMenuItems : dealerMenuItems;
+
   const handleMenuItemClick = (itemId: string) => {
     onMenuItemClick?.(itemId);
     setOpen(false);
+  };
+
+  const handleLogout = () => {
+    if (userRole === "manager") {
+      // Manager logout - simple session clear
+      window.location.href = "/login";
+    } else {
+      // Dealer logout via Replit Auth
+      window.location.href = "/api/logout";
+    }
   };
 
   return (
@@ -80,10 +109,13 @@ export function SideMenu({ onMenuItemClick }: SideMenuProps) {
             <div className="flex items-center justify-between">
               <div>
                 <SheetTitle className="text-white font-medium" data-testid="user-name">
-                  {(user as any)?.firstName || (user as any)?.email || "User"}
+                  {displayUser?.name || 
+                   (displayUser?.firstName && displayUser?.lastName 
+                     ? `${displayUser.firstName} ${displayUser.lastName}` 
+                     : displayUser?.email || "User")}
                 </SheetTitle>
                 <p className="text-sm opacity-90" data-testid="user-role">
-                  {(user as any)?.role || "Owner"}
+                  {userRole === "manager" ? "Manager" : "Owner"}
                 </p>
               </div>
             </div>
@@ -108,14 +140,14 @@ export function SideMenu({ onMenuItemClick }: SideMenuProps) {
             })}
             
             <div className="pt-4 border-t">
-              <a
-                href="/api/logout"
+              <button
+                onClick={handleLogout}
                 className="flex items-center space-x-3 p-3 rounded-lg hover:bg-gray-100 transition-colors w-full text-left text-red-600"
                 data-testid="menu-logout"
               >
                 <LogOut className="w-5 h-5" />
                 <span>{t("menu.logout")}</span>
-              </a>
+              </button>
             </div>
             
             <div className="pt-4 border-t">
