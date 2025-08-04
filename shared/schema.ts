@@ -72,10 +72,20 @@ export const tanks = pgTable("tanks", {
 export const dispensingUnits = pgTable("dispensing_units", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
   retailOutletId: varchar("retail_outlet_id").references(() => retailOutlets.id).notNull(),
+  name: varchar("name").notNull(),
+  numberOfNozzles: integer("number_of_nozzles").notNull(),
+  isActive: boolean("is_active").default(true),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+// Nozzles
+export const nozzles = pgTable("nozzles", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  dispensingUnitId: varchar("dispensing_unit_id").references(() => dispensingUnits.id).notNull(),
   tankId: varchar("tank_id").references(() => tanks.id).notNull(),
-  unitNumber: varchar("unit_number").notNull(),
-  brand: varchar("brand"),
-  model: varchar("model"),
+  nozzleNumber: integer("nozzle_number").notNull(),
+  calibrationValidUntil: timestamp("calibration_valid_until").notNull(),
   isActive: boolean("is_active").default(true),
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
@@ -165,13 +175,21 @@ export const tanksRelations = relations(tanks, ({ one, many }) => ({
   dispensingUnits: many(dispensingUnits),
 }));
 
-export const dispensingUnitsRelations = relations(dispensingUnits, ({ one }) => ({
+export const dispensingUnitsRelations = relations(dispensingUnits, ({ one, many }) => ({
   retailOutlet: one(retailOutlets, {
     fields: [dispensingUnits.retailOutletId],
     references: [retailOutlets.id],
   }),
+  nozzles: many(nozzles),
+}));
+
+export const nozzlesRelations = relations(nozzles, ({ one }) => ({
+  dispensingUnit: one(dispensingUnits, {
+    fields: [nozzles.dispensingUnitId],
+    references: [dispensingUnits.id],
+  }),
   tank: one(tanks, {
-    fields: [dispensingUnits.tankId],
+    fields: [nozzles.tankId],
     references: [tanks.id],
   }),
 }));
@@ -222,6 +240,12 @@ export const insertDispensingUnitSchema = createInsertSchema(dispensingUnits).om
   updatedAt: true,
 });
 
+export const insertNozzleSchema = createInsertSchema(nozzles).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
 export const insertStaffSchema = createInsertSchema(staff).omit({
   id: true,
   createdAt: true,
@@ -249,6 +273,8 @@ export type InsertTank = z.infer<typeof insertTankSchema>;
 export type Tank = typeof tanks.$inferSelect;
 export type InsertDispensingUnit = z.infer<typeof insertDispensingUnitSchema>;
 export type DispensingUnit = typeof dispensingUnits.$inferSelect;
+export type InsertNozzle = z.infer<typeof insertNozzleSchema>;
+export type Nozzle = typeof nozzles.$inferSelect;
 export type InsertStaff = z.infer<typeof insertStaffSchema>;
 export type Staff = typeof staff.$inferSelect;
 export type InsertShiftSales = z.infer<typeof insertShiftSalesSchema>;

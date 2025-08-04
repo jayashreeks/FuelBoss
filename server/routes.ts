@@ -7,6 +7,7 @@ import {
   insertProductSchema,
   insertTankSchema,
   insertDispensingUnitSchema,
+  insertNozzleSchema,
   insertStaffSchema,
   insertShiftSalesSchema,
 } from "@shared/schema";
@@ -211,11 +212,29 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (!outlet) {
         return res.status(404).json({ message: "Retail outlet not found" });
       }
-      const validatedData = insertDispensingUnitSchema.parse({
-        ...req.body,
+      
+      const { nozzles, ...duData } = req.body;
+      
+      // Create dispensing unit
+      const validatedDUData = insertDispensingUnitSchema.parse({
+        ...duData,
         retailOutletId: outlet.id,
       });
-      const unit = await storage.createDispensingUnit(validatedData);
+      const unit = await storage.createDispensingUnit(validatedDUData);
+      
+      // Create nozzles for the dispensing unit
+      if (nozzles && nozzles.length > 0) {
+        for (let i = 0; i < nozzles.length; i++) {
+          const nozzle = nozzles[i];
+          const validatedNozzleData = insertNozzleSchema.parse({
+            ...nozzle,
+            dispensingUnitId: unit.id,
+            nozzleNumber: i + 1,
+          });
+          await storage.createNozzle(validatedNozzleData);
+        }
+      }
+      
       res.json(unit);
     } catch (error) {
       console.error("Error creating dispensing unit:", error);

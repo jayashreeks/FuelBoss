@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useTranslation } from "react-i18next";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
@@ -7,21 +7,32 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
-import { ArrowLeft, Plus, GaugeIcon, Edit3, Trash2, Fuel } from "lucide-react";
+import { ArrowLeft, Plus, GaugeIcon, Edit3, Trash2, Fuel, Calendar } from "lucide-react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
+import { format } from "date-fns";
+import { Calendar as CalendarComponent } from "@/components/ui/calendar";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 
 interface DispensingUnitsPageProps {
   onBack: () => void;
 }
 
+const nozzleSchema = z.object({
+  tankId: z.string().min(1, "Tank selection is required"),
+  calibrationValidUntil: z.date({
+    required_error: "Calibration date is required",
+  }),
+});
+
 const duSchema = z.object({
   name: z.string().min(1, "DU name is required"),
-  tankId: z.string().min(1, "Tank selection is required"),
-  nozzles: z.number().min(1, "At least 1 nozzle is required").max(6, "Maximum 6 nozzles allowed"),
+  numberOfNozzles: z.number().min(1, "At least 1 nozzle is required").max(6, "Maximum 6 nozzles allowed"),
+  nozzles: z.array(nozzleSchema),
 });
 
 type DUForm = z.infer<typeof duSchema>;
@@ -45,17 +56,28 @@ export default function DispensingUnitsPage({ onBack }: DispensingUnitsPageProps
     resolver: zodResolver(duSchema),
     defaultValues: {
       name: "",
-      tankId: "",
-      nozzles: 2,
+      numberOfNozzles: 2,
+      nozzles: [
+        { tankId: "", calibrationValidUntil: new Date() },
+        { tankId: "", calibrationValidUntil: new Date() }
+      ],
     },
   });
 
+  const numberOfNozzles = form.watch("numberOfNozzles");
+
+  // Update nozzles array when number of nozzles changes
+  useEffect(() => {
+    const currentNozzles = form.getValues("nozzles");
+    const newNozzles = Array.from({ length: numberOfNozzles }, (_, index) => 
+      currentNozzles[index] || { tankId: "", calibrationValidUntil: new Date() }
+    );
+    form.setValue("nozzles", newNozzles);
+  }, [numberOfNozzles, form]);
+
   const createMutation = useMutation({
     mutationFn: async (data: DUForm) => {
-      return apiRequest("/api/dispensing-units", {
-        method: "POST",
-        body: data,
-      });
+      return apiRequest("/api/dispensing-units", "POST", data);
     },
     onSuccess: () => {
       toast({
@@ -77,10 +99,7 @@ export default function DispensingUnitsPage({ onBack }: DispensingUnitsPageProps
 
   const updateMutation = useMutation({
     mutationFn: async ({ id, data }: { id: string; data: DUForm }) => {
-      return apiRequest(`/api/dispensing-units/${id}`, {
-        method: "PATCH",
-        body: data,
-      });
+      return apiRequest(`/api/dispensing-units/${id}`, "PATCH", data);
     },
     onSuccess: () => {
       toast({
@@ -103,9 +122,7 @@ export default function DispensingUnitsPage({ onBack }: DispensingUnitsPageProps
 
   const deleteMutation = useMutation({
     mutationFn: async (id: string) => {
-      return apiRequest(`/api/dispensing-units/${id}`, {
-        method: "DELETE",
-      });
+      return apiRequest(`/api/dispensing-units/${id}`, "DELETE");
     },
     onSuccess: () => {
       toast({
@@ -135,8 +152,8 @@ export default function DispensingUnitsPage({ onBack }: DispensingUnitsPageProps
     setEditingDU(du);
     form.reset({
       name: du.name,
-      tankId: du.tankId,
-      nozzles: du.nozzles,
+      numberOfNozzles: du.numberOfNozzles,
+      nozzles: du.nozzles || [],
     });
     setIsDialogOpen(true);
   };
@@ -149,19 +166,11 @@ export default function DispensingUnitsPage({ onBack }: DispensingUnitsPageProps
 
   const getTankName = (tankId: string) => {
     const tank = tanks.find((t: any) => t.id === tankId);
-    return tank ? `${tank.name} (${t(`tankManagement.${tank.fuelType}`)})` : "Unknown Tank";
+    return tank ? `${tank.tankNumber}` : "Unknown Tank";
   };
 
-  const getFuelTypeColor = (tankId: string) => {
-    const tank = tanks.find((t: any) => t.id === tankId);
-    if (!tank) return "text-gray-600 bg-gray-50";
-    
-    switch (tank.fuelType) {
-      case "petrol": return "text-red-600 bg-red-50";
-      case "diesel": return "text-yellow-600 bg-yellow-50";
-      case "cng": return "text-green-600 bg-green-50";
-      default: return "text-gray-600 bg-gray-50";
-    }
+  const getFuelTypeColor = () => {
+    return "text-blue-600 bg-blue-50";
   };
 
   if (duLoading || tanksLoading) {
@@ -225,47 +234,80 @@ export default function DispensingUnitsPage({ onBack }: DispensingUnitsPageProps
               </div>
 
               <div className="space-y-2">
-                <Label>{t("dispensingUnits.connectedTank")}</Label>
+                <Label htmlFor="numberOfNozzles">{t("dispensingUnits.numberOfNozzles")}</Label>
                 <Select
-                  value={form.watch("tankId")}
-                  onValueChange={(value) => form.setValue("tankId", value)}
-                >
-                  <SelectTrigger data-testid="select-tank">
-                    <SelectValue placeholder={t("dispensingUnits.selectTank")} />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {tanks.map((tank: any) => (
-                      <SelectItem key={tank.id} value={tank.id}>
-                        {tank.name} ({t(`tankManagement.${tank.fuelType}`)})
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-                {form.formState.errors.tankId && (
-                  <p className="text-sm text-red-600">{form.formState.errors.tankId.message}</p>
-                )}
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="nozzles">{t("dispensingUnits.numberOfNozzles")}</Label>
-                <Select
-                  value={form.watch("nozzles").toString()}
-                  onValueChange={(value) => form.setValue("nozzles", parseInt(value))}
+                  value={form.watch("numberOfNozzles").toString()}
+                  onValueChange={(value) => form.setValue("numberOfNozzles", parseInt(value))}
                 >
                   <SelectTrigger data-testid="select-nozzles">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    {[1, 2, 3, 4, 5, 6].map((num) => (
-                      <SelectItem key={num} value={num.toString()}>
-                        {num} {t("dispensingUnits.nozzle", { count: num })}
-                      </SelectItem>
-                    ))}
+                    <SelectItem value="1">1</SelectItem>
+                    <SelectItem value="2">2</SelectItem>
+                    <SelectItem value="4">4</SelectItem>
+                    <SelectItem value="6">6</SelectItem>
                   </SelectContent>
                 </Select>
-                {form.formState.errors.nozzles && (
-                  <p className="text-sm text-red-600">{form.formState.errors.nozzles.message}</p>
+                {form.formState.errors.numberOfNozzles && (
+                  <p className="text-sm text-red-600">{form.formState.errors.numberOfNozzles.message}</p>
                 )}
+              </div>
+
+              {/* Dynamic Nozzle Configuration */}
+              <div className="space-y-4">
+                <Label className="text-base font-medium">Nozzle Configuration</Label>
+                {Array.from({ length: numberOfNozzles }, (_, index) => (
+                  <div key={index} className="border rounded-lg p-4 space-y-3">
+                    <h4 className="font-medium">Nozzle #{index + 1}</h4>
+                    
+                    <div className="space-y-2">
+                      <Label>Connected Tank</Label>
+                      <Select
+                        value={form.watch(`nozzles.${index}.tankId`) || ""}
+                        onValueChange={(value) => form.setValue(`nozzles.${index}.tankId`, value)}
+                      >
+                        <SelectTrigger data-testid={`select-nozzle-${index}-tank`}>
+                          <SelectValue placeholder="Select tank" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {tanks.map((tank: any) => (
+                            <SelectItem key={tank.id} value={tank.id}>
+                              Tank {tank.tankNumber}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label>Calibration Valid Until</Label>
+                      <Popover>
+                        <PopoverTrigger asChild>
+                          <Button
+                            variant="outline"
+                            className="w-full justify-start text-left font-normal"
+                            data-testid={`select-nozzle-${index}-calibration`}
+                          >
+                            <Calendar className="mr-2 h-4 w-4" />
+                            {form.watch(`nozzles.${index}.calibrationValidUntil`) 
+                              ? format(form.watch(`nozzles.${index}.calibrationValidUntil`), "PPP")
+                              : "Pick a date"
+                            }
+                          </Button>
+                        </PopoverTrigger>
+                        <PopoverContent className="w-auto p-0">
+                          <CalendarComponent
+                            mode="single"
+                            selected={form.watch(`nozzles.${index}.calibrationValidUntil`)}
+                            onSelect={(date) => form.setValue(`nozzles.${index}.calibrationValidUntil`, date || new Date())}
+                            initialFocus
+                          />
+                        </PopoverContent>
+                      </Popover>
+                    </div>
+                  </div>
+                ))}
               </div>
 
               <div className="flex space-x-3 pt-4">
@@ -339,11 +381,11 @@ export default function DispensingUnitsPage({ onBack }: DispensingUnitsPageProps
                         {du.name}
                       </h3>
                       <div className="flex flex-col space-y-1">
-                        <span className={`inline-block px-2 py-1 rounded-full text-xs font-medium w-fit ${getFuelTypeColor(du.tankId)}`}>
-                          {getTankName(du.tankId)}
+                        <span className={`inline-block px-2 py-1 rounded-full text-xs font-medium w-fit ${getFuelTypeColor()}`}>
+                          DU Unit
                         </span>
                         <span className="text-xs text-gray-600">
-                          {du.nozzles} {t("dispensingUnits.nozzle", { count: du.nozzles })}
+                          {du.numberOfNozzles} nozzles
                         </span>
                       </div>
                     </div>

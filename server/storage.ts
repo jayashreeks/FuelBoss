@@ -4,6 +4,7 @@ import {
   products,
   tanks,
   dispensingUnits,
+  nozzles,
   staff,
   shiftSales,
   type User,
@@ -16,6 +17,8 @@ import {
   type InsertTank,
   type DispensingUnit,
   type InsertDispensingUnit,
+  type Nozzle,
+  type InsertNozzle,
   type Staff,
   type InsertStaff,
   type ShiftSales,
@@ -51,6 +54,12 @@ export interface IStorage {
   createDispensingUnit(unit: InsertDispensingUnit): Promise<DispensingUnit>;
   updateDispensingUnit(id: string, unit: Partial<InsertDispensingUnit>): Promise<DispensingUnit>;
   deleteDispensingUnit(id: string): Promise<void>;
+  
+  // Nozzle operations
+  getNozzlesByDispensingUnitId(dispensingUnitId: string): Promise<Nozzle[]>;
+  createNozzle(nozzle: InsertNozzle): Promise<Nozzle>;
+  updateNozzle(id: string, nozzle: Partial<InsertNozzle>): Promise<Nozzle>;
+  deleteNozzle(id: string): Promise<void>;
   
   // Staff operations
   getStaffByRetailOutletId(retailOutletId: string): Promise<Staff[]>;
@@ -194,7 +203,7 @@ export class DatabaseStorage implements IStorage {
       .select()
       .from(dispensingUnits)
       .where(and(eq(dispensingUnits.retailOutletId, retailOutletId), eq(dispensingUnits.isActive, true)))
-      .orderBy(dispensingUnits.unitNumber);
+      .orderBy(dispensingUnits.name);
   }
 
   async createDispensingUnit(unit: InsertDispensingUnit): Promise<DispensingUnit> {
@@ -219,6 +228,39 @@ export class DatabaseStorage implements IStorage {
       .update(dispensingUnits)
       .set({ isActive: false, updatedAt: new Date() })
       .where(eq(dispensingUnits.id, id));
+  }
+
+  // Nozzle operations
+  async getNozzlesByDispensingUnitId(dispensingUnitId: string): Promise<Nozzle[]> {
+    return await db
+      .select()
+      .from(nozzles)
+      .where(and(eq(nozzles.dispensingUnitId, dispensingUnitId), eq(nozzles.isActive, true)))
+      .orderBy(nozzles.nozzleNumber);
+  }
+
+  async createNozzle(nozzle: InsertNozzle): Promise<Nozzle> {
+    const [newNozzle] = await db
+      .insert(nozzles)
+      .values(nozzle)
+      .returning();
+    return newNozzle;
+  }
+
+  async updateNozzle(id: string, nozzle: Partial<InsertNozzle>): Promise<Nozzle> {
+    const [updatedNozzle] = await db
+      .update(nozzles)
+      .set({ ...nozzle, updatedAt: new Date() })
+      .where(eq(nozzles.id, id))
+      .returning();
+    return updatedNozzle;
+  }
+
+  async deleteNozzle(id: string): Promise<void> {
+    await db
+      .update(nozzles)
+      .set({ isActive: false, updatedAt: new Date() })
+      .where(eq(nozzles.id, id));
   }
 
   // Staff operations
