@@ -147,15 +147,21 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (!outlet) {
         return res.status(404).json({ message: "Retail outlet not found" });
       }
+      console.log("Raw tank data:", req.body);
       const validatedData = insertTankSchema.parse({
         ...req.body,
         retailOutletId: outlet.id,
       });
+      console.log("Validated tank data:", validatedData);
       const tank = await storage.createTank(validatedData);
       res.json(tank);
     } catch (error) {
       console.error("Error creating tank:", error);
-      res.status(400).json({ message: "Failed to create tank" });
+      if (error instanceof Error) {
+        res.status(400).json({ message: error.message });
+      } else {
+        res.status(400).json({ message: "Failed to create tank" });
+      }
     }
   });
 

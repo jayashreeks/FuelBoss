@@ -210,6 +210,10 @@ export const insertTankSchema = createInsertSchema(tanks).omit({
   id: true,
   createdAt: true,
   updatedAt: true,
+}).extend({
+  capacity: z.union([z.string(), z.number()]).transform(val => String(val)),
+  length: z.union([z.string(), z.number()]).transform(val => String(val)),
+  diameter: z.union([z.string(), z.number()]).transform(val => String(val)),
 });
 
 export const insertDispensingUnitSchema = createInsertSchema(dispensingUnits).omit({
