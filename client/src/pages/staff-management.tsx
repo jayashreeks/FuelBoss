@@ -22,6 +22,17 @@ const staffSchema = z.object({
   name: z.string().min(1, "Name is required"),
   phoneNumber: z.string().optional(),
   role: z.string().min(1, "Role is required"),
+  loginId: z.string().optional(),
+  password: z.string().optional(),
+}).refine((data) => {
+  // If role is manager, require loginId and password
+  if (data.role === "manager") {
+    return data.loginId && data.loginId.length > 0 && data.password && data.password.length > 0;
+  }
+  return true;
+}, {
+  message: "Login ID and Password are required for managers",
+  path: ["loginId"],
 });
 
 type StaffForm = z.infer<typeof staffSchema>;
@@ -43,6 +54,8 @@ export default function StaffManagement() {
       name: "",
       phoneNumber: "",
       role: "",
+      loginId: "",
+      password: "",
     },
   });
 
@@ -151,6 +164,8 @@ export default function StaffManagement() {
       name: staff.name,
       phoneNumber: staff.phoneNumber || "",
       role: staff.role,
+      loginId: staff.loginId || "",
+      password: staff.password || "",
     });
     setIsDialogOpen(true);
   };
@@ -167,6 +182,8 @@ export default function StaffManagement() {
       name: "",
       phoneNumber: "",
       role: "",
+      loginId: "",
+      password: "",
     });
     setIsDialogOpen(true);
   };
@@ -266,6 +283,44 @@ export default function StaffManagement() {
                     </FormItem>
                   )}
                 />
+
+                {/* Login credentials - only show for managers */}
+                {form.watch("role") === "manager" && (
+                  <>
+                    <FormField
+                      control={form.control}
+                      name="loginId"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Login ID (User ID)</FormLabel>
+                          <FormControl>
+                            <Input placeholder="Enter login ID for manager" {...field} data-testid="input-staff-login-id" />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+
+                    <FormField
+                      control={form.control}
+                      name="password"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Password</FormLabel>
+                          <FormControl>
+                            <Input 
+                              type="password" 
+                              placeholder="Enter password for manager" 
+                              {...field} 
+                              data-testid="input-staff-password" 
+                            />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  </>
+                )}
 
                 <div className="flex gap-2 pt-4">
                   <Button
