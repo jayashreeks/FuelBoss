@@ -37,11 +37,11 @@ export default function TankManagementPage({ onBack }: TankManagementPageProps) 
 
   const { data: tanks = [], isLoading } = useQuery({
     queryKey: ["/api/tanks"],
-  });
+  }) as { data: any[], isLoading: boolean };
 
   const { data: products = [] } = useQuery({
     queryKey: ["/api/products"],
-  });
+  }) as { data: any[] };
 
   const form = useForm<TankForm>({
     resolver: zodResolver(tankSchema),
@@ -331,7 +331,7 @@ export default function TankManagementPage({ onBack }: TankManagementPageProps) 
       ) : (
         <div className="space-y-4">
           {tanks.map((tank: any) => {
-            const percentage = Math.round((tank.currentLevel / tank.capacity) * 100);
+            const product = products.find((p: any) => p.id === tank.productId);
             return (
               <Card key={tank.id} data-testid={`tank-card-${tank.id}`}>
                 <CardContent className="p-4">
@@ -342,10 +342,10 @@ export default function TankManagementPage({ onBack }: TankManagementPageProps) 
                       </div>
                       <div>
                         <h3 className="font-medium" data-testid={`tank-name-${tank.id}`}>
-                          {tank.name}
+                          Tank {tank.tankNumber}
                         </h3>
-                        <span className={`inline-block px-2 py-1 rounded-full text-xs font-medium ${getFuelTypeColor(tank.fuelType)}`}>
-                          {t(`tankManagement.${tank.fuelType}`)}
+                        <span className="inline-block px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                          {product?.name || 'Unknown Product'}
                         </span>
                       </div>
                     </div>
@@ -370,30 +370,25 @@ export default function TankManagementPage({ onBack }: TankManagementPageProps) 
                     </div>
                   </div>
 
-                  <div className="space-y-2">
-                    <div className="flex justify-between text-sm">
-                      <span>{t("tankManagement.level")}</span>
-                      <span className={`font-medium ${getStatusColor(tank.currentLevel, tank.minThreshold, tank.capacity)}`}>
-                        {tank.currentLevel}L / {tank.capacity}L ({percentage}%)
-                      </span>
+                  <div className="space-y-3">
+                    <div className="grid grid-cols-2 gap-4 text-sm">
+                      <div>
+                        <span className="text-gray-600">Capacity:</span>
+                        <span className="ml-2 font-medium">{tank.capacity}L</span>
+                      </div>
+                      <div>
+                        <span className="text-gray-600">Length:</span>
+                        <span className="ml-2 font-medium">{tank.length}m</span>
+                      </div>
+                      <div>
+                        <span className="text-gray-600">Diameter:</span>
+                        <span className="ml-2 font-medium">{tank.diameter}m</span>
+                      </div>
+                      <div>
+                        <span className="text-gray-600">Price:</span>
+                        <span className="ml-2 font-medium">₹{product?.pricePerLiter || 0}/L</span>
+                      </div>
                     </div>
-                    <div className="w-full bg-gray-200 rounded-full h-2">
-                      <div
-                        className={`h-2 rounded-full transition-all ${
-                          tank.currentLevel <= tank.minThreshold 
-                            ? "bg-red-500" 
-                            : percentage < 25 
-                            ? "bg-orange-500" 
-                            : "bg-green-500"
-                        }`}
-                        style={{ width: `${Math.max(percentage, 2)}%` }}
-                      ></div>
-                    </div>
-                    {tank.currentLevel <= tank.minThreshold && (
-                      <p className="text-sm text-red-600 font-medium">
-                        ⚠️ {t("tankManagement.lowLevel")}
-                      </p>
-                    )}
                   </div>
                 </CardContent>
               </Card>
