@@ -36,7 +36,8 @@ export default function ProductsPage({ onBack }: ProductsPageProps) {
 
   const createMutation = useMutation({
     mutationFn: async (data: InsertProduct) => {
-      return apiRequest("/api/products", "POST", data);
+      const response = await apiRequest("/api/products", "POST", data);
+      return response.json();
     },
     onSuccess: () => {
       toast({
@@ -58,7 +59,8 @@ export default function ProductsPage({ onBack }: ProductsPageProps) {
 
   const updateMutation = useMutation({
     mutationFn: async (data: { id: string; product: Partial<InsertProduct> }) => {
-      return apiRequest(`/api/products/${data.id}`, "PUT", data.product);
+      const response = await apiRequest(`/api/products/${data.id}`, "PUT", data.product);
+      return response.json();
     },
     onSuccess: () => {
       toast({
@@ -80,7 +82,8 @@ export default function ProductsPage({ onBack }: ProductsPageProps) {
 
   const deleteMutation = useMutation({
     mutationFn: async (id: string) => {
-      return apiRequest(`/api/products/${id}`, "DELETE");
+      const response = await apiRequest(`/api/products/${id}`, "DELETE");
+      return response.json();
     },
     onSuccess: () => {
       toast({
@@ -314,14 +317,10 @@ export default function ProductsPage({ onBack }: ProductsPageProps) {
                 </div>
               </CardHeader>
               <CardContent>
-                <div className="grid grid-cols-2 gap-4 text-sm">
-                  <div>
-                    <p className="text-gray-600">Fuel Type</p>
-                    <p className="font-medium">{getFuelTypeLabel(product.type)}</p>
-                  </div>
+                <div className="text-sm">
                   <div>
                     <p className="text-gray-600">Price per Liter</p>
-                    <p className="font-medium">₹{parseFloat(product.pricePerLiter).toFixed(2)}</p>
+                    <p className="font-medium text-lg">₹{parseFloat(product.pricePerLiter).toFixed(2)}</p>
                   </div>
                 </div>
               </CardContent>
