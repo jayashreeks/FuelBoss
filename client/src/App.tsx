@@ -14,7 +14,7 @@ import "./lib/i18n";
 
 // Pages
 import Landing from "@/pages/landing";
-import UnifiedLogin from "@/pages/manager-login";
+import Login from "@/pages/login";
 import Dashboard from "@/pages/dashboard";
 import DataEntry from "@/pages/data-entry";
 import StaffManagement from "@/pages/staff-management";
@@ -92,7 +92,7 @@ function MainApp() {
     const pathname = window.location.pathname;
     
     if (pathname === '/login') {
-      return <UnifiedLogin />;
+      return <Login />;
     }
     
     // Default to landing page for root and unknown routes
