@@ -156,7 +156,6 @@ export default function StaffManagement() {
                         </FormControl>
                         <SelectContent>
                           <SelectItem value="manager">Manager</SelectItem>
-                          <SelectItem value="operator">Operator</SelectItem>
                           <SelectItem value="attendant">Attendant</SelectItem>
                         </SelectContent>
                       </Select>

@@ -34,7 +34,7 @@ Preferred communication style: Simple, everyday language.
 ## Authentication and Authorization
 - **Identity Provider**: Replit Auth with OpenID Connect protocol
 - **Session Security**: Secure HTTP-only cookies with CSRF protection
-- **Role-Based Access**: Owner, manager, and operator roles with different permission levels
+- **Role-Based Access**: Owner, manager, and attendant roles with different permission levels
 - **User Management**: Automatic user creation and profile management from auth provider
 
 ## External Dependencies

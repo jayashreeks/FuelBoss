@@ -109,7 +109,7 @@ export const staff = pgTable("staff", {
   userId: varchar("user_id").references(() => users.id),
   name: text("name").notNull(),
   phoneNumber: varchar("phone_number"),
-  role: varchar("role").notNull(), // manager, operator, attendant
+  role: varchar("role").notNull(), // manager, attendant
   isActive: boolean("is_active").default(true),
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),

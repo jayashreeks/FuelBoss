@@ -23,7 +23,7 @@ import RODetailsPage from "@/pages/ro-details";
 import ProductsPage from "@/pages/products";
 import TankManagementPage from "@/pages/tank-management";
 import DispensingUnitsPage from "@/pages/dispensing-units";
-import ManagerAccessPage from "@/pages/manager-access";
+
 import SettingsPage from "@/pages/settings";
 
 function MainApp() {
@@ -99,8 +99,7 @@ function MainApp() {
           return <TankManagementPage onBack={handleBackToMain} />;
         case "dispensingUnits":
           return <DispensingUnitsPage onBack={handleBackToMain} />;
-        case "managerAccess":
-          return <ManagerAccessPage onBack={handleBackToMain} />;
+
         case "settings":
           return <SettingsPage onBack={handleBackToMain} />;
         default:

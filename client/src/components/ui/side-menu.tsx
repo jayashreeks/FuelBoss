@@ -53,11 +53,7 @@ export function SideMenu({ onMenuItemClick }: SideMenuProps) {
       label: t("menu.dispensingUnits"),
       icon: GaugeIcon,
     },
-    {
-      id: "managerAccess",
-      label: t("menu.managerAccess"),
-      icon: Users,
-    },
+
     {
       id: "settings",
       label: t("menu.settings"),
