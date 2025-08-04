@@ -180,7 +180,7 @@ export default function DispensingUnitsPage({ onBack }: DispensingUnitsPageProps
 
   const getTankName = (tankId: string) => {
     const tank = tanks.find((t: any) => t.id === tankId);
-    return tank ? `${tank.tankNumber}` : "Unknown Tank";
+    return tank ? tank.tankNumber : "Unknown Tank";
   };
 
   const getFuelTypeColor = () => {
@@ -288,7 +288,7 @@ export default function DispensingUnitsPage({ onBack }: DispensingUnitsPageProps
                         <SelectContent>
                           {tanks.length > 0 ? tanks.map((tank: any) => (
                             <SelectItem key={tank.id} value={tank.id}>
-                              {tank.name}
+                              {tank.tankNumber}
                             </SelectItem>
                           )) : (
                             <SelectItem value="" disabled>No tanks available</SelectItem>
