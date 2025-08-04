@@ -31,6 +31,7 @@ export default function StaffManagement() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [editingStaff, setEditingStaff] = useState<Staff | null>(null);
 
   const { data: staff = [], isLoading, error } = useQuery<Staff[]>({
     queryKey: ["/api/staff"],
@@ -47,7 +48,7 @@ export default function StaffManagement() {
 
   const mutation = useMutation({
     mutationFn: async (data: StaffForm) => {
-      await apiRequest("POST", "/api/staff", data);
+      return apiRequest("/api/staff", "POST", data);
     },
     onSuccess: () => {
       toast({
@@ -78,8 +79,104 @@ export default function StaffManagement() {
     },
   });
 
+  const updateMutation = useMutation({
+    mutationFn: async ({ id, data }: { id: string; data: StaffForm }) => {
+      return apiRequest(`/api/staff/${id}`, "PUT", data);
+    },
+    onSuccess: () => {
+      toast({
+        title: t("common.success"),
+        description: "Staff member updated successfully",
+      });
+      form.reset();
+      setIsDialogOpen(false);
+      setEditingStaff(null);
+      queryClient.invalidateQueries({ queryKey: ["/api/staff"] });
+    },
+    onError: (error) => {
+      if (isUnauthorizedError(error)) {
+        toast({
+          title: "Unauthorized",
+          description: "You are logged out. Logging in again...",
+          variant: "destructive",
+        });
+        setTimeout(() => {
+          window.location.href = "/api/login";
+        }, 500);
+        return;
+      }
+      toast({
+        title: t("common.error"),
+        description: "Failed to update staff member",
+        variant: "destructive",
+      });
+    },
+  });
+
+  const deleteMutation = useMutation({
+    mutationFn: async (id: string) => {
+      // Soft delete by setting isActive to false
+      return apiRequest(`/api/staff/${id}`, "PUT", { isActive: false });
+    },
+    onSuccess: () => {
+      toast({
+        title: t("common.success"),
+        description: "Staff member removed successfully",
+      });
+      queryClient.invalidateQueries({ queryKey: ["/api/staff"] });
+    },
+    onError: (error) => {
+      if (isUnauthorizedError(error)) {
+        toast({
+          title: "Unauthorized",
+          description: "You are logged out. Logging in again...",
+          variant: "destructive",
+        });
+        setTimeout(() => {
+          window.location.href = "/api/login";
+        }, 500);
+        return;
+      }
+      toast({
+        title: t("common.error"),
+        description: "Failed to remove staff member",
+        variant: "destructive",
+      });
+    },
+  });
+
+  const handleEdit = (staff: Staff) => {
+    setEditingStaff(staff);
+    form.reset({
+      name: staff.name,
+      phoneNumber: staff.phoneNumber || "",
+      role: staff.role,
+    });
+    setIsDialogOpen(true);
+  };
+
+  const handleDelete = (staff: Staff) => {
+    if (confirm(`Are you sure you want to remove ${staff.name}?`)) {
+      deleteMutation.mutate(staff.id);
+    }
+  };
+
+  const handleAddNew = () => {
+    setEditingStaff(null);
+    form.reset({
+      name: "",
+      phoneNumber: "",
+      role: "",
+    });
+    setIsDialogOpen(true);
+  };
+
   const onSubmit = (data: StaffForm) => {
-    mutation.mutate(data);
+    if (editingStaff) {
+      updateMutation.mutate({ id: editingStaff.id, data });
+    } else {
+      mutation.mutate(data);
+    }
   };
 
   if (error) {
@@ -103,14 +200,20 @@ export default function StaffManagement() {
         </h3>
         <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
           <DialogTrigger asChild>
-            <Button className="bg-primary text-white px-4 py-2 text-sm" data-testid="button-add-staff">
+            <Button 
+              className="bg-primary text-white px-4 py-2 text-sm" 
+              data-testid="button-add-staff"
+              onClick={handleAddNew}
+            >
               <Plus className="h-4 w-4 mr-1" />
               {t("staff.addStaff")}
             </Button>
           </DialogTrigger>
           <DialogContent>
             <DialogHeader>
-              <DialogTitle>{t("staff.addStaff")}</DialogTitle>
+              <DialogTitle>
+                {editingStaff ? "Edit Staff Member" : t("staff.addStaff")}
+              </DialogTitle>
             </DialogHeader>
             <Form {...form}>
               <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
@@ -204,9 +307,16 @@ export default function StaffManagement() {
             </AlertDescription>
           </Alert>
         ) : (
-          staff.map((member) => (
-            <StaffCard key={member.id} staffMember={member} />
-          ))
+          staff
+            .filter((member) => member.isActive) // Only show active staff
+            .map((member) => (
+              <StaffCard 
+                key={member.id} 
+                staffMember={member}
+                onEdit={handleEdit}
+                onDelete={handleDelete}
+              />
+            ))
         )}
       </div>
     </div>

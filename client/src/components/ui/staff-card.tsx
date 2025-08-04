@@ -1,7 +1,8 @@
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { MoreVertical, User } from "lucide-react";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import { MoreVertical, User, Edit2, Trash2 } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import type { Staff } from "@shared/schema";
 
@@ -44,14 +45,35 @@ export function StaffCard({ staffMember, onEdit, onDelete }: StaffCardProps) {
             >
               {staffMember.isActive ? t("staff.active") : t("staff.inactive")}
             </Badge>
-            <Button 
-              variant="ghost" 
-              size="icon"
-              className="text-gray-400 h-8 w-8"
-              data-testid={`staff-menu-${staffMember.id}`}
-            >
-              <MoreVertical className="h-4 w-4" />
-            </Button>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button 
+                  variant="ghost" 
+                  size="icon"
+                  className="text-gray-400 h-8 w-8"
+                  data-testid={`staff-menu-${staffMember.id}`}
+                >
+                  <MoreVertical className="h-4 w-4" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end">
+                <DropdownMenuItem 
+                  onClick={() => onEdit?.(staffMember)}
+                  data-testid={`edit-staff-${staffMember.id}`}
+                >
+                  <Edit2 className="h-4 w-4 mr-2" />
+                  Edit
+                </DropdownMenuItem>
+                <DropdownMenuItem 
+                  onClick={() => onDelete?.(staffMember)}
+                  className="text-red-600"
+                  data-testid={`delete-staff-${staffMember.id}`}
+                >
+                  <Trash2 className="h-4 w-4 mr-2" />
+                  Remove
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
           </div>
         </div>
       </CardContent>

@@ -79,10 +79,10 @@ export function SideMenu({ onMenuItemClick }: SideMenuProps) {
             <div className="flex items-center justify-between">
               <div>
                 <SheetTitle className="text-white font-medium" data-testid="user-name">
-                  {user?.firstName || user?.email || "User"}
+                  {(user as any)?.firstName || (user as any)?.email || "User"}
                 </SheetTitle>
                 <p className="text-sm opacity-90" data-testid="user-role">
-                  {user?.role || "Owner"}
+                  {(user as any)?.role || "Owner"}
                 </p>
               </div>
             </div>

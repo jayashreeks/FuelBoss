@@ -132,24 +132,24 @@ function MainApp() {
             {t("app.name")}
           </h1>
           <span className="text-xs opacity-90" data-testid="app-header-subtitle">
-            {retailOutlet?.name || "Petrol Pump"}
+            {(retailOutlet as any)?.name || "Petrol Pump"}
           </span>
         </div>
         <div className="flex items-center space-x-2">
           <button className="text-sm bg-white/20 px-2 py-1 rounded" data-testid="language-indicator">
-            <span>{i18n.language.toUpperCase()}</span>
+            <span>{i18n.language?.toUpperCase() || "EN"}</span>
           </button>
           <div className="w-8 h-8 bg-white/20 rounded-full flex items-center justify-center">
-            {user?.profileImageUrl ? (
+            {(user as any)?.profileImageUrl ? (
               <img 
-                src={user.profileImageUrl} 
+                src={(user as any).profileImageUrl} 
                 alt="Profile" 
                 className="w-8 h-8 rounded-full object-cover"
                 data-testid="user-avatar"
               />
             ) : (
               <div className="text-sm" data-testid="user-avatar-fallback">
-                {(user?.firstName || user?.email || "U").charAt(0).toUpperCase()}
+                {((user as any)?.firstName || (user as any)?.email || "U").charAt(0).toUpperCase()}
               </div>
             )}
           </div>

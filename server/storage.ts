@@ -69,6 +69,7 @@ export interface IStorage {
   
   // Staff operations
   getStaffByRetailOutletId(retailOutletId: string): Promise<Staff[]>;
+  getStaffById(id: string): Promise<Staff | undefined>;
   createStaff(staffMember: InsertStaff): Promise<Staff>;
   updateStaff(id: string, staffMember: Partial<InsertStaff>): Promise<Staff>;
   deleteStaff(id: string): Promise<void>;
@@ -274,8 +275,16 @@ export class DatabaseStorage implements IStorage {
     return await db
       .select()
       .from(staff)
-      .where(and(eq(staff.retailOutletId, retailOutletId), eq(staff.isActive, true)))
+      .where(eq(staff.retailOutletId, retailOutletId))
       .orderBy(staff.name);
+  }
+
+  async getStaffById(id: string): Promise<Staff | undefined> {
+    const [staffMember] = await db
+      .select()
+      .from(staff)
+      .where(eq(staff.id, id));
+    return staffMember;
   }
 
   async createStaff(staffMember: InsertStaff): Promise<Staff> {

@@ -303,10 +303,28 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.put('/api/staff/:id', isAuthenticated, async (req: any, res) => {
     try {
-      const { id } = req.params;
-      const validatedData = insertStaffSchema.partial().parse(req.body);
-      const staffMember = await storage.updateStaff(id, validatedData);
-      res.json(staffMember);
+      const userId = req.user.claims.sub;
+      const outlet = await storage.getRetailOutletByOwnerId(userId);
+      if (!outlet) {
+        return res.status(404).json({ message: "Retail outlet not found" });
+      }
+      
+      const staffId = req.params.id;
+      const existingStaff = await storage.getStaffById(staffId);
+      if (!existingStaff || existingStaff.retailOutletId !== outlet.id) {
+        return res.status(404).json({ message: "Staff member not found" });
+      }
+
+      // For soft delete, only allow isActive field
+      if (req.body.isActive !== undefined) {
+        const updatedStaff = await storage.updateStaff(staffId, { isActive: req.body.isActive });
+        return res.json(updatedStaff);
+      }
+
+      // For full update, validate all fields
+      const validatedData = insertStaffSchema.omit({ retailOutletId: true }).parse(req.body);
+      const updatedStaff = await storage.updateStaff(staffId, validatedData);
+      res.json(updatedStaff);
     } catch (error) {
       console.error("Error updating staff member:", error);
       res.status(400).json({ message: "Failed to update staff member" });
