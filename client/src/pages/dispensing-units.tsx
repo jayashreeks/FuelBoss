@@ -44,11 +44,11 @@ export default function DispensingUnitsPage({ onBack }: DispensingUnitsPageProps
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingDU, setEditingDU] = useState<any>(null);
 
-  const { data: dispensingUnits = [], isLoading: duLoading } = useQuery({
+  const { data: dispensingUnits = [], isLoading: duLoading } = useQuery<any[]>({
     queryKey: ["/api/dispensing-units"],
   });
 
-  const { data: tanks = [], isLoading: tanksLoading } = useQuery({
+  const { data: tanks = [], isLoading: tanksLoading } = useQuery<any[]>({
     queryKey: ["/api/tanks"],
   });
 
@@ -141,10 +141,24 @@ export default function DispensingUnitsPage({ onBack }: DispensingUnitsPageProps
   });
 
   const handleSubmit = (data: DUForm) => {
+    console.log("Form submitted with data:", data);
+    
+    // Create the payload with proper date formatting
+    const payload = {
+      name: data.name,
+      numberOfNozzles: data.numberOfNozzles,
+      nozzles: data.nozzles.map(nozzle => ({
+        tankId: nozzle.tankId,
+        calibrationValidUntil: nozzle.calibrationValidUntil.toISOString()
+      }))
+    };
+    
+    console.log("Processed payload:", payload);
+    
     if (editingDU) {
-      updateMutation.mutate({ id: editingDU.id, data });
+      updateMutation.mutate({ id: editingDU.id, data: payload });
     } else {
-      createMutation.mutate(data);
+      createMutation.mutate(payload);
     }
   };
 
@@ -274,7 +288,7 @@ export default function DispensingUnitsPage({ onBack }: DispensingUnitsPageProps
                         <SelectContent>
                           {tanks.map((tank: any) => (
                             <SelectItem key={tank.id} value={tank.id}>
-                              Tank {tank.tankNumber}
+                              {tank.name}
                             </SelectItem>
                           ))}
                         </SelectContent>

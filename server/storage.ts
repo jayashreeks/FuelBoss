@@ -54,6 +54,12 @@ export interface IStorage {
   createDispensingUnit(unit: InsertDispensingUnit): Promise<DispensingUnit>;
   updateDispensingUnit(id: string, unit: Partial<InsertDispensingUnit>): Promise<DispensingUnit>;
   deleteDispensingUnit(id: string): Promise<void>;
+
+  // Nozzle operations
+  getNozzlesByDispensingUnitId(dispensingUnitId: string): Promise<Nozzle[]>;
+  createNozzle(nozzle: InsertNozzle): Promise<Nozzle>;
+  updateNozzle(id: string, nozzle: Partial<InsertNozzle>): Promise<Nozzle>;
+  deleteNozzle(id: string): Promise<void>;
   
   // Nozzle operations
   getNozzlesByDispensingUnitId(dispensingUnitId: string): Promise<Nozzle[]>;

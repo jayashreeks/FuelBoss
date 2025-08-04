@@ -230,6 +230,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
             ...nozzle,
             dispensingUnitId: unit.id,
             nozzleNumber: i + 1,
+            calibrationValidUntil: new Date(nozzle.calibrationValidUntil),
           });
           await storage.createNozzle(validatedNozzleData);
         }
