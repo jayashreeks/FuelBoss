@@ -58,8 +58,16 @@ export default function DispensingUnitsPage({ onBack }: DispensingUnitsPageProps
       name: "",
       numberOfNozzles: 2,
       nozzles: [
-        { tankId: "", calibrationValidUntil: new Date() },
-        { tankId: "", calibrationValidUntil: new Date() }
+        { tankId: "", calibrationValidUntil: (() => {
+          const date = new Date();
+          date.setFullYear(date.getFullYear() + 1);
+          return date;
+        })() },
+        { tankId: "", calibrationValidUntil: (() => {
+          const date = new Date();
+          date.setFullYear(date.getFullYear() + 1);
+          return date;
+        })() }
       ],
     },
   });
@@ -69,8 +77,11 @@ export default function DispensingUnitsPage({ onBack }: DispensingUnitsPageProps
   // Update nozzles array when number of nozzles changes
   useEffect(() => {
     const currentNozzles = form.getValues("nozzles");
+    const defaultCalibrationDate = new Date();
+    defaultCalibrationDate.setFullYear(defaultCalibrationDate.getFullYear() + 1); // 1 year from today
+    
     const newNozzles = Array.from({ length: numberOfNozzles }, (_, index) => 
-      currentNozzles[index] || { tankId: "", calibrationValidUntil: new Date() }
+      currentNozzles[index] || { tankId: "", calibrationValidUntil: defaultCalibrationDate }
     );
     form.setValue("nozzles", newNozzles);
   }, [numberOfNozzles, form]);
@@ -142,23 +153,12 @@ export default function DispensingUnitsPage({ onBack }: DispensingUnitsPageProps
 
   const handleSubmit = (data: DUForm) => {
     console.log("Form submitted with data:", data);
-    
-    // Create the payload with proper date formatting
-    const payload = {
-      name: data.name,
-      numberOfNozzles: data.numberOfNozzles,
-      nozzles: data.nozzles.map(nozzle => ({
-        tankId: nozzle.tankId,
-        calibrationValidUntil: nozzle.calibrationValidUntil.toISOString()
-      }))
-    };
-    
-    console.log("Processed payload:", payload);
+    console.log("Available tanks:", tanks);
     
     if (editingDU) {
-      updateMutation.mutate({ id: editingDU.id, data: payload });
+      updateMutation.mutate({ id: editingDU.id, data });
     } else {
-      createMutation.mutate(payload);
+      createMutation.mutate(data);
     }
   };
 
@@ -286,11 +286,13 @@ export default function DispensingUnitsPage({ onBack }: DispensingUnitsPageProps
                           <SelectValue placeholder="Select tank" />
                         </SelectTrigger>
                         <SelectContent>
-                          {tanks.map((tank: any) => (
+                          {tanks.length > 0 ? tanks.map((tank: any) => (
                             <SelectItem key={tank.id} value={tank.id}>
                               {tank.name}
                             </SelectItem>
-                          ))}
+                          )) : (
+                            <SelectItem value="" disabled>No tanks available</SelectItem>
+                          )}
                         </SelectContent>
                       </Select>
                     </div>
