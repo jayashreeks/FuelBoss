@@ -22,8 +22,8 @@ const tankSchema = z.object({
   tankNumber: z.string().min(1, "Tank number is required"),
   productId: z.string().min(1, "Product is required"),
   capacity: z.number().min(1, "Capacity must be greater than 0"),
-  currentStock: z.number().min(0, "Current stock cannot be negative"),
-  minimumLevel: z.number().min(0, "Minimum level cannot be negative"),
+  length: z.number().min(0.1, "Length must be greater than 0"),
+  diameter: z.number().min(0.1, "Diameter must be greater than 0"),
 });
 
 type TankForm = z.infer<typeof tankSchema>;
@@ -49,8 +49,8 @@ export default function TankManagementPage({ onBack }: TankManagementPageProps) 
       tankNumber: "",
       productId: "",
       capacity: 0,
-      currentStock: 0,
-      minimumLevel: 0,
+      length: 0,
+      diameter: 0,
     },
   });
 
@@ -136,8 +136,8 @@ export default function TankManagementPage({ onBack }: TankManagementPageProps) 
       tankNumber: tank.tankNumber,
       productId: tank.productId,
       capacity: tank.capacity,
-      currentStock: tank.currentStock,
-      minimumLevel: tank.minimumLevel,
+      length: tank.length,
+      diameter: tank.diameter,
     });
     setIsDialogOpen(true);
   };
@@ -246,44 +246,46 @@ export default function TankManagementPage({ onBack }: TankManagementPageProps) 
                 )}
               </div>
 
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label htmlFor="capacity">Capacity (L)</Label>
-                  <Input
-                    id="capacity"
-                    type="number"
-                    {...form.register("capacity", { valueAsNumber: true })}
-                    data-testid="input-capacity"
-                  />
-                  {form.formState.errors.capacity && (
-                    <p className="text-sm text-red-600">{form.formState.errors.capacity.message}</p>
-                  )}
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="currentStock">Current Stock (L)</Label>
-                  <Input
-                    id="currentStock"
-                    type="number"
-                    {...form.register("currentStock", { valueAsNumber: true })}
-                    data-testid="input-current-stock"
-                  />
-                  {form.formState.errors.currentStock && (
-                    <p className="text-sm text-red-600">{form.formState.errors.currentStock.message}</p>
-                  )}
-                </div>
+              <div className="space-y-2">
+                <Label htmlFor="capacity">Capacity (L)</Label>
+                <Input
+                  id="capacity"
+                  type="number"
+                  {...form.register("capacity", { valueAsNumber: true })}
+                  data-testid="input-capacity"
+                />
+                {form.formState.errors.capacity && (
+                  <p className="text-sm text-red-600">{form.formState.errors.capacity.message}</p>
+                )}
               </div>
 
-              <div className="space-y-2">
-                <Label htmlFor="minimumLevel">Minimum Level (L)</Label>
-                <Input
-                  id="minimumLevel"
-                  type="number"
-                  {...form.register("minimumLevel", { valueAsNumber: true })}
-                  data-testid="input-minimum-level"
-                />
-                {form.formState.errors.minimumLevel && (
-                  <p className="text-sm text-red-600">{form.formState.errors.minimumLevel.message}</p>
-                )}
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="length">Length (m)</Label>
+                  <Input
+                    id="length"
+                    type="number"
+                    step="0.1"
+                    {...form.register("length", { valueAsNumber: true })}
+                    data-testid="input-length"
+                  />
+                  {form.formState.errors.length && (
+                    <p className="text-sm text-red-600">{form.formState.errors.length.message}</p>
+                  )}
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="diameter">Diameter (m)</Label>
+                  <Input
+                    id="diameter"
+                    type="number"
+                    step="0.1"
+                    {...form.register("diameter", { valueAsNumber: true })}
+                    data-testid="input-diameter"
+                  />
+                  {form.formState.errors.diameter && (
+                    <p className="text-sm text-red-600">{form.formState.errors.diameter.message}</p>
+                  )}
+                </div>
               </div>
 
               <div className="flex space-x-3 pt-4">
