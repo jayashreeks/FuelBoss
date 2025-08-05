@@ -107,7 +107,12 @@ export function SideMenu({ onMenuItemClick, currentUser, userRole = "dealer" }: 
   return (
     <Sheet open={open} onOpenChange={setOpen}>
       <SheetTrigger asChild>
-        <Button variant="ghost" size="icon" className="text-white" data-testid="menu-trigger">
+        <Button 
+          variant="outline" 
+          size="icon" 
+          className="bg-primary text-white border-primary hover:bg-primary/90 hover:text-white shadow-lg" 
+          data-testid="menu-trigger"
+        >
           <Menu className="h-5 w-5" />
         </Button>
       </SheetTrigger>
