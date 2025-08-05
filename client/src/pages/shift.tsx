@@ -36,7 +36,7 @@ export default function ShiftPage({ onBack }: ShiftPageProps) {
 
   // Fetch products for rate entry
   const { data: products } = useQuery({
-    queryKey: ['/api/products'],
+    queryKey: ['/api/manager/products'],
     retry: false,
   });
 

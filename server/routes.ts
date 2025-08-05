@@ -83,6 +83,28 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Manager-accessible products endpoint
+  app.get('/api/manager/products', async (req: any, res) => {
+    try {
+      const managerId = req.session?.managerId;
+      if (!managerId) {
+        return res.status(401).json({ message: "Manager authentication required" });
+      }
+      
+      // Get manager details to find their retail outlet
+      const manager = await storage.getStaffById(managerId);
+      if (!manager || !manager.retailOutletId) {
+        return res.status(404).json({ message: "Manager or retail outlet not found" });
+      }
+      
+      const products = await storage.getProductsByRetailOutletId(manager.retailOutletId);
+      res.json(products);
+    } catch (error) {
+      console.error("Error fetching products for manager:", error);
+      res.status(500).json({ message: "Failed to fetch products" });
+    }
+  });
+
   app.post('/api/products', isAuthenticated, async (req: any, res) => {
     try {
       const userId = req.user.claims.sub;
