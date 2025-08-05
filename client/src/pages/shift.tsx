@@ -71,15 +71,9 @@ export default function ShiftPage({ onBack }: ShiftPageProps) {
   // Save rates mutation
   const saveRatesMutation = useMutation({
     mutationFn: async (rates: ProductRate[]) => {
-      return apiRequest('/api/shifts/rates', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          shiftType: selectedShiftType,
-          rates: rates,
-        }),
+      return apiRequest('/api/shifts/rates', 'POST', {
+        shiftType: selectedShiftType,
+        rates: rates,
       });
     },
     onSuccess: () => {
