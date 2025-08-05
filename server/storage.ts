@@ -7,6 +7,7 @@ import {
   nozzles,
   staff,
   shiftSales,
+  shifts,
   type User,
   type UpsertUser,
   type RetailOutlet,
@@ -23,6 +24,8 @@ import {
   type InsertStaff,
   type ShiftSales,
   type InsertShiftSales,
+  type Shift,
+  type InsertShift,
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, and, desc, sql } from "drizzle-orm";
@@ -89,6 +92,12 @@ export interface IStorage {
       card: number;
     };
   }>;
+
+  // Shift operations for managers
+  getCurrentShift(managerId: string): Promise<any>;
+  getLastProductRates(managerId: string): Promise<any[]>;
+  saveProductRates(managerId: string, shiftType: string, rates: any[]): Promise<void>;
+  startShift(managerId: string, shiftType: string, productRates: any[]): Promise<any>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -423,6 +432,34 @@ export class DatabaseStorage implements IStorage {
         upi: paymentBreakdown?.upi || 0,
         card: paymentBreakdown?.card || 0,
       },
+    };
+  }
+
+  // Shift operations for managers (mock implementation for now)
+  async getCurrentShift(managerId: string): Promise<any> {
+    // Mock implementation - return null for no active shift
+    return null;
+  }
+
+  async getLastProductRates(managerId: string): Promise<any[]> {
+    // Mock implementation - return empty array
+    return [];
+  }
+
+  async saveProductRates(managerId: string, shiftType: string, rates: any[]): Promise<void> {
+    // Mock implementation - would save rates to database
+    console.log(`Saving rates for manager ${managerId}, shift ${shiftType}:`, rates);
+  }
+
+  async startShift(managerId: string, shiftType: string, productRates: any[]): Promise<any> {
+    // Mock implementation - would create new shift record
+    return {
+      id: 'mock-shift-id',
+      managerId,
+      shiftType,
+      status: 'active',
+      startTime: new Date().toISOString(),
+      productRates,
     };
   }
 }

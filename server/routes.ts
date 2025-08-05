@@ -525,6 +525,70 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Shift routes for managers
+  app.get('/api/shifts/current', async (req: any, res) => {
+    try {
+      // Get current manager from session (assuming manager auth middleware)
+      const managerId = req.session?.managerId;
+      if (!managerId) {
+        return res.status(401).json({ message: "Manager authentication required" });
+      }
+      
+      const currentShift = await storage.getCurrentShift(managerId);
+      res.json(currentShift);
+    } catch (error) {
+      console.error("Error fetching current shift:", error);
+      res.status(500).json({ message: "Failed to fetch current shift" });
+    }
+  });
+
+  app.get('/api/shifts/last-rates', async (req: any, res) => {
+    try {
+      const managerId = req.session?.managerId;
+      if (!managerId) {
+        return res.status(401).json({ message: "Manager authentication required" });
+      }
+      
+      const lastRates = await storage.getLastProductRates(managerId);
+      res.json(lastRates);
+    } catch (error) {
+      console.error("Error fetching last rates:", error);
+      res.status(500).json({ message: "Failed to fetch last rates" });
+    }
+  });
+
+  app.post('/api/shifts/rates', async (req: any, res) => {
+    try {
+      const managerId = req.session?.managerId;
+      if (!managerId) {
+        return res.status(401).json({ message: "Manager authentication required" });
+      }
+      
+      const { shiftType, rates } = req.body;
+      await storage.saveProductRates(managerId, shiftType, rates);
+      res.json({ message: "Rates saved successfully" });
+    } catch (error) {
+      console.error("Error saving rates:", error);
+      res.status(500).json({ message: "Failed to save rates" });
+    }
+  });
+
+  app.post('/api/shifts/start', async (req: any, res) => {
+    try {
+      const managerId = req.session?.managerId;
+      if (!managerId) {
+        return res.status(401).json({ message: "Manager authentication required" });
+      }
+      
+      const { shiftType, productRates } = req.body;
+      const shift = await storage.startShift(managerId, shiftType, productRates);
+      res.json(shift);
+    } catch (error) {
+      console.error("Error starting shift:", error);
+      res.status(500).json({ message: "Failed to start shift" });
+    }
+  });
+
   const httpServer = createServer(app);
   return httpServer;
 }

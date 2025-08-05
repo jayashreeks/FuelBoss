@@ -268,6 +268,22 @@ export const insertProductSchema = createInsertSchema(products).omit({
 // Types
 export type UpsertUser = typeof users.$inferInsert;
 export type User = typeof users.$inferSelect;
+
+// Shifts table for tracking work shifts and product rates
+export const shifts = pgTable("shifts", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  managerId: varchar("manager_id").notNull(),
+  shiftType: varchar("shift_type", { enum: ["morning", "evening", "night"] }).notNull(),
+  startTime: timestamp("start_time"),
+  endTime: timestamp("end_time"),
+  status: varchar("status", { enum: ["not-started", "active", "completed"] }).default("not-started").notNull(),
+  productRates: jsonb("product_rates").$type<{productId: string; productName: string; rate: number}[]>().default([]),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+export type Shift = typeof shifts.$inferSelect;
+export type InsertShift = typeof shifts.$inferInsert;
 export type InsertRetailOutlet = z.infer<typeof insertRetailOutletSchema>;
 export type RetailOutlet = typeof retailOutlets.$inferSelect;
 export type InsertTank = z.infer<typeof insertTankSchema>;
