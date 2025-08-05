@@ -1,15 +1,14 @@
-import { useState } from "react";
 import { ArrowLeft, Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import ShiftDateSelector from "@/components/ShiftDateSelector";
+import ShiftDateDisplay from "@/components/ShiftDateDisplay";
+import { useShiftContext } from "@/contexts/ShiftContext";
 
 interface ReadingsPageProps {
   onBack?: () => void;
 }
 
 export default function ReadingsPage({ onBack }: ReadingsPageProps) {
-  const [selectedShiftType, setSelectedShiftType] = useState<'morning' | 'evening' | 'night'>('morning');
-  const [selectedDate, setSelectedDate] = useState<string>(new Date().toISOString().split('T')[0]);
+  const { selectedShiftType, selectedDate } = useShiftContext();
   return (
     <div className="min-h-screen bg-surface pb-20">
       <div className="bg-primary text-white p-4">
@@ -42,11 +41,9 @@ export default function ReadingsPage({ onBack }: ReadingsPageProps) {
       </div>
 
       <div className="p-4">
-        <ShiftDateSelector
+        <ShiftDateDisplay
           selectedShiftType={selectedShiftType}
           selectedDate={selectedDate}
-          onShiftTypeChange={setSelectedShiftType}
-          onDateChange={setSelectedDate}
         />
 
         <div className="bg-white rounded-lg shadow-sm p-6">

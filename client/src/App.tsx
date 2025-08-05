@@ -6,6 +6,7 @@ import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { useAuth } from "@/hooks/useAuth";
 import { useManagerAuth } from "@/hooks/useManagerAuth";
+import { ShiftProvider } from "@/contexts/ShiftContext";
 import { useQuery } from "@tanstack/react-query";
 import { BottomNavigation } from "@/components/ui/bottom-navigation";
 import { SideMenu } from "@/components/ui/side-menu";
@@ -177,6 +178,14 @@ function MainApp() {
 
         case "settings":
           return <SettingsPage onBack={handleBackToMain} />;
+        case "shift":
+          return <ShiftPage onBack={handleBackToMain} />;
+        case "readings":
+          return <ReadingsPage onBack={handleBackToMain} />;
+        case "stock":
+          return <StockPage onBack={handleBackToMain} />;
+        case "inventory":
+          return <InventoryPage onBack={handleBackToMain} />;
         default:
           return <Dashboard />;
       }
@@ -257,8 +266,10 @@ function App() {
   return (
     <QueryClientProvider client={queryClient}>
       <TooltipProvider>
-        <Toaster />
-        <Router />
+        <ShiftProvider>
+          <Toaster />
+          <Router />
+        </ShiftProvider>
       </TooltipProvider>
     </QueryClientProvider>
   );

@@ -7,6 +7,7 @@ import { useState, useEffect } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
+import { useShiftContext } from "@/contexts/ShiftContext";
 
 interface ShiftPageProps {
   onBack?: () => void;
@@ -32,8 +33,7 @@ interface Shift {
 }
 
 export default function ShiftPage({ onBack }: ShiftPageProps) {
-  const [selectedShiftType, setSelectedShiftType] = useState<'morning' | 'evening' | 'night'>('morning');
-  const [selectedDate, setSelectedDate] = useState<string>(new Date().toISOString().split('T')[0]);
+  const { selectedShiftType, selectedDate, setSelectedShiftType, setSelectedDate } = useShiftContext();
   const [productRates, setProductRates] = useState<ProductRate[]>([]);
   const [currentShift, setCurrentShift] = useState<Shift | null>(null);
   const { toast } = useToast();
@@ -194,6 +194,18 @@ export default function ShiftPage({ onBack }: ShiftPageProps) {
           <div className="space-y-4">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
+                <Label htmlFor="shift-date">Date</Label>
+                <Input
+                  id="shift-date"
+                  type="date"
+                  value={selectedDate}
+                  onChange={(e) => setSelectedDate(e.target.value)}
+                  className="mt-1"
+                  data-testid="shift-date-select"
+                />
+              </div>
+              
+              <div>
                 <Label htmlFor="shift-type">Shift Type</Label>
                 <Select 
                   value={selectedShiftType} 
@@ -208,18 +220,6 @@ export default function ShiftPage({ onBack }: ShiftPageProps) {
                     <SelectItem value="night">Night Shift (10 PM - 6 AM)</SelectItem>
                   </SelectContent>
                 </Select>
-              </div>
-
-              <div>
-                <Label htmlFor="shift-date">Date</Label>
-                <Input
-                  id="shift-date"
-                  type="date"
-                  value={selectedDate}
-                  onChange={(e) => setSelectedDate(e.target.value)}
-                  className="mt-1"
-                  data-testid="shift-date-select"
-                />
               </div>
             </div>
 
