@@ -106,8 +106,7 @@ function MainApp() {
           return <ReadingsPage onBack={handleBackToMain} />;
         case "stock":
           return <StockPage onBack={handleBackToMain} />;
-        case "density":
-          return <DensityPage onBack={handleBackToMain} />;
+
         case "inventory":
           return <InventoryPage onBack={handleBackToMain} />;
         case "dataEntry":

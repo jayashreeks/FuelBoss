@@ -24,11 +24,6 @@ export function BottomNavigation({ currentPage, onNavigate }: BottomNavigationPr
       icon: Package,
     },
     {
-      id: "density",
-      label: "Density",
-      icon: Droplets,
-    },
-    {
       id: "inventory",
       label: "Inventory",
       icon: Warehouse,
@@ -37,7 +32,7 @@ export function BottomNavigation({ currentPage, onNavigate }: BottomNavigationPr
 
   return (
     <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 safe-area-padding-bottom z-50">
-      <div className="grid grid-cols-5 h-16">
+      <div className="grid grid-cols-4 h-16">
         {navItems.map((item) => {
           const Icon = item.icon;
           const isActive = currentPage === item.id;

@@ -17,6 +17,9 @@ interface ProductRate {
   productName: string;
   rate: number;
   lastUpdated?: string;
+  observedDensity?: number;
+  observedTemperature?: number;
+  densityAt15C?: number;
 }
 
 interface Shift {
@@ -106,6 +109,48 @@ export default function ShiftPage({ onBack }: ShiftPageProps) {
     );
   };
 
+  const handleDensityChange = (productId: string, density: string) => {
+    const numericDensity = parseFloat(density) || 0;
+    setProductRates(prev => 
+      prev.map(item => {
+        if (item.productId === productId) {
+          const updatedItem = { ...item, observedDensity: numericDensity };
+          // Auto-calculate density at 15°C if both density and temperature are available
+          if (updatedItem.observedTemperature && numericDensity) {
+            updatedItem.densityAt15C = calculateDensityAt15C(numericDensity, updatedItem.observedTemperature);
+          }
+          return updatedItem;
+        }
+        return item;
+      })
+    );
+  };
+
+  const handleTemperatureChange = (productId: string, temperature: string) => {
+    const numericTemp = parseFloat(temperature) || 0;
+    setProductRates(prev => 
+      prev.map(item => {
+        if (item.productId === productId) {
+          const updatedItem = { ...item, observedTemperature: numericTemp };
+          // Auto-calculate density at 15°C if both density and temperature are available
+          if (updatedItem.observedDensity && numericTemp) {
+            updatedItem.densityAt15C = calculateDensityAt15C(updatedItem.observedDensity, numericTemp);
+          }
+          return updatedItem;
+        }
+        return item;
+      })
+    );
+  };
+
+  // Formula to calculate density at 15°C from observed density and temperature
+  const calculateDensityAt15C = (observedDensity: number, observedTemp: number): number => {
+    // Using the standard petroleum density correction formula
+    // Density at 15°C = Observed Density * [1 + 0.0008 * (Observed Temp - 15)]
+    const correctionFactor = 1 + 0.0008 * (observedTemp - 15);
+    return Math.round((observedDensity * correctionFactor) * 1000) / 1000; // Round to 3 decimal places
+  };
+
   const handleSaveRates = () => {
     saveRatesMutation.mutate(productRates);
   };
@@ -155,20 +200,7 @@ export default function ShiftPage({ onBack }: ShiftPageProps) {
               </Select>
             </div>
 
-            <div className="grid grid-cols-2 gap-4">
-              <div className="bg-gray-50 p-4 rounded-lg">
-                <h3 className="text-sm font-medium text-gray-600">Current Status</h3>
-                <p className="text-lg font-semibold" data-testid="shift-status">
-                  {currentShift?.status === 'active' ? 'Active' : 'Not Started'}
-                </p>
-              </div>
-              <div className="bg-gray-50 p-4 rounded-lg">
-                <h3 className="text-sm font-medium text-gray-600">Duration</h3>
-                <p className="text-lg font-semibold" data-testid="shift-duration">
-                  {currentShift?.status === 'active' ? '00:45' : '--:--'}
-                </p>
-              </div>
-            </div>
+
           </div>
         </div>
 
@@ -190,27 +222,71 @@ export default function ShiftPage({ onBack }: ShiftPageProps) {
           <div className="space-y-4">
             {productRates.length > 0 ? (
               productRates.map((product) => (
-                <div key={product.productId} className="flex items-center justify-between p-4 border rounded-lg">
-                  <div className="flex-1">
-                    <h3 className="font-medium">{product.productName}</h3>
-                    {product.lastUpdated && (
-                      <p className="text-sm text-gray-500">
-                        Last updated: {new Date(product.lastUpdated).toLocaleDateString()}
-                      </p>
-                    )}
+                <div key={product.productId} className="p-4 border rounded-lg space-y-4">
+                  <div className="flex items-center justify-between">
+                    <div className="flex-1">
+                      <h3 className="font-medium">{product.productName}</h3>
+                      {product.lastUpdated && (
+                        <p className="text-sm text-gray-500">
+                          Last updated: {new Date(product.lastUpdated).toLocaleDateString()}
+                        </p>
+                      )}
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <Label htmlFor={`rate-${product.productId}`} className="text-sm">₹</Label>
+                      <Input
+                        id={`rate-${product.productId}`}
+                        type="number"
+                        step="0.01"
+                        value={product.rate}
+                        onChange={(e) => handleRateChange(product.productId, e.target.value)}
+                        className="w-24"
+                        data-testid={`rate-input-${product.productId}`}
+                      />
+                      <span className="text-sm text-gray-500">/L</span>
+                    </div>
                   </div>
-                  <div className="flex items-center space-x-2">
-                    <Label htmlFor={`rate-${product.productId}`} className="text-sm">₹</Label>
-                    <Input
-                      id={`rate-${product.productId}`}
-                      type="number"
-                      step="0.01"
-                      value={product.rate}
-                      onChange={(e) => handleRateChange(product.productId, e.target.value)}
-                      className="w-24"
-                      data-testid={`rate-input-${product.productId}`}
-                    />
-                    <span className="text-sm text-gray-500">/L</span>
+
+                  {/* Density and Temperature Section */}
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4 pt-3 border-t border-gray-100">
+                    <div>
+                      <Label htmlFor={`density-${product.productId}`} className="text-xs text-gray-600">
+                        Observed Density (g/ml)
+                      </Label>
+                      <Input
+                        id={`density-${product.productId}`}
+                        type="number"
+                        step="0.001"
+                        placeholder="0.750"
+                        value={product.observedDensity || ''}
+                        onChange={(e) => handleDensityChange(product.productId, e.target.value)}
+                        className="w-full mt-1"
+                        data-testid={`density-input-${product.productId}`}
+                      />
+                    </div>
+                    
+                    <div>
+                      <Label htmlFor={`temperature-${product.productId}`} className="text-xs text-gray-600">
+                        Temperature (°C)
+                      </Label>
+                      <Input
+                        id={`temperature-${product.productId}`}
+                        type="number"
+                        step="0.1"
+                        placeholder="25"
+                        value={product.observedTemperature || ''}
+                        onChange={(e) => handleTemperatureChange(product.productId, e.target.value)}
+                        className="w-full mt-1"
+                        data-testid={`temperature-input-${product.productId}`}
+                      />
+                    </div>
+
+                    <div>
+                      <Label className="text-xs text-gray-600">Density at 15°C</Label>
+                      <div className="mt-1 p-2 bg-gray-50 rounded border text-sm font-medium">
+                        {product.densityAt15C ? `${product.densityAt15C} g/ml` : '---'}
+                      </div>
+                    </div>
                   </div>
                 </div>
               ))
