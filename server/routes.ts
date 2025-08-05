@@ -587,11 +587,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
       
       const { shiftType, rates } = req.body;
+      console.log('Saving rates for manager:', managerId, 'shift:', shiftType, 'rates:', rates);
       await storage.saveProductRates(managerId, shiftType, rates);
-      res.json({ message: "Rates saved successfully" });
+      res.json({ message: "Rates saved successfully", success: true });
     } catch (error) {
       console.error("Error saving rates:", error);
-      res.status(500).json({ message: "Failed to save rates" });
+      res.status(500).json({ message: "Failed to save rates", error: error.message });
     }
   });
 

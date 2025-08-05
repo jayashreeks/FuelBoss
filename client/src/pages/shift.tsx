@@ -1,4 +1,4 @@
-import { ArrowLeft, Save, Clock, Edit } from "lucide-react";
+import { ArrowLeft, Save } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
@@ -73,6 +73,9 @@ export default function ShiftPage({ onBack }: ShiftPageProps) {
     mutationFn: async (rates: ProductRate[]) => {
       return apiRequest('/api/shifts/rates', {
         method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
         body: JSON.stringify({
           shiftType: selectedShiftType,
           rates: rates,
@@ -86,7 +89,8 @@ export default function ShiftPage({ onBack }: ShiftPageProps) {
       });
       queryClient.invalidateQueries({ queryKey: ['/api/shifts/last-rates'] });
     },
-    onError: () => {
+    onError: (error) => {
+      console.error('Save rates error:', error);
       toast({
         title: "Error",
         description: "Failed to save product rates",
@@ -95,32 +99,7 @@ export default function ShiftPage({ onBack }: ShiftPageProps) {
     },
   });
 
-  // Start shift mutation
-  const startShiftMutation = useMutation({
-    mutationFn: async () => {
-      return apiRequest('/api/shifts/start', {
-        method: 'POST',
-        body: JSON.stringify({
-          shiftType: selectedShiftType,
-          productRates: productRates,
-        }),
-      });
-    },
-    onSuccess: () => {
-      toast({
-        title: "Success",
-        description: "Shift started successfully",
-      });
-      queryClient.invalidateQueries({ queryKey: ['/api/shifts/current'] });
-    },
-    onError: () => {
-      toast({
-        title: "Error",
-        description: "Failed to start shift",
-        variant: "destructive",
-      });
-    },
-  });
+
 
   const handleRateChange = (productId: string, rate: string) => {
     const numericRate = parseFloat(rate) || 0;
@@ -137,9 +116,7 @@ export default function ShiftPage({ onBack }: ShiftPageProps) {
     saveRatesMutation.mutate(productRates);
   };
 
-  const handleStartShift = () => {
-    startShiftMutation.mutate();
-  };
+
 
   return (
     <div className="min-h-screen bg-surface pb-20">
@@ -251,29 +228,7 @@ export default function ShiftPage({ onBack }: ShiftPageProps) {
           </div>
         </div>
 
-        {/* Shift Controls */}
-        <div className="bg-white rounded-lg shadow-sm p-6">
-          <h2 className="text-lg font-semibold mb-4">Shift Controls</h2>
-          <div className="flex space-x-3">
-            <Button 
-              className="flex-1" 
-              onClick={handleStartShift}
-              disabled={startShiftMutation.isPending || currentShift?.status === 'active'}
-              data-testid="start-shift"
-            >
-              <Clock className="h-4 w-4 mr-2" />
-              {currentShift?.status === 'active' ? 'Shift Active' : 'Start Shift'}
-            </Button>
-            <Button 
-              variant="outline" 
-              className="flex-1" 
-              disabled={currentShift?.status !== 'active'}
-              data-testid="end-shift"
-            >
-              End Shift
-            </Button>
-          </div>
-        </div>
+
       </div>
     </div>
   );
