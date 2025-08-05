@@ -277,7 +277,7 @@ export const shifts = pgTable("shifts", {
   startTime: timestamp("start_time"),
   endTime: timestamp("end_time"),
   status: varchar("status", { enum: ["not-started", "active", "completed"] }).default("not-started").notNull(),
-  productRates: jsonb("product_rates").$type<{productId: string; productName: string; rate: number}[]>().default([]),
+  productRates: jsonb("product_rates").$type<{productId: string; productName: string; rate: number; observedDensity?: number; observedTemperature?: number; densityAt15C?: number}[]>().default([]),
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
 });

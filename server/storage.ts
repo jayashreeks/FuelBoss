@@ -442,13 +442,62 @@ export class DatabaseStorage implements IStorage {
   }
 
   async getLastProductRates(managerId: string): Promise<any[]> {
-    // Mock implementation - return empty array
+    // Get the most recent shift for this manager
+    const [latestShift] = await db
+      .select()
+      .from(shifts)
+      .where(eq(shifts.managerId, managerId))
+      .orderBy(desc(shifts.updatedAt))
+      .limit(1);
+
+    if (latestShift?.productRates) {
+      return latestShift.productRates as any[];
+    }
+
     return [];
   }
 
   async saveProductRates(managerId: string, shiftType: string, rates: any[]): Promise<void> {
-    // Mock implementation - would save rates to database
     console.log(`Saving rates for manager ${managerId}, shift ${shiftType}:`, rates);
+    
+    // Get manager's retail outlet
+    const manager = await this.getStaffById(managerId);
+    if (!manager) {
+      throw new Error("Manager not found");
+    }
+
+    // Create or update shift record with product rates
+    const [existingShift] = await db
+      .select()
+      .from(shifts)
+      .where(
+        and(
+          eq(shifts.managerId, managerId),
+          eq(shifts.shiftType, shiftType)
+        )
+      )
+      .limit(1);
+
+    if (existingShift) {
+      // Update existing shift with new rates
+      await db
+        .update(shifts)
+        .set({
+          productRates: rates,
+          updatedAt: new Date(),
+        })
+        .where(eq(shifts.id, existingShift.id));
+    } else {
+      // Create new shift record
+      await db
+        .insert(shifts)
+        .values({
+          managerId: managerId,
+          shiftType: shiftType,
+          productRates: rates,
+          status: 'not-started',
+        });
+    }
   }
 
   async startShift(managerId: string, shiftType: string, productRates: any[]): Promise<any> {
