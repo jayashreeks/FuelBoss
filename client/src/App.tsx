@@ -96,7 +96,31 @@ function MainApp() {
     // Manager-only interface (limited functionality)
     return (
       <div className="min-h-screen bg-surface">
-        <div className="flex">
+        {/* Mobile Manager Interface */}
+        <div className="md:hidden">
+          <div className="p-4">
+            <div className="mb-4">
+              <SideMenu
+                currentUser={currentUser}
+                onMenuItemClick={handleMenuItemClick}
+                userRole="manager"
+              />
+            </div>
+            {currentPage === "dataEntry" ? (
+              <DataEntry onBack={handleBackToMain} />
+            ) : currentPage === "reports" ? (
+              <Reports onBack={handleBackToMain} />
+            ) : (
+              <div className="text-center py-8">
+                <h2 className="text-xl font-semibold mb-4">Manager Dashboard</h2>
+                <p className="text-gray-600">Use the menu button to access Data Entry and Reports.</p>
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* Desktop Manager Interface */}
+        <div className="hidden md:flex">
           <div className="w-64 fixed h-full">
             <SideMenu
               currentUser={currentUser}
