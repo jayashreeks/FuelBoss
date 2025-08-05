@@ -1,61 +1,65 @@
+import { Clock, Gauge, Package, Droplets, Warehouse } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { BarChart3, Edit, Gauge, Users } from "lucide-react";
-import { useTranslation } from "react-i18next";
 
 interface BottomNavigationProps {
-  activeTab: string;
-  onTabChange: (tab: string) => void;
+  currentPage: string | null;
+  onNavigate: (page: string) => void;
 }
 
-export function BottomNavigation({ activeTab, onTabChange }: BottomNavigationProps) {
-  const { t } = useTranslation();
-
-  const tabs = [
+export function BottomNavigation({ currentPage, onNavigate }: BottomNavigationProps) {
+  const navItems = [
     {
-      id: "dashboard",
-      label: t("navigation.dashboard"),
+      id: "shift",
+      label: "Shift",
+      icon: Clock,
+    },
+    {
+      id: "readings",
+      label: "Readings",
       icon: Gauge,
     },
     {
-      id: "dataEntry",
-      label: t("navigation.dataEntry"),
-      icon: Edit,
+      id: "stock",
+      label: "Stock",
+      icon: Package,
     },
     {
-      id: "staff",
-      label: t("navigation.staff"),
-      icon: Users,
+      id: "density",
+      label: "Density",
+      icon: Droplets,
     },
     {
-      id: "reports",
-      label: t("navigation.reports"),
-      icon: BarChart3,
+      id: "inventory",
+      label: "Inventory",
+      icon: Warehouse,
     },
   ];
 
   return (
-    <nav className="fixed bottom-0 left-0 right-0 max-w-md mx-auto bg-white border-t border-gray-200 px-4 py-2 shadow-lg z-50">
-      <div className="flex items-center justify-around">
-        {tabs.map((tab) => {
-          const Icon = tab.icon;
-          const isActive = activeTab === tab.id;
+    <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 safe-area-padding-bottom z-50">
+      <div className="grid grid-cols-5 h-16">
+        {navItems.map((item) => {
+          const Icon = item.icon;
+          const isActive = currentPage === item.id;
           
           return (
             <button
-              key={tab.id}
-              onClick={() => onTabChange(tab.id)}
+              key={item.id}
+              onClick={() => onNavigate(item.id)}
               className={cn(
-                "flex flex-col items-center py-2 px-3 transition-colors",
-                isActive ? "text-primary" : "text-gray-600"
+                "flex flex-col items-center justify-center space-y-1 transition-colors",
+                isActive 
+                  ? "text-primary bg-primary/5" 
+                  : "text-gray-600 hover:text-primary hover:bg-gray-50"
               )}
-              data-testid={`nav-${tab.id}`}
+              data-testid={`nav-${item.id}`}
             >
-              <Icon className="text-lg mb-1 h-5 w-5" />
-              <span className="text-xs">{tab.label}</span>
+              <Icon className="h-5 w-5" />
+              <span className="text-xs font-medium truncate">{item.label}</span>
             </button>
           );
         })}
       </div>
-    </nav>
+    </div>
   );
 }

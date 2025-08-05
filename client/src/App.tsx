@@ -26,6 +26,11 @@ import TankManagementPage from "@/pages/tank-management";
 import DispensingUnitsPage from "@/pages/dispensing-units";
 
 import SettingsPage from "@/pages/settings";
+import ShiftPage from "@/pages/shift";
+import ReadingsPage from "@/pages/readings";
+import StockPage from "@/pages/stock";
+import DensityPage from "@/pages/density";
+import InventoryPage from "@/pages/inventory";
 
 function MainApp() {
   const { user, isAuthenticated, isLoading } = useAuth();
@@ -93,56 +98,63 @@ function MainApp() {
 
   // Managers skip setup and go directly to their allowed functions
   if (isManagerAuthenticated && !isAuthenticated) {
-    // Manager-only interface (limited functionality)
+    const renderManagerContent = () => {
+      switch (currentPage) {
+        case "shift":
+          return <ShiftPage onBack={handleBackToMain} />;
+        case "readings":
+          return <ReadingsPage onBack={handleBackToMain} />;
+        case "stock":
+          return <StockPage onBack={handleBackToMain} />;
+        case "density":
+          return <DensityPage onBack={handleBackToMain} />;
+        case "inventory":
+          return <InventoryPage onBack={handleBackToMain} />;
+        case "dataEntry":
+          return <DataEntry onBack={handleBackToMain} />;
+        case "reports":
+          return <Reports onBack={handleBackToMain} />;
+        default:
+          return (
+            <div className="min-h-screen bg-surface pb-20">
+              <div className="bg-primary text-white p-4">
+                <div className="flex items-center justify-between">
+                  <h1 className="text-xl font-semibold">Manager Dashboard</h1>
+                  <SideMenu
+                    currentUser={currentUser}
+                    onMenuItemClick={handleMenuItemClick}
+                    userRole="manager"
+                  />
+                </div>
+              </div>
+              <div className="p-4">
+                <div className="bg-white rounded-lg shadow-sm p-6 text-center">
+                  <h2 className="text-lg font-semibold mb-2">Welcome, {currentUser?.name || 'Manager'}</h2>
+                  <p className="text-gray-600 mb-4">Use the navigation below to access your tools.</p>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="bg-gray-50 p-4 rounded-lg">
+                      <h3 className="font-medium">Quick Actions</h3>
+                      <p className="text-sm text-gray-600">Tap any option in the bottom menu</p>
+                    </div>
+                    <div className="bg-gray-50 p-4 rounded-lg">
+                      <h3 className="font-medium">Current Shift</h3>
+                      <p className="text-sm text-gray-600">Not Started</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          );
+      }
+    };
+
     return (
       <div className="min-h-screen bg-surface">
-        {/* Mobile Manager Interface */}
-        <div className="md:hidden">
-          <div className="p-4">
-            <div className="mb-4">
-              <SideMenu
-                currentUser={currentUser}
-                onMenuItemClick={handleMenuItemClick}
-                userRole="manager"
-              />
-            </div>
-            {currentPage === "dataEntry" ? (
-              <DataEntry onBack={handleBackToMain} />
-            ) : currentPage === "reports" ? (
-              <Reports onBack={handleBackToMain} />
-            ) : (
-              <div className="text-center py-8">
-                <h2 className="text-xl font-semibold mb-4">Manager Dashboard</h2>
-                <p className="text-gray-600">Use the menu button to access Data Entry and Reports.</p>
-              </div>
-            )}
-          </div>
-        </div>
-
-        {/* Desktop Manager Interface */}
-        <div className="hidden md:flex">
-          <div className="w-64 fixed h-full">
-            <SideMenu
-              currentUser={currentUser}
-              onMenuItemClick={handleMenuItemClick}
-              userRole="manager"
-            />
-          </div>
-          <div className="flex-1 ml-64">
-            <div className="p-4">
-              {currentPage === "dataEntry" ? (
-                <DataEntry onBack={handleBackToMain} />
-              ) : currentPage === "reports" ? (
-                <Reports onBack={handleBackToMain} />
-              ) : (
-                <div className="text-center py-8">
-                  <h2 className="text-xl font-semibold mb-4">Manager Dashboard</h2>
-                  <p className="text-gray-600">Select an option from the menu to continue.</p>
-                </div>
-              )}
-            </div>
-          </div>
-        </div>
+        {renderManagerContent()}
+        <BottomNavigation
+          currentPage={currentPage}
+          onNavigate={handleMenuItemClick}
+        />
       </div>
     );
   }
