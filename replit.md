@@ -8,6 +8,10 @@ FuelFlow is a comprehensive petrol pump management system built as a mobile-firs
 - Added manager authentication with phone number and password
 - Created role-based access control with different menu options
 - Integrated both Replit Auth (dealers) and custom authentication (managers)
+- Enhanced shift management with date selection for historical data access
+- Implemented proper database storage for product rates with density measurements
+- Added auto-population of last saved rates from previous shifts
+- Separated rate entry and density measurement sections for better organization
 
 # User Preferences
 

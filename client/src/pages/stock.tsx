@@ -1,11 +1,15 @@
+import { useState } from "react";
 import { ArrowLeft, Package } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import ShiftDateSelector from "@/components/ShiftDateSelector";
 
 interface StockPageProps {
   onBack?: () => void;
 }
 
 export default function StockPage({ onBack }: StockPageProps) {
+  const [selectedShiftType, setSelectedShiftType] = useState<'morning' | 'evening' | 'night'>('morning');
+  const [selectedDate, setSelectedDate] = useState<string>(new Date().toISOString().split('T')[0]);
   return (
     <div className="min-h-screen bg-surface pb-20">
       <div className="bg-primary text-white p-4">
@@ -28,6 +32,13 @@ export default function StockPage({ onBack }: StockPageProps) {
       </div>
 
       <div className="p-4">
+        <ShiftDateSelector
+          selectedShiftType={selectedShiftType}
+          selectedDate={selectedDate}
+          onShiftTypeChange={setSelectedShiftType}
+          onDateChange={setSelectedDate}
+        />
+
         <div className="grid grid-cols-2 gap-4 mb-6">
           <div className="bg-white rounded-lg shadow-sm p-4">
             <div className="flex items-center space-x-3">

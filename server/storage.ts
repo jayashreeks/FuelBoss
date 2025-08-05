@@ -441,8 +441,27 @@ export class DatabaseStorage implements IStorage {
     return null;
   }
 
-  async getLastProductRates(managerId: string): Promise<any[]> {
-    // Get the most recent shift for this manager
+  async getLastProductRates(managerId: string, targetDate?: string, targetShiftType?: string): Promise<any[]> {
+    // If specific date and shift are provided, get that shift
+    if (targetDate && targetShiftType) {
+      const [specificShift] = await db
+        .select()
+        .from(shifts)
+        .where(
+          and(
+            eq(shifts.managerId, managerId),
+            eq(shifts.shiftType, targetShiftType),
+            sql`DATE(created_at) = ${targetDate}`
+          )
+        )
+        .limit(1);
+
+      if (specificShift?.productRates) {
+        return specificShift.productRates as any[];
+      }
+    }
+
+    // Otherwise, get the most recent shift for this manager
     const [latestShift] = await db
       .select()
       .from(shifts)
@@ -457,8 +476,8 @@ export class DatabaseStorage implements IStorage {
     return [];
   }
 
-  async saveProductRates(managerId: string, shiftType: string, rates: any[]): Promise<void> {
-    console.log(`Saving rates for manager ${managerId}, shift ${shiftType}:`, rates);
+  async saveProductRates(managerId: string, shiftType: string, rates: any[], targetDate?: string): Promise<void> {
+    console.log(`Saving rates for manager ${managerId}, shift ${shiftType}, date ${targetDate}:`, rates);
     
     // Get manager's retail outlet
     const manager = await this.getStaffById(managerId);
@@ -466,16 +485,20 @@ export class DatabaseStorage implements IStorage {
       throw new Error("Manager not found");
     }
 
-    // Create or update shift record with product rates
+    // Create or update shift record with product rates for specific date
+    const whereConditions = [
+      eq(shifts.managerId, managerId),
+      eq(shifts.shiftType, shiftType)
+    ];
+
+    if (targetDate) {
+      whereConditions.push(sql`DATE(created_at) = ${targetDate}`);
+    }
+
     const [existingShift] = await db
       .select()
       .from(shifts)
-      .where(
-        and(
-          eq(shifts.managerId, managerId),
-          eq(shifts.shiftType, shiftType)
-        )
-      )
+      .where(and(...whereConditions))
       .limit(1);
 
     if (existingShift) {

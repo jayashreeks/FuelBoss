@@ -1,11 +1,15 @@
+import { useState } from "react";
 import { ArrowLeft, Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import ShiftDateSelector from "@/components/ShiftDateSelector";
 
 interface ReadingsPageProps {
   onBack?: () => void;
 }
 
 export default function ReadingsPage({ onBack }: ReadingsPageProps) {
+  const [selectedShiftType, setSelectedShiftType] = useState<'morning' | 'evening' | 'night'>('morning');
+  const [selectedDate, setSelectedDate] = useState<string>(new Date().toISOString().split('T')[0]);
   return (
     <div className="min-h-screen bg-surface pb-20">
       <div className="bg-primary text-white p-4">
@@ -38,11 +42,20 @@ export default function ReadingsPage({ onBack }: ReadingsPageProps) {
       </div>
 
       <div className="p-4">
+        <ShiftDateSelector
+          selectedShiftType={selectedShiftType}
+          selectedDate={selectedDate}
+          onShiftTypeChange={setSelectedShiftType}
+          onDateChange={setSelectedDate}
+        />
+
         <div className="bg-white rounded-lg shadow-sm p-6">
-          <h2 className="text-lg font-semibold mb-4">Today's Readings</h2>
+          <h2 className="text-lg font-semibold mb-4">
+            {selectedDate === new Date().toISOString().split('T')[0] ? "Today's" : "Selected Date"} Readings
+          </h2>
           <div className="space-y-4">
             <div className="text-center text-gray-500 py-8" data-testid="no-readings">
-              No readings recorded today
+              No readings recorded for {selectedShiftType} shift on {selectedDate}
             </div>
             <Button className="w-full" data-testid="record-reading">
               Record New Reading

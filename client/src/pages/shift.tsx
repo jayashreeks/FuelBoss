@@ -33,6 +33,7 @@ interface Shift {
 
 export default function ShiftPage({ onBack }: ShiftPageProps) {
   const [selectedShiftType, setSelectedShiftType] = useState<'morning' | 'evening' | 'night'>('morning');
+  const [selectedDate, setSelectedDate] = useState<string>(new Date().toISOString().split('T')[0]);
   const [productRates, setProductRates] = useState<ProductRate[]>([]);
   const [currentShift, setCurrentShift] = useState<Shift | null>(null);
   const { toast } = useToast();
@@ -51,7 +52,14 @@ export default function ShiftPage({ onBack }: ShiftPageProps) {
 
   // Fetch last saved rates
   const { data: lastRates } = useQuery({
-    queryKey: ['/api/shifts/last-rates'],
+    queryKey: ['/api/shifts/last-rates', selectedDate, selectedShiftType],
+    queryFn: () => {
+      const params = new URLSearchParams({
+        date: selectedDate,
+        shiftType: selectedShiftType
+      });
+      return fetch(`/api/shifts/last-rates?${params}`).then(res => res.json());
+    },
     retry: false,
   });
 
@@ -76,6 +84,7 @@ export default function ShiftPage({ onBack }: ShiftPageProps) {
     mutationFn: async (rates: ProductRate[]) => {
       return apiRequest('/api/shifts/rates', 'POST', {
         shiftType: selectedShiftType,
+        date: selectedDate,
         rates: rates,
       });
     },
@@ -84,7 +93,7 @@ export default function ShiftPage({ onBack }: ShiftPageProps) {
         title: "Success",
         description: "Product rates saved successfully",
       });
-      queryClient.invalidateQueries({ queryKey: ['/api/shifts/last-rates'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/shifts/last-rates', selectedDate, selectedShiftType] });
     },
     onError: (error) => {
       console.error('Save rates error:', error);
@@ -183,21 +192,35 @@ export default function ShiftPage({ onBack }: ShiftPageProps) {
         <div className="bg-white rounded-lg shadow-sm p-6">
           <h2 className="text-lg font-semibold mb-4">Select Shift</h2>
           <div className="space-y-4">
-            <div>
-              <Label htmlFor="shift-type">Shift Type</Label>
-              <Select 
-                value={selectedShiftType} 
-                onValueChange={(value: 'morning' | 'evening' | 'night') => setSelectedShiftType(value)}
-              >
-                <SelectTrigger className="mt-1" data-testid="shift-type-select">
-                  <SelectValue placeholder="Select shift type" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="morning">Morning Shift (6 AM - 2 PM)</SelectItem>
-                  <SelectItem value="evening">Evening Shift (2 PM - 10 PM)</SelectItem>
-                  <SelectItem value="night">Night Shift (10 PM - 6 AM)</SelectItem>
-                </SelectContent>
-              </Select>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <Label htmlFor="shift-type">Shift Type</Label>
+                <Select 
+                  value={selectedShiftType} 
+                  onValueChange={(value: 'morning' | 'evening' | 'night') => setSelectedShiftType(value)}
+                >
+                  <SelectTrigger className="mt-1" data-testid="shift-type-select">
+                    <SelectValue placeholder="Select shift type" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="morning">Morning Shift (6 AM - 2 PM)</SelectItem>
+                    <SelectItem value="evening">Evening Shift (2 PM - 10 PM)</SelectItem>
+                    <SelectItem value="night">Night Shift (10 PM - 6 AM)</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div>
+                <Label htmlFor="shift-date">Date</Label>
+                <Input
+                  id="shift-date"
+                  type="date"
+                  value={selectedDate}
+                  onChange={(e) => setSelectedDate(e.target.value)}
+                  className="mt-1"
+                  data-testid="shift-date-select"
+                />
+              </div>
             </div>
 
 

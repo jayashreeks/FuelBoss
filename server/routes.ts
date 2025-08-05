@@ -571,7 +571,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(401).json({ message: "Manager authentication required" });
       }
       
-      const lastRates = await storage.getLastProductRates(managerId);
+      const { date, shiftType } = req.query;
+      const lastRates = await storage.getLastProductRates(managerId, date as string, shiftType as string);
       res.json(lastRates);
     } catch (error) {
       console.error("Error fetching last rates:", error);
@@ -586,9 +587,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(401).json({ message: "Manager authentication required" });
       }
       
-      const { shiftType, rates } = req.body;
-      console.log('Saving rates for manager:', managerId, 'shift:', shiftType, 'rates:', rates);
-      await storage.saveProductRates(managerId, shiftType, rates);
+      const { shiftType, rates, date } = req.body;
+      console.log('Saving rates for manager:', managerId, 'shift:', shiftType, 'date:', date, 'rates:', rates);
+      await storage.saveProductRates(managerId, shiftType, rates, date);
       res.json({ message: "Rates saved successfully", success: true });
     } catch (error) {
       console.error("Error saving rates:", error);
