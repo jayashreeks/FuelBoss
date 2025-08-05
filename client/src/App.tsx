@@ -13,7 +13,6 @@ import { useTranslation } from "react-i18next";
 import "./lib/i18n";
 
 // Pages
-import Landing from "@/pages/landing";
 import Login from "@/pages/login";
 import Dashboard from "@/pages/dashboard";
 import DataEntry from "@/pages/data-entry";
@@ -88,15 +87,8 @@ function MainApp() {
   }
 
   if (!isAnyUserAuthenticated) {
-    // Handle routing for non-authenticated users
-    const pathname = window.location.pathname;
-    
-    if (pathname === '/login') {
-      return <Login />;
-    }
-    
-    // Default to landing page for root and unknown routes
-    return <Landing />;
+    // Show login screen directly for all non-authenticated users
+    return <Login />;
   }
 
   // Managers skip setup and go directly to their allowed functions

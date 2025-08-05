@@ -1,6 +1,13 @@
 # Overview
 
-FuelFlow is a comprehensive petrol pump management system built as a mobile-first web application. The application enables petrol pump owners and managers to efficiently track fuel inventory, manage staff, record sales data, and generate reports. The system provides a complete solution for day-to-day operations of fuel retail outlets with multi-language support (English and Hindi) and role-based access control.
+FuelFlow is a comprehensive petrol pump management system built as a mobile-first web application. The application enables petrol pump owners and managers to efficiently track fuel inventory, manage staff, record sales data, and generate reports. The system provides a complete solution for day-to-day operations of fuel retail outlets with multi-language support (English and Hindi) and unified role-based authentication.
+
+## Recent Changes (August 2025)
+- Implemented unified login system with role selection (dealer/manager)
+- Removed landing page - login screen shows directly on app load
+- Added manager authentication with phone number and password
+- Created role-based access control with different menu options
+- Integrated both Replit Auth (dealers) and custom authentication (managers)
 
 # User Preferences
 
