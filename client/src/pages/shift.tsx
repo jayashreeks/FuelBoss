@@ -148,7 +148,7 @@ export default function ShiftPage({ onBack }: ShiftPageProps) {
     // Using the standard petroleum density correction formula
     // Density at 15°C = Observed Density * [1 + 0.0008 * (Observed Temp - 15)]
     const correctionFactor = 1 + 0.0008 * (observedTemp - 15);
-    return Math.round((observedDensity * correctionFactor) * 1000) / 1000; // Round to 3 decimal places
+    return Math.round((observedDensity * correctionFactor) * 100) / 100; // Round to 2 decimal places for Kg/m³
   };
 
   const handleSaveRates = () => {
@@ -204,7 +204,7 @@ export default function ShiftPage({ onBack }: ShiftPageProps) {
           </div>
         </div>
 
-        {/* Product Rates */}
+        {/* Product Rates Section */}
         <div className="bg-white rounded-lg shadow-sm p-6">
           <div className="flex items-center justify-between mb-4">
             <h2 className="text-lg font-semibold">Product Rates</h2>
@@ -222,42 +222,58 @@ export default function ShiftPage({ onBack }: ShiftPageProps) {
           <div className="space-y-4">
             {productRates.length > 0 ? (
               productRates.map((product) => (
-                <div key={product.productId} className="p-4 border rounded-lg space-y-4">
-                  <div className="flex items-center justify-between">
-                    <div className="flex-1">
-                      <h3 className="font-medium">{product.productName}</h3>
-                      {product.lastUpdated && (
-                        <p className="text-sm text-gray-500">
-                          Last updated: {new Date(product.lastUpdated).toLocaleDateString()}
-                        </p>
-                      )}
-                    </div>
-                    <div className="flex items-center space-x-2">
-                      <Label htmlFor={`rate-${product.productId}`} className="text-sm">₹</Label>
-                      <Input
-                        id={`rate-${product.productId}`}
-                        type="number"
-                        step="0.01"
-                        value={product.rate}
-                        onChange={(e) => handleRateChange(product.productId, e.target.value)}
-                        className="w-24"
-                        data-testid={`rate-input-${product.productId}`}
-                      />
-                      <span className="text-sm text-gray-500">/L</span>
-                    </div>
+                <div key={product.productId} className="flex items-center justify-between p-4 border rounded-lg">
+                  <div className="flex-1">
+                    <h3 className="font-medium">{product.productName}</h3>
+                    {product.lastUpdated && (
+                      <p className="text-sm text-gray-500">
+                        Last updated: {new Date(product.lastUpdated).toLocaleDateString()}
+                      </p>
+                    )}
                   </div>
+                  <div className="flex items-center space-x-2">
+                    <Label htmlFor={`rate-${product.productId}`} className="text-sm">₹</Label>
+                    <Input
+                      id={`rate-${product.productId}`}
+                      type="number"
+                      step="0.01"
+                      value={product.rate}
+                      onChange={(e) => handleRateChange(product.productId, e.target.value)}
+                      className="w-24"
+                      data-testid={`rate-input-${product.productId}`}
+                    />
+                    <span className="text-sm text-gray-500">/L</span>
+                  </div>
+                </div>
+              ))
+            ) : (
+              <div className="text-center text-gray-500 py-8" data-testid="no-products">
+                No products configured. Please set up products first.
+              </div>
+            )}
+          </div>
+        </div>
 
-                  {/* Density and Temperature Section */}
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4 pt-3 border-t border-gray-100">
+        {/* Density Measurements Section */}
+        <div className="bg-white rounded-lg shadow-sm p-6">
+          <h2 className="text-lg font-semibold mb-4">Density Measurements</h2>
+          
+          <div className="space-y-4">
+            {productRates.length > 0 ? (
+              productRates.map((product) => (
+                <div key={`density-${product.productId}`} className="p-4 border rounded-lg">
+                  <h3 className="font-medium mb-4">{product.productName}</h3>
+                  
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                     <div>
-                      <Label htmlFor={`density-${product.productId}`} className="text-xs text-gray-600">
-                        Observed Density (g/ml)
+                      <Label htmlFor={`density-${product.productId}`} className="text-sm text-gray-600">
+                        Observed Density (Kg/m³)
                       </Label>
                       <Input
                         id={`density-${product.productId}`}
                         type="number"
-                        step="0.001"
-                        placeholder="0.750"
+                        step="0.01"
+                        placeholder="750.00"
                         value={product.observedDensity || ''}
                         onChange={(e) => handleDensityChange(product.productId, e.target.value)}
                         className="w-full mt-1"
@@ -266,14 +282,14 @@ export default function ShiftPage({ onBack }: ShiftPageProps) {
                     </div>
                     
                     <div>
-                      <Label htmlFor={`temperature-${product.productId}`} className="text-xs text-gray-600">
+                      <Label htmlFor={`temperature-${product.productId}`} className="text-sm text-gray-600">
                         Temperature (°C)
                       </Label>
                       <Input
                         id={`temperature-${product.productId}`}
                         type="number"
                         step="0.1"
-                        placeholder="25"
+                        placeholder="25.0"
                         value={product.observedTemperature || ''}
                         onChange={(e) => handleTemperatureChange(product.productId, e.target.value)}
                         className="w-full mt-1"
@@ -282,17 +298,17 @@ export default function ShiftPage({ onBack }: ShiftPageProps) {
                     </div>
 
                     <div>
-                      <Label className="text-xs text-gray-600">Density at 15°C</Label>
-                      <div className="mt-1 p-2 bg-gray-50 rounded border text-sm font-medium">
-                        {product.densityAt15C ? `${product.densityAt15C} g/ml` : '---'}
+                      <Label className="text-sm text-gray-600">Density at 15°C</Label>
+                      <div className="mt-1 p-3 bg-gray-50 rounded border text-sm font-medium">
+                        {product.densityAt15C ? `${product.densityAt15C} Kg/m³` : '---'}
                       </div>
                     </div>
                   </div>
                 </div>
               ))
             ) : (
-              <div className="text-center text-gray-500 py-8" data-testid="no-products">
-                No products configured. Please set up products first.
+              <div className="text-center text-gray-500 py-8">
+                No products available for density measurements.
               </div>
             )}
           </div>
