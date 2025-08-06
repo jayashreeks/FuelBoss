@@ -127,6 +127,7 @@ function MainApp() {
         <BottomNavigation
           currentPage={currentPage || "shift"}
           onNavigate={handleMenuItemClick}
+          userType="manager"
         />
       </div>
     );
@@ -220,7 +221,7 @@ function MainApp() {
 
       {/* Bottom Navigation - hide when viewing menu pages */}
       {!currentPage && (
-        <BottomNavigation currentPage={activeTab} onNavigate={setActiveTab} />
+        <BottomNavigation currentPage={activeTab} onNavigate={setActiveTab} userType="dealer" />
       )}
     </div>
   );

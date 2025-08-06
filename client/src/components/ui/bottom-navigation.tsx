@@ -1,13 +1,14 @@
-import { Clock, Gauge, Package, Droplets, Warehouse } from "lucide-react";
+import { Clock, Gauge, Package, Droplets, Warehouse, BarChart3, Users, ClipboardList, Home } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 interface BottomNavigationProps {
   currentPage: string | null;
   onNavigate: (page: string) => void;
+  userType?: "dealer" | "manager";
 }
 
-export function BottomNavigation({ currentPage, onNavigate }: BottomNavigationProps) {
-  const navItems = [
+export function BottomNavigation({ currentPage, onNavigate, userType = "dealer" }: BottomNavigationProps) {
+  const managerNavItems = [
     {
       id: "shift",
       label: "Shift",
@@ -29,6 +30,31 @@ export function BottomNavigation({ currentPage, onNavigate }: BottomNavigationPr
       icon: Warehouse,
     },
   ];
+
+  const dealerNavItems = [
+    {
+      id: "dashboard",
+      label: "Dashboard",
+      icon: Home,
+    },
+    {
+      id: "dataEntry",
+      label: "Data Entry",
+      icon: ClipboardList,
+    },
+    {
+      id: "staff",
+      label: "Staff",
+      icon: Users,
+    },
+    {
+      id: "reports",
+      label: "Reports",
+      icon: BarChart3,
+    },
+  ];
+
+  const navItems = userType === "manager" ? managerNavItems : dealerNavItems;
 
   return (
     <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 safe-area-padding-bottom z-50">
