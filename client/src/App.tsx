@@ -170,7 +170,7 @@ function MainApp() {
       case "dashboard":
         return <Dashboard />;
       case "dataEntry":
-        return <DataEntry />;
+        return <DataEntry onNavigate={handleMenuItemClick} />;
       case "staff":
         return <StaffManagement />;
       case "reports":

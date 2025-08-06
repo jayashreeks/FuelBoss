@@ -1,348 +1,87 @@
-import { useState } from "react";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { z } from "zod";
+import { Clock, Gauge, Package, Warehouse } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
-import { Input } from "@/components/ui/input";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { useTranslation } from "react-i18next";
-import { useToast } from "@/hooks/use-toast";
-import { apiRequest } from "@/lib/queryClient";
-import { isUnauthorizedError } from "@/lib/authUtils";
-import type { Staff } from "@shared/schema";
 
-const shiftDataSchema = z.object({
-  staffId: z.string().min(1, "Manager is required"),
-  shiftType: z.string().min(1, "Shift is required"),
-  shiftDate: z.string().min(1, "Date is required"),
-  startTime: z.string().min(1, "Start time is required"),
-  endTime: z.string().min(1, "End time is required"),
-  cashSales: z.string().min(0).transform(Number),
-  creditSales: z.string().min(0).transform(Number),
-  upiSales: z.string().min(0).transform(Number),
-  cardSales: z.string().min(0).transform(Number),
-  notes: z.string().optional(),
-});
+interface DataEntryProps {
+  onNavigate?: (page: string) => void;
+}
 
-type ShiftDataForm = z.infer<typeof shiftDataSchema>;
-
-export default function DataEntry() {
-  const { t } = useTranslation();
-  const { toast } = useToast();
-  const queryClient = useQueryClient();
-
-  const { data: staff = [], isLoading: staffLoading } = useQuery<Staff[]>({
-    queryKey: ["/api/staff"],
-  });
-
-  const form = useForm<ShiftDataForm>({
-    resolver: zodResolver(shiftDataSchema),
-    defaultValues: {
-      staffId: "",
-      shiftType: "",
-      shiftDate: new Date().toISOString().split('T')[0],
-      startTime: "",
-      endTime: "",
-      cashSales: "0",
-      creditSales: "0",
-      upiSales: "0",
-      cardSales: "0",
-      notes: "",
+export default function DataEntry({ onNavigate }: DataEntryProps) {
+  const dataEntryCards = [
+    {
+      id: "shift",
+      title: "Shift Management",
+      description: "Manage shift rates and density measurements",
+      icon: Clock,
+      color: "bg-blue-50 border-blue-200 hover:bg-blue-100",
+      iconColor: "text-blue-600",
     },
-  });
-
-  const mutation = useMutation({
-    mutationFn: async (data: ShiftDataForm) => {
-      const shiftDateTime = new Date(data.shiftDate);
-      const [startHour, startMinute] = data.startTime.split(':');
-      const [endHour, endMinute] = data.endTime.split(':');
-      
-      const startTime = new Date(shiftDateTime);
-      startTime.setHours(parseInt(startHour), parseInt(startMinute));
-      
-      const endTime = new Date(shiftDateTime);
-      endTime.setHours(parseInt(endHour), parseInt(endMinute));
-      
-      // If end time is before start time, assume it's next day
-      if (endTime < startTime) {
-        endTime.setDate(endTime.getDate() + 1);
-      }
-
-      const payload = {
-        staffId: data.staffId,
-        shiftDate: shiftDateTime.toISOString(),
-        shiftType: data.shiftType,
-        startTime: startTime.toISOString(),
-        endTime: endTime.toISOString(),
-        cashSales: data.cashSales.toString(),
-        creditSales: data.creditSales.toString(),
-        upiSales: data.upiSales.toString(),
-        cardSales: data.cardSales.toString(),
-        notes: data.notes,
-      };
-
-      await apiRequest("POST", "/api/shift-sales", payload);
+    {
+      id: "readings",
+      title: "Tank Readings",
+      description: "Record tank level measurements and readings",
+      icon: Gauge,
+      color: "bg-green-50 border-green-200 hover:bg-green-100",
+      iconColor: "text-green-600",
     },
-    onSuccess: () => {
-      toast({
-        title: t("common.success"),
-        description: "Shift data submitted successfully",
-      });
-      form.reset();
-      queryClient.invalidateQueries({ queryKey: ["/api/shift-sales"] });
+    {
+      id: "stock",
+      title: "Stock Management",
+      description: "Track fuel stock levels and deliveries",
+      icon: Package,
+      color: "bg-orange-50 border-orange-200 hover:bg-orange-100",
+      iconColor: "text-orange-600",
     },
-    onError: (error) => {
-      if (isUnauthorizedError(error)) {
-        toast({
-          title: "Unauthorized",
-          description: "You are logged out. Logging in again...",
-          variant: "destructive",
-        });
-        setTimeout(() => {
-          window.location.href = "/api/login";
-        }, 500);
-        return;
-      }
-      toast({
-        title: t("common.error"),
-        description: "Failed to submit shift data",
-        variant: "destructive",
-      });
+    {
+      id: "inventory",
+      title: "Inventory Reports",
+      description: "View inventory levels and analytics",
+      icon: Warehouse,
+      color: "bg-purple-50 border-purple-200 hover:bg-purple-100",
+      iconColor: "text-purple-600",
     },
-  });
-
-  const onSubmit = (data: ShiftDataForm) => {
-    mutation.mutate(data);
-  };
-
-  const shiftOptions = [
-    { value: "morning", label: "6:00 AM - 2:00 PM", startTime: "06:00", endTime: "14:00" },
-    { value: "afternoon", label: "2:00 PM - 10:00 PM", startTime: "14:00", endTime: "22:00" },
-    { value: "night", label: "10:00 PM - 6:00 AM", startTime: "22:00", endTime: "06:00" },
   ];
 
-  const handleShiftChange = (shiftType: string) => {
-    const shift = shiftOptions.find(s => s.value === shiftType);
-    if (shift) {
-      form.setValue("startTime", shift.startTime);
-      form.setValue("endTime", shift.endTime);
+  const handleCardClick = (cardId: string) => {
+    if (onNavigate) {
+      onNavigate(cardId);
     }
   };
 
   return (
-    <div className="p-4 pb-20">
-      <Card className="shadow-sm border border-gray-200">
-        <CardHeader>
-          <CardTitle className="text-lg font-medium" data-testid="data-entry-title">
-            {t("dataEntry.title")}
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <Form {...form}>
-            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-              <FormField
-                control={form.control}
-                name="shiftDate"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Date</FormLabel>
-                    <FormControl>
-                      <Input type="date" {...field} data-testid="input-shift-date" />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
+    <div className="p-4 space-y-6">
+      <h1 className="text-2xl font-bold" data-testid="data-entry-title">
+        Data Entry
+      </h1>
+      
+      <p className="text-gray-600 mb-6">
+        Select a category to enter or manage operational data
+      </p>
 
-              <FormField
-                control={form.control}
-                name="shiftType"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>{t("dataEntry.selectShift")}</FormLabel>
-                    <Select
-                      onValueChange={(value) => {
-                        field.onChange(value);
-                        handleShiftChange(value);
-                      }}
-                      defaultValue={field.value}
-                    >
-                      <FormControl>
-                        <SelectTrigger data-testid="select-shift-type">
-                          <SelectValue placeholder="Select shift" />
-                        </SelectTrigger>
-                      </FormControl>
-                      <SelectContent>
-                        {shiftOptions.map((option) => (
-                          <SelectItem key={option.value} value={option.value}>
-                            {option.label}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <div className="grid grid-cols-2 gap-3">
-                <FormField
-                  control={form.control}
-                  name="startTime"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Start Time</FormLabel>
-                      <FormControl>
-                        <Input type="time" {...field} data-testid="input-start-time" />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
-                <FormField
-                  control={form.control}
-                  name="endTime"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>End Time</FormLabel>
-                      <FormControl>
-                        <Input type="time" {...field} data-testid="input-end-time" />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-              </div>
-
-              <FormField
-                control={form.control}
-                name="staffId"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>{t("dataEntry.manager")}</FormLabel>
-                    <Select onValueChange={field.onChange} defaultValue={field.value}>
-                      <FormControl>
-                        <SelectTrigger data-testid="select-manager">
-                          <SelectValue placeholder="Select manager" />
-                        </SelectTrigger>
-                      </FormControl>
-                      <SelectContent>
-                        {staff.map((member) => (
-                          <SelectItem key={member.id} value={member.id}>
-                            {member.name} ({member.role})
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <div className="grid grid-cols-2 gap-3">
-                <FormField
-                  control={form.control}
-                  name="cashSales"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>{t("dataEntry.cashSales")}</FormLabel>
-                      <FormControl>
-                        <Input 
-                          type="number" 
-                          placeholder="0" 
-                          min="0" 
-                          step="0.01"
-                          {...field}
-                          data-testid="input-cash-sales"
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
-                <FormField
-                  control={form.control}
-                  name="creditSales"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>{t("dataEntry.creditSales")}</FormLabel>
-                      <FormControl>
-                        <Input 
-                          type="number" 
-                          placeholder="0" 
-                          min="0" 
-                          step="0.01"
-                          {...field}
-                          data-testid="input-credit-sales"
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-              </div>
-
-              <div className="grid grid-cols-2 gap-3">
-                <FormField
-                  control={form.control}
-                  name="upiSales"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>{t("dataEntry.upiSales")}</FormLabel>
-                      <FormControl>
-                        <Input 
-                          type="number" 
-                          placeholder="0" 
-                          min="0" 
-                          step="0.01"
-                          {...field}
-                          data-testid="input-upi-sales"
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
-                <FormField
-                  control={form.control}
-                  name="cardSales"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>{t("dataEntry.cardSales")}</FormLabel>
-                      <FormControl>
-                        <Input 
-                          type="number" 
-                          placeholder="0" 
-                          min="0" 
-                          step="0.01"
-                          {...field}
-                          data-testid="input-card-sales"
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-              </div>
-
-              <Button 
-                type="submit" 
-                className="w-full bg-primary text-white py-3 hover:bg-primary/90"
-                disabled={mutation.isPending}
-                data-testid="button-submit-data"
-              >
-                {mutation.isPending ? t("common.loading") : t("dataEntry.submit")}
-              </Button>
-            </form>
-          </Form>
-        </CardContent>
-      </Card>
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        {dataEntryCards.map((card) => {
+          const Icon = card.icon;
+          return (
+            <Card
+              key={card.id}
+              className={`cursor-pointer transition-all duration-200 ${card.color}`}
+              onClick={() => handleCardClick(card.id)}
+              data-testid={`data-entry-card-${card.id}`}
+            >
+              <CardHeader className="pb-4">
+                <div className="flex items-center space-x-3">
+                  <Icon className={`h-8 w-8 ${card.iconColor}`} />
+                  <div>
+                    <CardTitle className="text-lg">{card.title}</CardTitle>
+                  </div>
+                </div>
+              </CardHeader>
+              <CardContent>
+                <p className="text-sm text-gray-600">{card.description}</p>
+              </CardContent>
+            </Card>
+          );
+        })}
+      </div>
     </div>
   );
 }
