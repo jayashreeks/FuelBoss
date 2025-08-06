@@ -61,6 +61,8 @@ export default function UnifiedLogin() {
           password: data.password,
         });
         
+        console.log("Manager login response:", response);
+        
         if (response.success) {
           // Redirect to manager dashboard
           window.location.reload();

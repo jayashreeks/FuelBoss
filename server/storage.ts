@@ -322,6 +322,7 @@ export class DatabaseStorage implements IStorage {
   }
 
   async getManagerByCredentials(phoneNumber: string, password: string): Promise<Staff | undefined> {
+    console.log("Searching for manager with phoneNumber:", phoneNumber, "password:", password ? "***" : "empty");
     const [manager] = await db
       .select()
       .from(staff)
@@ -333,6 +334,7 @@ export class DatabaseStorage implements IStorage {
           eq(staff.isActive, true)
         )
       );
+    console.log("Manager query result:", manager ? `Found: ${manager.name}` : "Not found");
     return manager;
   }
 

@@ -461,7 +461,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const { phoneNumber, password } = req.body;
       
+      console.log("Manager login attempt:", { phoneNumber, password: password ? "***" : "empty" });
+      
       if (!phoneNumber || !password) {
+        console.log("Missing phoneNumber or password");
         return res.status(400).json({ 
           success: false, 
           message: "Phone number and password are required" 
@@ -471,7 +474,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Find manager with matching phone number and password
       const manager = await storage.getManagerByCredentials(phoneNumber, password);
       
+      console.log("Manager found:", manager ? `Yes - ${manager.name}` : "No");
+      
       if (!manager) {
+        console.log("Invalid credentials for:", phoneNumber);
         return res.status(401).json({ 
           success: false, 
           message: "Invalid credentials" 
