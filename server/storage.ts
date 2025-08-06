@@ -444,6 +444,8 @@ export class DatabaseStorage implements IStorage {
   }
 
   async getLastProductRates(managerId: string, targetDate?: string, targetShiftType?: string): Promise<any[]> {
+    console.log(`Getting last rates for manager ${managerId}, date: ${targetDate}, shift: ${targetShiftType}`);
+    
     // If specific date and shift are provided, get that shift
     if (targetDate && targetShiftType) {
       const [specificShift] = await db
@@ -459,11 +461,32 @@ export class DatabaseStorage implements IStorage {
         .limit(1);
 
       if (specificShift?.productRates) {
+        console.log(`Found specific shift rates:`, specificShift.productRates);
         return specificShift.productRates as any[];
       }
     }
 
-    // Otherwise, get the most recent shift for this manager
+    // If no specific match, try to find the same shift type from previous days
+    if (targetShiftType) {
+      const [recentShiftOfType] = await db
+        .select()
+        .from(shifts)
+        .where(
+          and(
+            eq(shifts.managerId, managerId),
+            eq(shifts.shiftType, targetShiftType)
+          )
+        )
+        .orderBy(desc(shifts.updatedAt))
+        .limit(1);
+
+      if (recentShiftOfType?.productRates) {
+        console.log(`Found recent shift of same type:`, recentShiftOfType.productRates);
+        return recentShiftOfType.productRates as any[];
+      }
+    }
+
+    // Finally, get the most recent shift for this manager regardless of type
     const [latestShift] = await db
       .select()
       .from(shifts)
@@ -472,9 +495,11 @@ export class DatabaseStorage implements IStorage {
       .limit(1);
 
     if (latestShift?.productRates) {
+      console.log(`Found latest shift rates:`, latestShift.productRates);
       return latestShift.productRates as any[];
     }
 
+    console.log(`No rates found for manager ${managerId}`);
     return [];
   }
 

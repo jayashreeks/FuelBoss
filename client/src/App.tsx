@@ -123,6 +123,9 @@ function MainApp() {
 
     return (
       <div className="min-h-screen bg-surface">
+        <div className="fixed top-4 left-4 z-50">
+          <SideMenu />
+        </div>
         {renderManagerContent()}
         <BottomNavigation
           currentPage={currentPage || "shift"}
