@@ -100,51 +100,24 @@ function MainApp() {
   // Managers skip setup and go directly to their allowed functions
   if (isManagerAuthenticated && !isAuthenticated) {
     const renderManagerContent = () => {
-      switch (currentPage) {
+      // Default to shift tab if no page selected
+      const managerPage = currentPage || "shift";
+      
+      switch (managerPage) {
         case "shift":
-          return <ShiftPage onBack={handleBackToMain} />;
+          return <ShiftPage />;
         case "readings":
-          return <ReadingsPage onBack={handleBackToMain} />;
+          return <ReadingsPage />;
         case "stock":
-          return <StockPage onBack={handleBackToMain} />;
-
+          return <StockPage />;
         case "inventory":
-          return <InventoryPage onBack={handleBackToMain} />;
+          return <InventoryPage />;
         case "dataEntry":
-          return <DataEntry onBack={handleBackToMain} />;
+          return <DataEntry />;
         case "reports":
-          return <Reports onBack={handleBackToMain} />;
+          return <Reports />;
         default:
-          return (
-            <div className="min-h-screen bg-surface pb-20">
-              <div className="bg-primary text-white p-4">
-                <div className="flex items-center justify-between">
-                  <h1 className="text-xl font-semibold">Manager Dashboard</h1>
-                  <SideMenu
-                    currentUser={currentUser}
-                    onMenuItemClick={handleMenuItemClick}
-                    userRole="manager"
-                  />
-                </div>
-              </div>
-              <div className="p-4">
-                <div className="bg-white rounded-lg shadow-sm p-6 text-center">
-                  <h2 className="text-lg font-semibold mb-2">Welcome, {currentUser?.name || 'Manager'}</h2>
-                  <p className="text-gray-600 mb-4">Use the navigation below to access your tools.</p>
-                  <div className="grid grid-cols-2 gap-4">
-                    <div className="bg-gray-50 p-4 rounded-lg">
-                      <h3 className="font-medium">Quick Actions</h3>
-                      <p className="text-sm text-gray-600">Tap any option in the bottom menu</p>
-                    </div>
-                    <div className="bg-gray-50 p-4 rounded-lg">
-                      <h3 className="font-medium">Current Shift</h3>
-                      <p className="text-sm text-gray-600">Not Started</p>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          );
+          return <ShiftPage />;
       }
     };
 
@@ -152,7 +125,7 @@ function MainApp() {
       <div className="min-h-screen bg-surface">
         {renderManagerContent()}
         <BottomNavigation
-          currentPage={currentPage}
+          currentPage={currentPage || "shift"}
           onNavigate={handleMenuItemClick}
         />
       </div>
@@ -247,7 +220,7 @@ function MainApp() {
 
       {/* Bottom Navigation - hide when viewing menu pages */}
       {!currentPage && (
-        <BottomNavigation activeTab={activeTab} onTabChange={setActiveTab} />
+        <BottomNavigation currentPage={activeTab} onNavigate={setActiveTab} />
       )}
     </div>
   );

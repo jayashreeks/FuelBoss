@@ -12,6 +12,9 @@ FuelFlow is a comprehensive petrol pump management system built as a mobile-firs
 - Implemented proper database storage for product rates with density measurements
 - Added auto-population of last saved rates from previous shifts
 - Separated rate entry and density measurement sections for better organization
+- Fixed navigation conflicts between dealer and manager dashboards by creating shared state management
+- Date selector now appears above shift selector only in shift tab
+- Other manager pages (readings, stock, inventory) display selected values without selectors
 
 # User Preferences
 
