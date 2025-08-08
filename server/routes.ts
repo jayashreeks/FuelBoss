@@ -288,6 +288,98 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Manager routes for nozzle readings
+  app.get("/api/manager/nozzles", (req: any, res, next) => {
+    if (!req.session.manager) {
+      return res.status(401).json({ message: "Manager authentication required" });
+    }
+    next();
+  }, async (req: any, res) => {
+    try {
+      const manager = req.session.manager;
+      const nozzles = await storage.getNozzlesByRetailOutletId(manager.retailOutletId);
+      res.json(nozzles);
+    } catch (error) {
+      console.error("Error fetching nozzles for manager:", error);
+      res.status(500).json({ message: "Failed to fetch nozzles" });
+    }
+  });
+
+  app.get("/api/manager/readings", (req: any, res, next) => {
+    if (!req.session.manager) {
+      return res.status(401).json({ message: "Manager authentication required" });
+    }
+    next();
+  }, async (req: any, res) => {
+    try {
+      const manager = req.session.manager;
+      const { shiftType, shiftDate } = req.query;
+      const readings = await storage.getNozzleReadings(
+        manager.retailOutletId, 
+        shiftType as string, 
+        shiftDate as string
+      );
+      res.json(readings);
+    } catch (error) {
+      console.error("Error fetching readings:", error);
+      res.status(500).json({ message: "Failed to fetch readings" });
+    }
+  });
+
+  app.post("/api/manager/readings", (req: any, res, next) => {
+    if (!req.session.manager) {
+      return res.status(401).json({ message: "Manager authentication required" });
+    }
+    next();
+  }, async (req: any, res) => {
+    try {
+      const manager = req.session.manager;
+      const readingData = {
+        ...req.body,
+        retailOutletId: manager.retailOutletId,
+      };
+      
+      const reading = await storage.createNozzleReading(readingData);
+      res.status(201).json(reading);
+    } catch (error) {
+      console.error("Error creating reading:", error);
+      res.status(500).json({ message: "Failed to create reading" });
+    }
+  });
+
+  app.get("/api/manager/nozzles/:nozzleId/last-reading", (req: any, res, next) => {
+    if (!req.session.manager) {
+      return res.status(401).json({ message: "Manager authentication required" });
+    }
+    next();
+  }, async (req: any, res) => {
+    try {
+      const reading = await storage.getLastNozzleReading(req.params.nozzleId);
+      res.json(reading || null);
+    } catch (error) {
+      console.error("Error fetching last reading:", error);
+      res.status(500).json({ message: "Failed to fetch last reading" });
+    }
+  });
+
+  // Get attendants for nozzle readings
+  app.get("/api/manager/attendants", (req: any, res, next) => {
+    if (!req.session.manager) {
+      return res.status(401).json({ message: "Manager authentication required" });
+    }
+    next();
+  }, async (req: any, res) => {
+    try {
+      const manager = req.session.manager;
+      const allStaff = await storage.getStaffByRetailOutletId(manager.retailOutletId);
+      const attendants = allStaff.filter(staff => staff.role === 'attendant' && staff.isActive);
+      res.json(attendants);
+    } catch (error) {
+      console.error("Error fetching attendants:", error);
+      res.status(500).json({ message: "Failed to fetch attendants" });
+    }
+  });
+
   // Staff routes
   app.get('/api/staff', isAuthenticated, async (req: any, res) => {
     try {

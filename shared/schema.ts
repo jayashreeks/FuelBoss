@@ -119,6 +119,26 @@ export const staff = pgTable("staff", {
 // Payment Methods
 export const paymentMethodEnum = pgEnum("payment_method", ["cash", "credit", "upi", "card"]);
 
+// Nozzle Readings
+export const nozzleReadings = pgTable("nozzle_readings", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  retailOutletId: varchar("retail_outlet_id").references(() => retailOutlets.id).notNull(),
+  nozzleId: varchar("nozzle_id").references(() => nozzles.id).notNull(),
+  attendantId: varchar("attendant_id").references(() => staff.id).notNull(),
+  shiftType: varchar("shift_type").notNull(), // morning, evening, night
+  shiftDate: varchar("shift_date").notNull(),
+  previousReading: decimal("previous_reading", { precision: 10, scale: 2 }).notNull(),
+  currentReading: decimal("current_reading", { precision: 10, scale: 2 }).notNull(),
+  testing: decimal("testing", { precision: 10, scale: 2 }).default("0"),
+  totalSale: decimal("total_sale", { precision: 10, scale: 2 }).notNull(),
+  cashSales: decimal("cash_sales", { precision: 10, scale: 2 }).default("0"),
+  creditSales: decimal("credit_sales", { precision: 10, scale: 2 }).default("0"),
+  upiSales: decimal("upi_sales", { precision: 10, scale: 2 }).default("0"),
+  cardSales: decimal("card_sales", { precision: 10, scale: 2 }).default("0"),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
 // Shift Sales
 export const shiftSales = pgTable("shift_sales", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
@@ -184,7 +204,7 @@ export const dispensingUnitsRelations = relations(dispensingUnits, ({ one, many 
   nozzles: many(nozzles),
 }));
 
-export const nozzlesRelations = relations(nozzles, ({ one }) => ({
+export const nozzlesRelations = relations(nozzles, ({ one, many }) => ({
   dispensingUnit: one(dispensingUnits, {
     fields: [nozzles.dispensingUnitId],
     references: [dispensingUnits.id],
@@ -193,6 +213,7 @@ export const nozzlesRelations = relations(nozzles, ({ one }) => ({
     fields: [nozzles.tankId],
     references: [tanks.id],
   }),
+  readings: many(nozzleReadings),
 }));
 
 export const staffRelations = relations(staff, ({ one, many }) => ({
@@ -205,6 +226,22 @@ export const staffRelations = relations(staff, ({ one, many }) => ({
     references: [users.id],
   }),
   shiftSales: many(shiftSales),
+  nozzleReadings: many(nozzleReadings),
+}));
+
+export const nozzleReadingsRelations = relations(nozzleReadings, ({ one }) => ({
+  retailOutlet: one(retailOutlets, {
+    fields: [nozzleReadings.retailOutletId],
+    references: [retailOutlets.id],
+  }),
+  nozzle: one(nozzles, {
+    fields: [nozzleReadings.nozzleId],
+    references: [nozzles.id],
+  }),
+  attendant: one(staff, {
+    fields: [nozzleReadings.attendantId],
+    references: [staff.id],
+  }),
 }));
 
 export const shiftSalesRelations = relations(shiftSales, ({ one }) => ({
@@ -253,6 +290,21 @@ export const insertStaffSchema = createInsertSchema(staff).omit({
   updatedAt: true,
 });
 
+export const insertNozzleReadingSchema = createInsertSchema(nozzleReadings).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+}).extend({
+  previousReading: z.union([z.string(), z.number()]).transform(val => String(val)),
+  currentReading: z.union([z.string(), z.number()]).transform(val => String(val)),
+  testing: z.union([z.string(), z.number()]).transform(val => String(val)),
+  totalSale: z.union([z.string(), z.number()]).transform(val => String(val)),
+  cashSales: z.union([z.string(), z.number()]).transform(val => String(val)),
+  creditSales: z.union([z.string(), z.number()]).transform(val => String(val)),
+  upiSales: z.union([z.string(), z.number()]).transform(val => String(val)),
+  cardSales: z.union([z.string(), z.number()]).transform(val => String(val)),
+});
+
 export const insertShiftSalesSchema = createInsertSchema(shiftSales).omit({
   id: true,
   createdAt: true,
@@ -298,3 +350,5 @@ export type InsertShiftSales = z.infer<typeof insertShiftSalesSchema>;
 export type ShiftSales = typeof shiftSales.$inferSelect;
 export type InsertProduct = z.infer<typeof insertProductSchema>;
 export type Product = typeof products.$inferSelect;
+export type InsertNozzleReading = z.infer<typeof insertNozzleReadingSchema>;
+export type NozzleReading = typeof nozzleReadings.$inferSelect;

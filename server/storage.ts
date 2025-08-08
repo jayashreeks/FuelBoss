@@ -8,6 +8,7 @@ import {
   staff,
   shiftSales,
   shifts,
+  nozzleReadings,
   type User,
   type UpsertUser,
   type RetailOutlet,
@@ -26,6 +27,8 @@ import {
   type InsertShiftSales,
   type Shift,
   type InsertShift,
+  type NozzleReading,
+  type InsertNozzleReading,
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, and, desc, sql } from "drizzle-orm";
@@ -60,15 +63,17 @@ export interface IStorage {
 
   // Nozzle operations
   getNozzlesByDispensingUnitId(dispensingUnitId: string): Promise<Nozzle[]>;
+  getNozzlesByRetailOutletId(retailOutletId: string): Promise<Nozzle[]>;
   createNozzle(nozzle: InsertNozzle): Promise<Nozzle>;
   updateNozzle(id: string, nozzle: Partial<InsertNozzle>): Promise<Nozzle>;
   deleteNozzle(id: string): Promise<void>;
-  
-  // Nozzle operations
-  getNozzlesByDispensingUnitId(dispensingUnitId: string): Promise<Nozzle[]>;
-  createNozzle(nozzle: InsertNozzle): Promise<Nozzle>;
-  updateNozzle(id: string, nozzle: Partial<InsertNozzle>): Promise<Nozzle>;
-  deleteNozzle(id: string): Promise<void>;
+
+  // Nozzle Reading operations
+  getNozzleReadings(retailOutletId: string, shiftType?: string, shiftDate?: string): Promise<NozzleReading[]>;
+  getNozzleReadingsByAttendant(attendantId: string, shiftType?: string, shiftDate?: string): Promise<NozzleReading[]>;
+  createNozzleReading(reading: InsertNozzleReading): Promise<NozzleReading>;
+  updateNozzleReading(id: string, reading: Partial<InsertNozzleReading>): Promise<NozzleReading>;
+  getLastNozzleReading(nozzleId: string): Promise<NozzleReading | undefined>;
   
   // Staff operations
   getStaffByRetailOutletId(retailOutletId: string): Promise<Staff[]>;
@@ -454,7 +459,7 @@ export class DatabaseStorage implements IStorage {
         .where(
           and(
             eq(shifts.managerId, managerId),
-            eq(shifts.shiftType, targetShiftType),
+            eq(shifts.shiftType, targetShiftType as any),
             sql`DATE(created_at) = ${targetDate}`
           )
         )
@@ -474,7 +479,7 @@ export class DatabaseStorage implements IStorage {
         .where(
           and(
             eq(shifts.managerId, managerId),
-            eq(shifts.shiftType, targetShiftType)
+            eq(shifts.shiftType, targetShiftType as any)
           )
         )
         .orderBy(desc(shifts.updatedAt))
@@ -515,7 +520,7 @@ export class DatabaseStorage implements IStorage {
     // Create or update shift record with product rates for specific date
     const whereConditions = [
       eq(shifts.managerId, managerId),
-      eq(shifts.shiftType, shiftType)
+      eq(shifts.shiftType, shiftType as any)
     ];
 
     if (targetDate) {
@@ -543,7 +548,7 @@ export class DatabaseStorage implements IStorage {
         .insert(shifts)
         .values({
           managerId: managerId,
-          shiftType: shiftType,
+          shiftType: shiftType as any,
           productRates: rates,
           status: 'not-started',
         });
@@ -560,6 +565,95 @@ export class DatabaseStorage implements IStorage {
       startTime: new Date().toISOString(),
       productRates,
     };
+  }
+
+  // Nozzle Reading operations
+  async getNozzleReadings(retailOutletId: string, shiftType?: string, shiftDate?: string): Promise<NozzleReading[]> {
+    const whereConditions = [eq(nozzleReadings.retailOutletId, retailOutletId)];
+    
+    if (shiftType) {
+      whereConditions.push(eq(nozzleReadings.shiftType, shiftType));
+    }
+    
+    if (shiftDate) {
+      whereConditions.push(eq(nozzleReadings.shiftDate, shiftDate));
+    }
+
+    return await db
+      .select()
+      .from(nozzleReadings)
+      .where(and(...whereConditions))
+      .orderBy(desc(nozzleReadings.createdAt));
+  }
+
+  async getNozzleReadingsByAttendant(attendantId: string, shiftType?: string, shiftDate?: string): Promise<NozzleReading[]> {
+    const whereConditions = [eq(nozzleReadings.attendantId, attendantId)];
+    
+    if (shiftType) {
+      whereConditions.push(eq(nozzleReadings.shiftType, shiftType));
+    }
+    
+    if (shiftDate) {
+      whereConditions.push(eq(nozzleReadings.shiftDate, shiftDate));
+    }
+
+    return await db
+      .select()
+      .from(nozzleReadings)
+      .where(and(...whereConditions))
+      .orderBy(desc(nozzleReadings.createdAt));
+  }
+
+  async createNozzleReading(reading: InsertNozzleReading): Promise<NozzleReading> {
+    const [newReading] = await db
+      .insert(nozzleReadings)
+      .values(reading)
+      .returning();
+    return newReading;
+  }
+
+  async updateNozzleReading(id: string, reading: Partial<InsertNozzleReading>): Promise<NozzleReading> {
+    const [updatedReading] = await db
+      .update(nozzleReadings)
+      .set({
+        ...reading,
+        updatedAt: new Date(),
+      })
+      .where(eq(nozzleReadings.id, id))
+      .returning();
+    return updatedReading;
+  }
+
+  async getLastNozzleReading(nozzleId: string): Promise<NozzleReading | undefined> {
+    const [reading] = await db
+      .select()
+      .from(nozzleReadings)
+      .where(eq(nozzleReadings.nozzleId, nozzleId))
+      .orderBy(desc(nozzleReadings.createdAt))
+      .limit(1);
+    return reading;
+  }
+
+  async getNozzlesByRetailOutletId(retailOutletId: string): Promise<any[]> {
+    return await db
+      .select({
+        id: nozzles.id,
+        dispensingUnitId: nozzles.dispensingUnitId,
+        tankId: nozzles.tankId,
+        nozzleNumber: nozzles.nozzleNumber,
+        calibrationValidUntil: nozzles.calibrationValidUntil,
+        isActive: nozzles.isActive,
+        createdAt: nozzles.createdAt,
+        updatedAt: nozzles.updatedAt,
+        dispensingUnitName: dispensingUnits.name,
+        tankNumber: tanks.tankNumber,
+        productName: products.name,
+      })
+      .from(nozzles)
+      .innerJoin(dispensingUnits, eq(nozzles.dispensingUnitId, dispensingUnits.id))
+      .innerJoin(tanks, eq(nozzles.tankId, tanks.id))
+      .innerJoin(products, eq(tanks.productId, products.id))
+      .where(eq(dispensingUnits.retailOutletId, retailOutletId));
   }
 }
 
