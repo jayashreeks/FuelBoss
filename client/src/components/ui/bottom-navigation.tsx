@@ -25,9 +25,9 @@ export function BottomNavigation({ currentPage, onNavigate, userType = "dealer" 
       icon: Package,
     },
     {
-      id: "inventory",
-      label: "Inventory",
-      icon: Warehouse,
+      id: "summary",
+      label: "Summary",
+      icon: BarChart3,
     },
   ];
 

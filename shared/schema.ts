@@ -327,10 +327,12 @@ export const shifts = pgTable("shifts", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
   managerId: varchar("manager_id").notNull(),
   shiftType: varchar("shift_type", { enum: ["morning", "evening", "night"] }).notNull(),
+  shiftDate: varchar("shift_date"), // YYYY-MM-DD format - nullable for backward compatibility
   startTime: timestamp("start_time"),
   endTime: timestamp("end_time"),
-  status: varchar("status", { enum: ["not-started", "active", "completed"] }).default("not-started").notNull(),
+  status: varchar("status", { enum: ["not-started", "active", "completed", "submitted"] }).default("not-started").notNull(),
   productRates: jsonb("product_rates").$type<{productId: string; productName: string; rate: number; observedDensity?: number; observedTemperature?: number; densityAt15C?: number}[]>().default([]),
+  submittedAt: timestamp("submitted_at"),
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
 });

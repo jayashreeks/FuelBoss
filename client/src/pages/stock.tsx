@@ -112,9 +112,13 @@ export default function StockPage({ onBack }: StockPageProps) {
         };
       });
       
-      setFormData(initialData);
+      setFormData(prev => {
+        // Only update if the data has actually changed to prevent infinite loops
+        const hasChanged = JSON.stringify(prev) !== JSON.stringify(initialData);
+        return hasChanged ? initialData : prev;
+      });
     }
-  }, [tanks, stockEntries]);
+  }, [tanks.length, stockEntries.length]);
 
   const handleInputChange = (tankId: string, field: string, value: string) => {
     setFormData(prev => ({

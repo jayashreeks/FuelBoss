@@ -903,6 +903,44 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Submit shift data route
+  app.post("/api/manager/submit-shift", (req: any, res, next) => {
+    if (!req.session?.managerId || req.session?.userType !== "manager") {
+      return res.status(401).json({ message: "Manager authentication required" });
+    }
+    next();
+  }, async (req: any, res) => {
+    try {
+      const managerId = req.session.managerId;
+      const { shiftType, shiftDate } = req.body;
+      
+      await storage.submitShiftData(managerId, shiftType, shiftDate);
+      res.json({ message: "Shift data submitted successfully" });
+    } catch (error) {
+      console.error("Error submitting shift data:", error);
+      res.status(500).json({ message: "Failed to submit shift data" });
+    }
+  });
+
+  // Check if shift is submitted route
+  app.get("/api/manager/shift-status/:shiftType/:shiftDate", (req: any, res, next) => {
+    if (!req.session?.managerId || req.session?.userType !== "manager") {
+      return res.status(401).json({ message: "Manager authentication required" });
+    }
+    next();
+  }, async (req: any, res) => {
+    try {
+      const managerId = req.session.managerId;
+      const { shiftType, shiftDate } = req.params;
+      
+      const isSubmitted = await storage.isShiftSubmitted(managerId, shiftType, shiftDate);
+      res.json({ isSubmitted });
+    } catch (error) {
+      console.error("Error checking shift status:", error);
+      res.status(500).json({ message: "Failed to check shift status" });
+    }
+  });
+
   const httpServer = createServer(app);
   return httpServer;
 }

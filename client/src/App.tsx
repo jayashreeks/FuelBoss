@@ -31,7 +31,7 @@ import ShiftPage from "@/pages/shift";
 import ReadingsPage from "@/pages/readings";
 import StockPage from "@/pages/stock";
 import DensityPage from "@/pages/density";
-import InventoryPage from "@/pages/inventory";
+import SummaryPage from "@/pages/summary";
 
 function MainApp() {
   const { user, isAuthenticated, isLoading } = useAuth();
@@ -110,8 +110,8 @@ function MainApp() {
           return <ReadingsPage />;
         case "stock":
           return <StockPage />;
-        case "inventory":
-          return <InventoryPage />;
+        case "summary":
+          return <SummaryPage />;
         case "dataEntry":
           return <DataEntry />;
         case "reports":
@@ -161,8 +161,8 @@ function MainApp() {
           return <ReadingsPage onBack={handleBackToMain} />;
         case "stock":
           return <StockPage onBack={handleBackToMain} />;
-        case "inventory":
-          return <InventoryPage onBack={handleBackToMain} />;
+        case "summary":
+          return <SummaryPage onBack={handleBackToMain} />;
         default:
           return <Dashboard />;
       }

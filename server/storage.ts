@@ -106,6 +106,8 @@ export interface IStorage {
   getLastProductRates(managerId: string): Promise<any[]>;
   saveProductRates(managerId: string, shiftType: string, rates: any[]): Promise<void>;
   startShift(managerId: string, shiftType: string, productRates: any[]): Promise<any>;
+  submitShiftData(managerId: string, shiftType: string, shiftDate: string): Promise<void>;
+  isShiftSubmitted(managerId: string, shiftType: string, shiftDate: string): Promise<boolean>;
 
   // Stock Entry operations
   getStockEntries(retailOutletId: string, shiftType?: string, shiftDate?: string): Promise<any[]>;
@@ -530,6 +532,57 @@ export class DatabaseStorage implements IStorage {
       .innerJoin(products, eq(tanks.productId, products.id))
       .where(eq(tanks.retailOutletId, retailOutletId))
       .orderBy(tanks.tankNumber);
+  }
+
+  async submitShiftData(managerId: string, shiftType: string, shiftDate: string): Promise<void> {
+    // Update or create shift record with submitted status
+    const existingShift = await db
+      .select()
+      .from(shifts)
+      .where(
+        and(
+          eq(shifts.managerId, managerId),
+          eq(shifts.shiftType, shiftType),
+          eq(shifts.shiftDate, shiftDate)
+        )
+      )
+      .limit(1);
+
+    if (existingShift.length > 0) {
+      await db
+        .update(shifts)
+        .set({ 
+          status: "submitted", 
+          submittedAt: new Date(),
+          updatedAt: new Date() 
+        })
+        .where(eq(shifts.id, existingShift[0].id));
+    } else {
+      await db.insert(shifts).values({
+        managerId,
+        shiftType,
+        shiftDate,
+        status: "submitted",
+        submittedAt: new Date(),
+      });
+    }
+  }
+
+  async isShiftSubmitted(managerId: string, shiftType: string, shiftDate: string): Promise<boolean> {
+    const shift = await db
+      .select()
+      .from(shifts)
+      .where(
+        and(
+          eq(shifts.managerId, managerId),
+          eq(shifts.shiftType, shiftType),
+          eq(shifts.shiftDate, shiftDate),
+          eq(shifts.status, "submitted")
+        )
+      )
+      .limit(1);
+
+    return shift.length > 0;
   }
 
   // Shift operations for managers (mock implementation for now)
