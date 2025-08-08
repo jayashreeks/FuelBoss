@@ -333,7 +333,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         shiftType as string, 
         shiftDate as string
       );
-      console.log(`Found ${readings.length} readings:`, readings);
+      console.log(`Found ${readings.length} readings:`, JSON.stringify(readings, null, 2));
       res.json(readings);
     } catch (error) {
       console.error("Error fetching readings:", error);
