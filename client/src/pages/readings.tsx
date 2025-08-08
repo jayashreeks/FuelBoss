@@ -114,8 +114,7 @@ export default function ReadingsPage({ onBack }: ReadingsPageProps) {
         description: "Reading recorded successfully",
       });
       queryClient.invalidateQueries({ queryKey: ["/api/manager/readings"] });
-      // Don't reset form - keep it populated for editing
-      setSelectedNozzleId("");
+      // Keep form populated and nozzle selected for editing
     },
     onError: (error) => {
       toast({
@@ -663,103 +662,6 @@ export default function ReadingsPage({ onBack }: ReadingsPageProps) {
           </Card>
           );
         })()}
-
-        {/* Current Readings */}
-        <Card>
-          <CardHeader>
-            <CardTitle>
-              {selectedDate === new Date().toISOString().split('T')[0] ? "Today's" : "Selected Date"} Readings
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            {loadingReadings ? (
-              <div className="text-center py-4">Loading readings...</div>
-            ) : readings.length > 0 ? (
-              <div className="space-y-3">
-                {readings.map((reading: any) => {
-                  // Calculate expected proceeds for this reading
-                  const productRate = (currentRates as any[]).find((rate: any) => rate.productId === reading.nozzle?.productId);
-                  const rate = parseFloat(productRate?.rate || '0');
-                  const litersSold = parseFloat(reading.currentReading) - parseFloat(reading.previousReading) - parseFloat(reading.testing);
-                  const calculatedProceeds = litersSold * rate;
-                  const actualProceeds = parseFloat(reading.totalSale);
-                  const shortage = calculatedProceeds - actualProceeds;
-
-                  return (
-                    <div key={reading.id} className="p-3 border rounded-lg">
-                      <div className="flex justify-between items-start">
-                        <div>
-                          <p className="font-medium">Nozzle {reading.nozzle?.nozzleNumber}</p>
-                          <p className="text-sm text-gray-600">{reading.attendant?.name}</p>
-                          <p className="text-sm text-gray-600">{reading.nozzle?.productName}</p>
-                        </div>
-                        <Badge variant="secondary">₹{reading.totalSale}</Badge>
-                      </div>
-                      <div className="mt-2 text-sm text-gray-600 grid grid-cols-2 gap-2">
-                        <span>Reading: {reading.previousReading} → {reading.currentReading}</span>
-                        <span>Sale: {litersSold.toFixed(2)}L</span>
-                      </div>
-                      
-                      {/* Sales calculation section - only show if rate is available */}
-                      {productRate && (
-                        <div className="mt-2 p-2 bg-gray-50 rounded text-xs space-y-1">
-                          <div className="flex justify-between">
-                            <span>Expected: ₹{calculatedProceeds.toFixed(2)}</span>
-                            <span>Actual: ₹{actualProceeds.toFixed(2)}</span>
-                          </div>
-                          <div className="flex justify-between font-medium">
-                            <span>Shortage/Excess:</span>
-                            <span className={shortage >= 0 ? 'text-red-600' : 'text-green-600'}>
-                              {shortage >= 0 ? '-' : '+'}₹{Math.abs(shortage).toFixed(2)}
-                            </span>
-                          </div>
-                        </div>
-                      )}
-                      
-                      {/* Edit button - always show for editable readings */}
-                      <div className="text-center mt-2">
-                        <button 
-                          onClick={() => {
-                            // Always set the selected nozzle and attendant first
-                            setSelectedNozzleId(reading.nozzleId);
-                            setSelectedAttendantId(reading.attendantId);
-                            
-                            // Force populate form with reading data
-                            setFormData({
-                              previousReading: reading.previousReading,
-                              currentReading: reading.currentReading,
-                              testing: reading.testing,
-                              cashSales: reading.cashSales,
-                              creditSales: reading.creditSales,
-                              upiSales: reading.upiSales,
-                              cardSales: reading.cardSales,
-                            });
-                            
-                            // Scroll to form section
-                            setTimeout(() => {
-                              const formSection = document.querySelector('[data-testid="reading-form"]');
-                              if (formSection) {
-                                formSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
-                              }
-                            }, 100);
-                          }}
-                          className="text-blue-600 hover:text-blue-800 text-xs px-3 py-1 rounded border border-blue-200 hover:bg-blue-50"
-                          data-testid={`edit-reading-${reading.nozzleId}`}
-                        >
-                          Edit Reading
-                        </button>
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
-            ) : (
-              <div className="text-center text-gray-500 py-8" data-testid="no-readings">
-                No readings recorded for {selectedShiftType} shift on {selectedDate}
-              </div>
-            )}
-          </CardContent>
-        </Card>
       </div>
     </div>
   );
