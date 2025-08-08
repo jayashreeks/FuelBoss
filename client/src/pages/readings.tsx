@@ -436,7 +436,7 @@ export default function ReadingsPage({ onBack }: ReadingsPageProps) {
                 Record Reading
               </CardTitle>
             </CardHeader>
-            <CardContent className="space-y-4">
+            <CardContent className="space-y-4" data-testid="reading-form">
               {selectedNozzle && (
                 <div className="p-3 bg-gray-50 rounded-lg">
                   <p className="font-medium">Nozzle {selectedNozzle.nozzleNumber}</p>
@@ -714,10 +714,29 @@ export default function ReadingsPage({ onBack }: ReadingsPageProps) {
                           <div className="text-center">
                             <button 
                               onClick={() => {
+                                // Always set the selected nozzle and attendant first
                                 setSelectedNozzleId(reading.nozzleId);
                                 setSelectedAttendantId(reading.attendantId);
+                                
+                                // Force populate form with reading data
+                                setFormData({
+                                  previousReading: reading.previousReading,
+                                  currentReading: reading.currentReading,
+                                  testing: reading.testing,
+                                  cashSales: reading.cashSales,
+                                  creditSales: reading.creditSales,
+                                  upiSales: reading.upiSales,
+                                  cardSales: reading.cardSales,
+                                });
+                                
+                                // Scroll to form section
+                                const formSection = document.querySelector('[data-testid="reading-form"]');
+                                if (formSection) {
+                                  formSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                                }
                               }}
                               className="text-blue-600 hover:text-blue-800 text-xs mt-1"
+                              data-testid={`edit-reading-${reading.nozzleId}`}
                             >
                               Edit Reading
                             </button>
