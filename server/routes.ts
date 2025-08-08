@@ -314,6 +314,41 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Route for path parameters: /api/manager/readings/:shiftType/:shiftDate
+  app.get("/api/manager/readings/:shiftType/:shiftDate", (req: any, res, next) => {
+    if (!req.session?.managerId || req.session?.userType !== "manager") {
+      return res.status(401).json({ message: "Manager authentication required" });
+    }
+    next();
+  }, async (req: any, res) => {
+    try {
+      const managerId = req.session.managerId;
+      const manager = await storage.getStaffById(managerId);
+      if (!manager) {
+        return res.status(401).json({ message: "Manager not found" });
+      }
+      const { shiftType, shiftDate } = req.params;
+      console.log(`[READINGS API] Fetching readings for outlet: ${manager.retailOutletId}, shift: ${shiftType}, date: ${shiftDate}`);
+      
+      const readings = await storage.getNozzleReadings(
+        manager.retailOutletId, 
+        shiftType as string, 
+        shiftDate as string
+      );
+      
+      console.log(`[READINGS API] Found ${readings.length} readings`);
+      if (readings.length > 0) {
+        console.log(`[READINGS API] First reading:`, JSON.stringify(readings[0], null, 2));
+      }
+      
+      res.json(readings);
+    } catch (error) {
+      console.error("Error fetching readings:", error);
+      res.status(500).json({ message: "Failed to fetch readings" });
+    }
+  });
+
+  // Route for query parameters: /api/manager/readings?shiftType=morning&shiftDate=2025-08-08
   app.get("/api/manager/readings", (req: any, res, next) => {
     if (!req.session?.managerId || req.session?.userType !== "manager") {
       return res.status(401).json({ message: "Manager authentication required" });
@@ -327,7 +362,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(401).json({ message: "Manager not found" });
       }
       const { shiftType, shiftDate } = req.query;
-      console.log(`[READINGS API] Fetching readings for outlet: ${manager.retailOutletId}, shift: ${shiftType}, date: ${shiftDate}`);
+      console.log(`[READINGS API QUERY] Fetching readings for outlet: ${manager.retailOutletId}, shift: ${shiftType}, date: ${shiftDate}`);
       
       const readings = await storage.getNozzleReadings(
         manager.retailOutletId, 
@@ -335,9 +370,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
         shiftDate as string
       );
       
-      console.log(`[READINGS API] Found ${readings.length} readings`);
+      console.log(`[READINGS API QUERY] Found ${readings.length} readings`);
       if (readings.length > 0) {
-        console.log(`[READINGS API] First reading:`, JSON.stringify(readings[0], null, 2));
+        console.log(`[READINGS API QUERY] First reading:`, JSON.stringify(readings[0], null, 2));
       }
       
       res.json(readings);
