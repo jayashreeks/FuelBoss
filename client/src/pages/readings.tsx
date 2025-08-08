@@ -699,6 +699,8 @@ export default function ReadingsPage({ onBack }: ReadingsPageProps) {
                         <span>Reading: {reading.previousReading} → {reading.currentReading}</span>
                         <span>Sale: {litersSold.toFixed(2)}L</span>
                       </div>
+                      
+                      {/* Sales calculation section - only show if rate is available */}
                       {productRate && (
                         <div className="mt-2 p-2 bg-gray-50 rounded text-xs space-y-1">
                           <div className="flex justify-between">
@@ -711,38 +713,40 @@ export default function ReadingsPage({ onBack }: ReadingsPageProps) {
                               {shortage >= 0 ? '-' : '+'}₹{Math.abs(shortage).toFixed(2)}
                             </span>
                           </div>
-                          <div className="text-center">
-                            <button 
-                              onClick={() => {
-                                // Always set the selected nozzle and attendant first
-                                setSelectedNozzleId(reading.nozzleId);
-                                setSelectedAttendantId(reading.attendantId);
-                                
-                                // Force populate form with reading data
-                                setFormData({
-                                  previousReading: reading.previousReading,
-                                  currentReading: reading.currentReading,
-                                  testing: reading.testing,
-                                  cashSales: reading.cashSales,
-                                  creditSales: reading.creditSales,
-                                  upiSales: reading.upiSales,
-                                  cardSales: reading.cardSales,
-                                });
-                                
-                                // Scroll to form section
-                                const formSection = document.querySelector('[data-testid="reading-form"]');
-                                if (formSection) {
-                                  formSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
-                                }
-                              }}
-                              className="text-blue-600 hover:text-blue-800 text-xs mt-1"
-                              data-testid={`edit-reading-${reading.nozzleId}`}
-                            >
-                              Edit Reading
-                            </button>
-                          </div>
                         </div>
                       )}
+                      
+                      {/* Edit button - always show for editable readings */}
+                      <div className="text-center mt-2">
+                        <button 
+                          onClick={() => {
+                            // Always set the selected nozzle and attendant first
+                            setSelectedNozzleId(reading.nozzleId);
+                            setSelectedAttendantId(reading.attendantId);
+                            
+                            // Force populate form with reading data
+                            setFormData({
+                              previousReading: reading.previousReading,
+                              currentReading: reading.currentReading,
+                              testing: reading.testing,
+                              cashSales: reading.cashSales,
+                              creditSales: reading.creditSales,
+                              upiSales: reading.upiSales,
+                              cardSales: reading.cardSales,
+                            });
+                            
+                            // Scroll to form section
+                            const formSection = document.querySelector('[data-testid="reading-form"]');
+                            if (formSection) {
+                              formSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                            }
+                          }}
+                          className="text-blue-600 hover:text-blue-800 text-xs px-3 py-1 rounded border border-blue-200 hover:bg-blue-50"
+                          data-testid={`edit-reading-${reading.nozzleId}`}
+                        >
+                          Edit Reading
+                        </button>
+                      </div>
                     </div>
                   );
                 })}
