@@ -94,6 +94,7 @@ export default function ReadingsPage({ onBack }: ReadingsPageProps) {
     queryKey: ["/api/manager/nozzles", selectedNozzleId, "last-reading"],
     enabled: !!selectedNozzleId,
     retry: false,
+    staleTime: 0, // Always refetch to avoid cache issues
   });
 
   // Fetch current rates for calculations
@@ -156,9 +157,13 @@ export default function ReadingsPage({ onBack }: ReadingsPageProps) {
     setSelectedNozzleId(nozzleId);
   };
 
+  // Check if reading exists for this nozzle and shift
+  const existingReading = readings.find(r => r.nozzleId === selectedNozzleId);
+
   // Effect to handle previous reading population when lastReading data changes
   useEffect(() => {
-    if (selectedNozzleId && lastReading !== undefined) {
+    if (selectedNozzleId && lastReading !== undefined && !existingReading) {
+      // Only populate from lastReading if we're not editing an existing reading
       if (lastReading && lastReading.currentReading) {
         setFormData(prev => ({
           ...prev,
@@ -171,10 +176,7 @@ export default function ReadingsPage({ onBack }: ReadingsPageProps) {
         }));
       }
     }
-  }, [lastReading, selectedNozzleId]);
-
-  // Check if reading exists for this nozzle and shift
-  const existingReading = readings.find(r => r.nozzleId === selectedNozzleId);
+  }, [lastReading, selectedNozzleId, existingReading]);
   
   // Effect to populate form with existing reading data when editing
   useEffect(() => {
@@ -189,6 +191,17 @@ export default function ReadingsPage({ onBack }: ReadingsPageProps) {
         cardSales: existingReading.cardSales,
       });
       setSelectedAttendantId(existingReading.attendantId);
+    } else if (selectedNozzleId && !existingReading) {
+      // Reset form for new reading
+      setFormData({
+        previousReading: "",
+        currentReading: "",
+        testing: "0",
+        cashSales: "0",
+        creditSales: "0",
+        upiSales: "0",
+        cardSales: "0"
+      });
     }
   }, [existingReading, selectedNozzleId]);
 
@@ -627,7 +640,7 @@ export default function ReadingsPage({ onBack }: ReadingsPageProps) {
               <Button 
                 onClick={handleSubmit} 
                 className="w-full" 
-                disabled={createReading.isPending || updateReading.isPending}
+                disabled={createReading.isPending || updateReading.isPending || (existingReading && !isEditable)}
                 data-testid="submit-reading"
               >
                 {createReading.isPending || updateReading.isPending 
