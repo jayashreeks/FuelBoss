@@ -29,6 +29,9 @@ import {
   type InsertShift,
   type NozzleReading,
   type InsertNozzleReading,
+  type StockEntry,
+  type InsertStockEntry,
+  stockEntries,
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, and, desc, sql } from "drizzle-orm";
@@ -103,6 +106,13 @@ export interface IStorage {
   getLastProductRates(managerId: string): Promise<any[]>;
   saveProductRates(managerId: string, shiftType: string, rates: any[]): Promise<void>;
   startShift(managerId: string, shiftType: string, productRates: any[]): Promise<any>;
+
+  // Stock Entry operations
+  getStockEntries(retailOutletId: string, shiftType?: string, shiftDate?: string): Promise<any[]>;
+  getStockEntriesByTank(tankId: string, shiftType?: string, shiftDate?: string): Promise<StockEntry[]>;
+  createStockEntry(entry: InsertStockEntry): Promise<StockEntry>;
+  updateStockEntry(id: string, entry: Partial<InsertStockEntry>): Promise<StockEntry>;
+  getTanksByRetailOutletIdWithProduct(retailOutletId: string): Promise<any[]>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -440,6 +450,86 @@ export class DatabaseStorage implements IStorage {
         card: paymentBreakdown?.card || 0,
       },
     };
+  }
+
+  // Stock Entry operations
+  async getStockEntries(retailOutletId: string, shiftType?: string, shiftDate?: string): Promise<any[]> {
+    const baseQuery = db
+      .select({
+        id: stockEntries.id,
+        tankId: stockEntries.tankId,
+        shiftType: stockEntries.shiftType,
+        shiftDate: stockEntries.shiftDate,
+        openingStock: stockEntries.openingStock,
+        receipt: stockEntries.receipt,
+        invoiceValue: stockEntries.invoiceValue,
+        createdAt: stockEntries.createdAt,
+        updatedAt: stockEntries.updatedAt,
+        tankNumber: tanks.tankNumber,
+        productName: products.name,
+        productId: products.id,
+      })
+      .from(stockEntries)
+      .innerJoin(tanks, eq(stockEntries.tankId, tanks.id))
+      .innerJoin(products, eq(tanks.productId, products.id));
+
+    if (shiftType && shiftDate) {
+      return await baseQuery.where(
+        and(
+          eq(stockEntries.retailOutletId, retailOutletId),
+          eq(stockEntries.shiftType, shiftType),
+          eq(stockEntries.shiftDate, shiftDate)
+        )
+      );
+    }
+
+    return await baseQuery.where(eq(stockEntries.retailOutletId, retailOutletId));
+  }
+
+  async getStockEntriesByTank(tankId: string, shiftType?: string, shiftDate?: string): Promise<StockEntry[]> {
+    const baseQuery = db.select().from(stockEntries);
+
+    if (shiftType && shiftDate) {
+      return await baseQuery.where(
+        and(
+          eq(stockEntries.tankId, tankId),
+          eq(stockEntries.shiftType, shiftType),
+          eq(stockEntries.shiftDate, shiftDate)
+        )
+      );
+    }
+
+    return await baseQuery.where(eq(stockEntries.tankId, tankId));
+  }
+
+  async createStockEntry(entry: InsertStockEntry): Promise<StockEntry> {
+    const [createdEntry] = await db.insert(stockEntries).values(entry).returning();
+    return createdEntry;
+  }
+
+  async updateStockEntry(id: string, entry: Partial<InsertStockEntry>): Promise<StockEntry> {
+    const [updatedEntry] = await db
+      .update(stockEntries)
+      .set({ ...entry, updatedAt: new Date() })
+      .where(eq(stockEntries.id, id))
+      .returning();
+    return updatedEntry;
+  }
+
+  async getTanksByRetailOutletIdWithProduct(retailOutletId: string): Promise<any[]> {
+    return await db
+      .select({
+        id: tanks.id,
+        tankNumber: tanks.tankNumber,
+        capacity: tanks.capacity,
+        productName: products.name,
+        productId: products.id,
+        isActive: tanks.isActive,
+      })
+      .from(tanks)
+      .innerJoin(products, eq(tanks.productId, products.id))
+      .where(eq(tanks.retailOutletId, retailOutletId))
+      .orderBy(tanks.tankNumber);
   }
 
   // Shift operations for managers (mock implementation for now)

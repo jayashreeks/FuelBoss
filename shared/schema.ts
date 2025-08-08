@@ -194,6 +194,7 @@ export const tanksRelations = relations(tanks, ({ one, many }) => ({
     references: [products.id],
   }),
   dispensingUnits: many(dispensingUnits),
+  stockEntries: many(stockEntries),
 }));
 
 export const dispensingUnitsRelations = relations(dispensingUnits, ({ one, many }) => ({
@@ -334,6 +335,48 @@ export const shifts = pgTable("shifts", {
   updatedAt: timestamp("updated_at").defaultNow(),
 });
 
+// Stock Entries for tracking opening stock, receipts, and invoice values per tank
+export const stockEntries = pgTable("stock_entries", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  retailOutletId: varchar("retail_outlet_id").references(() => retailOutlets.id).notNull(),
+  tankId: varchar("tank_id").references(() => tanks.id).notNull(),
+  managerId: varchar("manager_id").references(() => staff.id).notNull(),
+  shiftType: varchar("shift_type", { enum: ["morning", "evening", "night"] }).notNull(),
+  shiftDate: varchar("shift_date").notNull(), // YYYY-MM-DD format
+  openingStock: decimal("opening_stock", { precision: 10, scale: 2 }).notNull(), // in liters
+  receipt: decimal("receipt", { precision: 10, scale: 2 }).notNull(), // liters received
+  invoiceValue: decimal("invoice_value", { precision: 10, scale: 2 }).notNull(), // total invoice amount
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+// Stock entry relations
+export const stockEntriesRelations = relations(stockEntries, ({ one }) => ({
+  retailOutlet: one(retailOutlets, {
+    fields: [stockEntries.retailOutletId],
+    references: [retailOutlets.id],
+  }),
+  tank: one(tanks, {
+    fields: [stockEntries.tankId],
+    references: [tanks.id],
+  }),
+  manager: one(staff, {
+    fields: [stockEntries.managerId],
+    references: [staff.id],
+  }),
+}));
+
+// Insert schema for stock entries
+export const insertStockEntrySchema = createInsertSchema(stockEntries).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+}).extend({
+  openingStock: z.union([z.string(), z.number()]).transform(val => String(val)),
+  receipt: z.union([z.string(), z.number()]).transform(val => String(val)),
+  invoiceValue: z.union([z.string(), z.number()]).transform(val => String(val)),
+});
+
 export type Shift = typeof shifts.$inferSelect;
 export type InsertShift = typeof shifts.$inferInsert;
 export type InsertRetailOutlet = z.infer<typeof insertRetailOutletSchema>;
@@ -352,3 +395,5 @@ export type InsertProduct = z.infer<typeof insertProductSchema>;
 export type Product = typeof products.$inferSelect;
 export type InsertNozzleReading = z.infer<typeof insertNozzleReadingSchema>;
 export type NozzleReading = typeof nozzleReadings.$inferSelect;
+export type InsertStockEntry = z.infer<typeof insertStockEntrySchema>;
+export type StockEntry = typeof stockEntries.$inferSelect;

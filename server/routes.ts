@@ -819,6 +819,90 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Stock entry routes for managers
+  app.get("/api/manager/stock/:shiftType/:shiftDate", (req: any, res, next) => {
+    if (!req.session?.managerId || req.session?.userType !== "manager") {
+      return res.status(401).json({ message: "Manager authentication required" });
+    }
+    next();
+  }, async (req: any, res) => {
+    try {
+      const managerId = req.session.managerId;
+      const manager = await storage.getStaffById(managerId);
+      if (!manager) {
+        return res.status(401).json({ message: "Manager not found" });
+      }
+      const { shiftType, shiftDate } = req.params;
+      const stockEntries = await storage.getStockEntries(manager.retailOutletId, shiftType, shiftDate);
+      res.json(stockEntries);
+    } catch (error) {
+      console.error("Error fetching stock entries:", error);
+      res.status(500).json({ message: "Failed to fetch stock entries" });
+    }
+  });
+
+  app.get("/api/manager/tanks", (req: any, res, next) => {
+    if (!req.session?.managerId || req.session?.userType !== "manager") {
+      return res.status(401).json({ message: "Manager authentication required" });
+    }
+    next();
+  }, async (req: any, res) => {
+    try {
+      const managerId = req.session.managerId;
+      const manager = await storage.getStaffById(managerId);
+      if (!manager) {
+        return res.status(401).json({ message: "Manager not found" });
+      }
+      const tanks = await storage.getTanksByRetailOutletIdWithProduct(manager.retailOutletId);
+      res.json(tanks);
+    } catch (error) {
+      console.error("Error fetching tanks:", error);
+      res.status(500).json({ message: "Failed to fetch tanks" });
+    }
+  });
+
+  app.post("/api/manager/stock", (req: any, res, next) => {
+    if (!req.session?.managerId || req.session?.userType !== "manager") {
+      return res.status(401).json({ message: "Manager authentication required" });
+    }
+    next();
+  }, async (req: any, res) => {
+    try {
+      const managerId = req.session.managerId;
+      const manager = await storage.getStaffById(managerId);
+      if (!manager) {
+        return res.status(401).json({ message: "Manager not found" });
+      }
+      
+      const stockData = {
+        ...req.body,
+        retailOutletId: manager.retailOutletId,
+        managerId: managerId,
+      };
+      
+      const stockEntry = await storage.createStockEntry(stockData);
+      res.status(201).json(stockEntry);
+    } catch (error) {
+      console.error("Error creating stock entry:", error);
+      res.status(500).json({ message: "Failed to create stock entry" });
+    }
+  });
+
+  app.patch("/api/manager/stock/:id", (req: any, res, next) => {
+    if (!req.session?.managerId || req.session?.userType !== "manager") {
+      return res.status(401).json({ message: "Manager authentication required" });
+    }
+    next();
+  }, async (req: any, res) => {
+    try {
+      const stockEntry = await storage.updateStockEntry(req.params.id, req.body);
+      res.json(stockEntry);
+    } catch (error) {
+      console.error("Error updating stock entry:", error);
+      res.status(500).json({ message: "Failed to update stock entry" });
+    }
+  });
+
   const httpServer = createServer(app);
   return httpServer;
 }
