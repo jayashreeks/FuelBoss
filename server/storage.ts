@@ -568,7 +568,7 @@ export class DatabaseStorage implements IStorage {
   }
 
   // Nozzle Reading operations
-  async getNozzleReadings(retailOutletId: string, shiftType?: string, shiftDate?: string): Promise<NozzleReading[]> {
+  async getNozzleReadings(retailOutletId: string, shiftType?: string, shiftDate?: string): Promise<any[]> {
     const whereConditions = [eq(nozzleReadings.retailOutletId, retailOutletId)];
     
     if (shiftType) {
@@ -580,8 +580,38 @@ export class DatabaseStorage implements IStorage {
     }
 
     return await db
-      .select()
+      .select({
+        id: nozzleReadings.id,
+        nozzleId: nozzleReadings.nozzleId,
+        attendantId: nozzleReadings.attendantId,
+        previousReading: nozzleReadings.previousReading,
+        currentReading: nozzleReadings.currentReading,
+        testing: nozzleReadings.testing,
+        totalSale: nozzleReadings.totalSale,
+        cashSales: nozzleReadings.cashSales,
+        creditSales: nozzleReadings.creditSales,
+        upiSales: nozzleReadings.upiSales,
+        cardSales: nozzleReadings.cardSales,
+        shiftType: nozzleReadings.shiftType,
+        shiftDate: nozzleReadings.shiftDate,
+        createdAt: nozzleReadings.createdAt,
+        nozzle: {
+          id: nozzles.id,
+          nozzleNumber: nozzles.nozzleNumber,
+          productName: products.name,
+          productId: products.id,
+        },
+        attendant: {
+          id: staff.id,
+          name: staff.name,
+        }
+      })
       .from(nozzleReadings)
+      .leftJoin(nozzles, eq(nozzleReadings.nozzleId, nozzles.id))
+      .leftJoin(staff, eq(nozzleReadings.attendantId, staff.id))
+      .leftJoin(dispensingUnits, eq(nozzles.dispensingUnitId, dispensingUnits.id))
+      .leftJoin(tanks, eq(nozzles.tankId, tanks.id))
+      .leftJoin(products, eq(tanks.productId, products.id))
       .where(and(...whereConditions))
       .orderBy(desc(nozzleReadings.createdAt));
   }
