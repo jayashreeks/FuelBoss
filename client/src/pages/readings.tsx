@@ -101,6 +101,7 @@ export default function ReadingsPage({ onBack }: ReadingsPageProps) {
   const { data: currentRates = [] } = useQuery<any[]>({
     queryKey: [`/api/shifts/last-rates?date=${selectedDate}&shiftType=${selectedShiftType}`],
     retry: false,
+    staleTime: 0, // Always refetch to get latest rates
   });
 
   // Create reading mutation
@@ -227,11 +228,17 @@ export default function ReadingsPage({ onBack }: ReadingsPageProps) {
     const selectedNozzle = nozzles.find(n => n.id === selectedNozzleId);
     if (!selectedNozzle) return { calculated: "0.00", actual: "0.00", shortage: "0.00", liters: "0.00", rate: "0.00" };
 
+    // Debug: log to see what we have
+    console.log("Current rates available:", currentRates);
+    console.log("Selected nozzle product ID:", selectedNozzle.productId);
+    
     // Find the rate for this product from current rates
     const productRate = (currentRates as any[]).find((rate: any) => rate.productId === selectedNozzle.productId);
+    console.log("Found product rate:", productRate);
     
     // If no rate found, return zeros but still calculate other values
     const rate = productRate ? parseFloat(productRate.rate) || 0 : 0;
+    console.log("Final rate:", rate);
 
     const currentReading = parseFloat(formData.currentReading) || 0;
     const previousReading = parseFloat(formData.previousReading) || 0;
