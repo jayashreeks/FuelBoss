@@ -579,41 +579,51 @@ export class DatabaseStorage implements IStorage {
       whereConditions.push(eq(nozzleReadings.shiftDate, shiftDate));
     }
 
-    return await db
-      .select({
-        id: nozzleReadings.id,
-        nozzleId: nozzleReadings.nozzleId,
-        attendantId: nozzleReadings.attendantId,
-        previousReading: nozzleReadings.previousReading,
-        currentReading: nozzleReadings.currentReading,
-        testing: nozzleReadings.testing,
-        totalSale: nozzleReadings.totalSale,
-        cashSales: nozzleReadings.cashSales,
-        creditSales: nozzleReadings.creditSales,
-        upiSales: nozzleReadings.upiSales,
-        cardSales: nozzleReadings.cardSales,
-        shiftType: nozzleReadings.shiftType,
-        shiftDate: nozzleReadings.shiftDate,
-        createdAt: nozzleReadings.createdAt,
-        nozzle: {
+    console.log('Query conditions:', {retailOutletId, shiftType, shiftDate});
+
+    const rawReadings = await db
+      .select()
+      .from(nozzleReadings)
+      .where(and(...whereConditions))
+      .orderBy(desc(nozzleReadings.createdAt));
+
+    console.log('Raw readings found:', rawReadings.length);
+
+    // Manually join with nozzle and attendant data
+    const enrichedReadings = [];
+    for (const reading of rawReadings) {
+      // Get nozzle info
+      const [nozzleData] = await db
+        .select({
           id: nozzles.id,
           nozzleNumber: nozzles.nozzleNumber,
           productName: products.name,
           productId: products.id,
-        },
-        attendant: {
+        })
+        .from(nozzles)
+        .leftJoin(tanks, eq(nozzles.tankId, tanks.id))
+        .leftJoin(products, eq(tanks.productId, products.id))
+        .where(eq(nozzles.id, reading.nozzleId))
+        .limit(1);
+
+      // Get attendant info
+      const [attendantData] = await db
+        .select({
           id: staff.id,
           name: staff.name,
-        }
-      })
-      .from(nozzleReadings)
-      .leftJoin(nozzles, eq(nozzleReadings.nozzleId, nozzles.id))
-      .leftJoin(staff, eq(nozzleReadings.attendantId, staff.id))
-      .leftJoin(dispensingUnits, eq(nozzles.dispensingUnitId, dispensingUnits.id))
-      .leftJoin(tanks, eq(nozzles.tankId, tanks.id))
-      .leftJoin(products, eq(tanks.productId, products.id))
-      .where(and(...whereConditions))
-      .orderBy(desc(nozzleReadings.createdAt));
+        })
+        .from(staff)
+        .where(eq(staff.id, reading.attendantId))
+        .limit(1);
+
+      enrichedReadings.push({
+        ...reading,
+        nozzle: nozzleData || null,
+        attendant: attendantData || null,
+      });
+    }
+
+    return enrichedReadings;
   }
 
   async getNozzleReadingsByAttendant(attendantId: string, shiftType?: string, shiftDate?: string): Promise<NozzleReading[]> {

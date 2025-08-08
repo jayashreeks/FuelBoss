@@ -327,11 +327,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(401).json({ message: "Manager not found" });
       }
       const { shiftType, shiftDate } = req.query;
+      console.log(`Fetching readings for outlet: ${manager.retailOutletId}, shift: ${shiftType}, date: ${shiftDate}`);
       const readings = await storage.getNozzleReadings(
         manager.retailOutletId, 
         shiftType as string, 
         shiftDate as string
       );
+      console.log(`Found ${readings.length} readings:`, readings);
       res.json(readings);
     } catch (error) {
       console.error("Error fetching readings:", error);

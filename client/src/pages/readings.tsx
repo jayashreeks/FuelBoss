@@ -29,6 +29,7 @@ interface Nozzle {
   dispensingUnitName: string;
   tankNumber: string;
   productName: string;
+  productId: string;
   calibrationValidUntil: string;
 }
 
@@ -96,7 +97,7 @@ export default function ReadingsPage({ onBack }: ReadingsPageProps) {
   });
 
   // Fetch current rates for calculations
-  const { data: currentRates = [] } = useQuery({
+  const { data: currentRates = [] } = useQuery<any[]>({
     queryKey: [`/api/shifts/last-rates?date=${selectedDate}&shiftType=${selectedShiftType}`],
     retry: false,
   });
@@ -182,8 +183,8 @@ export default function ReadingsPage({ onBack }: ReadingsPageProps) {
     const selectedNozzle = nozzles.find(n => n.id === selectedNozzleId);
     if (!selectedNozzle) return { calculated: "0.00", actual: "0.00", shortage: "0.00", liters: "0.00", rate: "0.00" };
 
-    // Find the rate for this product
-    const productRate = currentRates.find((rate: any) => rate.productId === selectedNozzle.productId);
+    // Find the rate for this product  
+    const productRate = (currentRates as any[]).find((rate: any) => rate.productId === selectedNozzle.productId);
     if (!productRate) return { calculated: "0.00", actual: "0.00", shortage: "0.00", liters: "0.00", rate: "0.00" };
 
     const currentReading = parseFloat(formData.currentReading) || 0;
@@ -592,7 +593,7 @@ export default function ReadingsPage({ onBack }: ReadingsPageProps) {
               <div className="space-y-3">
                 {readings.map((reading: any) => {
                   // Calculate expected proceeds for this reading
-                  const productRate = currentRates.find((rate: any) => rate.productId === reading.nozzle?.productId);
+                  const productRate = (currentRates as any[]).find((rate: any) => rate.productId === reading.nozzle?.productId);
                   const rate = parseFloat(productRate?.rate || '0');
                   const litersSold = parseFloat(reading.currentReading) - parseFloat(reading.previousReading) - parseFloat(reading.testing);
                   const calculatedProceeds = litersSold * rate;
