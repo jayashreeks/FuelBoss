@@ -136,7 +136,7 @@ export default function ReadingsPage({ onBack }: ReadingsPageProps) {
         description: "Reading updated successfully",
       });
       queryClient.invalidateQueries({ queryKey: ["/api/manager/readings"] });
-      setSelectedNozzleId("");
+      // Keep form populated and nozzle selected for continued editing
     },
     onError: (error) => {
       toast({
@@ -636,27 +636,48 @@ export default function ReadingsPage({ onBack }: ReadingsPageProps) {
                 );
               })()}
 
-              <Button 
-                onClick={handleSubmit} 
-                className="w-full" 
-                disabled={createReading.isPending || updateReading.isPending || (existingReading && !isEditable)}
-                data-testid="submit-reading"
-              >
-                {createReading.isPending || updateReading.isPending 
-                  ? (existingReading ? "Updating..." : "Recording...") 
-                  : (existingReading ? "Update Reading" : "Record Reading")}
-              </Button>
-              
-              {existingReading && !isEditable && (
-                <p className="text-xs text-amber-600 mt-2 text-center">
-                  This reading cannot be edited as the next shift has data recorded.
-                </p>
-              )}
-              
-              {existingReading && isEditable && (
-                <p className="text-xs text-green-600 mt-2 text-center">
-                  You can edit this reading until the next shift is recorded.
-                </p>
+              {/* Show different buttons based on reading status */}
+              {!existingReading ? (
+                <Button 
+                  onClick={handleSubmit} 
+                  className="w-full" 
+                  disabled={createReading.isPending}
+                  data-testid="submit-reading"
+                >
+                  {createReading.isPending ? "Recording..." : "Record Reading"}
+                </Button>
+              ) : (
+                <div className="space-y-2">
+                  {isEditable ? (
+                    <>
+                      <Button 
+                        onClick={handleSubmit} 
+                        className="w-full" 
+                        disabled={updateReading.isPending}
+                        data-testid="edit-reading"
+                      >
+                        {updateReading.isPending ? "Updating..." : "Edit Reading"}
+                      </Button>
+                      <p className="text-xs text-green-600 text-center">
+                        You can edit this reading until the next shift is recorded.
+                      </p>
+                    </>
+                  ) : (
+                    <>
+                      <Button 
+                        className="w-full" 
+                        disabled
+                        variant="secondary"
+                        data-testid="reading-locked"
+                      >
+                        Reading Locked
+                      </Button>
+                      <p className="text-xs text-amber-600 text-center">
+                        This reading cannot be edited as the next shift has data recorded.
+                      </p>
+                    </>
+                  )}
+                </div>
               )}
             </CardContent>
           </Card>
