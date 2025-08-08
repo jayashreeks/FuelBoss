@@ -109,26 +109,39 @@ export default function ReadingsPage({ onBack }: ReadingsPageProps) {
     },
     onSuccess: () => {
       toast({
-        title: "Success",
+        title: "Success", 
         description: "Reading recorded successfully",
       });
       queryClient.invalidateQueries({ queryKey: ["/api/manager/readings"] });
-      // Reset form
+      // Don't reset form - keep it populated for editing
       setSelectedNozzleId("");
-      setFormData({
-        previousReading: "",
-        currentReading: "",
-        testing: "0",
-        cashSales: "0",
-        creditSales: "0",
-        upiSales: "0",
-        cardSales: "0"
-      });
     },
     onError: (error) => {
       toast({
         title: "Error",
         description: "Failed to record reading",
+        variant: "destructive",
+      });
+    },
+  });
+
+  // Update reading mutation for editing existing readings
+  const updateReading = useMutation({
+    mutationFn: async ({ id, readingData }: { id: string, readingData: any }) => {
+      return await apiRequest(`/api/manager/readings/${id}`, "PATCH", readingData);
+    },
+    onSuccess: () => {
+      toast({
+        title: "Success",
+        description: "Reading updated successfully",
+      });
+      queryClient.invalidateQueries({ queryKey: ["/api/manager/readings"] });
+      setSelectedNozzleId("");
+    },
+    onError: (error) => {
+      toast({
+        title: "Error", 
+        description: "Failed to update reading",
         variant: "destructive",
       });
     },
@@ -159,6 +172,25 @@ export default function ReadingsPage({ onBack }: ReadingsPageProps) {
       }
     }
   }, [lastReading, selectedNozzleId]);
+
+  // Check if reading exists for this nozzle and shift
+  const existingReading = readings.find(r => r.nozzleId === selectedNozzleId);
+  
+  // Effect to populate form with existing reading data when editing
+  useEffect(() => {
+    if (existingReading && selectedNozzleId === existingReading.nozzleId) {
+      setFormData({
+        previousReading: existingReading.previousReading,
+        currentReading: existingReading.currentReading,
+        testing: existingReading.testing,
+        cashSales: existingReading.cashSales,
+        creditSales: existingReading.creditSales,
+        upiSales: existingReading.upiSales,
+        cardSales: existingReading.cardSales,
+      });
+      setSelectedAttendantId(existingReading.attendantId);
+    }
+  }, [existingReading, selectedNozzleId]);
 
   const handleInputChange = (field: string, value: string) => {
     setFormData(prev => ({
@@ -213,6 +245,22 @@ export default function ReadingsPage({ onBack }: ReadingsPageProps) {
     };
   };
 
+  // Check if next shift has data to determine if current shift is editable
+  const getNextShift = (current: string) => {
+    const shifts = ['morning', 'evening', 'night'];
+    const currentIndex = shifts.indexOf(current);
+    return currentIndex < shifts.length - 1 ? shifts[currentIndex + 1] : null;
+  };
+  
+  const nextShift = getNextShift(selectedShiftType);
+  const { data: nextShiftReadings = [] } = useQuery<Reading[]>({
+    queryKey: ["/api/manager/readings", nextShift, selectedDate],
+    enabled: !!nextShift,
+    retry: false,
+  });
+  
+  const isEditable = !nextShift || nextShiftReadings.length === 0;
+
   const handleSubmit = () => {
     if (!selectedAttendantId || !selectedNozzleId || !formData.currentReading || !formData.previousReading) {
       toast({
@@ -225,7 +273,7 @@ export default function ReadingsPage({ onBack }: ReadingsPageProps) {
 
     const totalSale = calculateTotalSale();
     
-    createReading.mutate({
+    const readingData = {
       nozzleId: selectedNozzleId,
       attendantId: selectedAttendantId,
       shiftType: selectedShiftType,
@@ -238,7 +286,13 @@ export default function ReadingsPage({ onBack }: ReadingsPageProps) {
       creditSales: formData.creditSales,
       upiSales: formData.upiSales,
       cardSales: formData.cardSales,
-    });
+    };
+
+    if (existingReading) {
+      updateReading.mutate({ id: existingReading.id, readingData });
+    } else {
+      createReading.mutate(readingData);
+    }
   };
 
   const selectedNozzle = nozzles.find((n: Nozzle) => n.id === selectedNozzleId);
@@ -312,11 +366,15 @@ export default function ReadingsPage({ onBack }: ReadingsPageProps) {
                   <SelectValue placeholder="Choose nozzle..." />
                 </SelectTrigger>
                 <SelectContent>
-                  {nozzles.map((nozzle: Nozzle) => (
-                    <SelectItem key={nozzle.id} value={nozzle.id}>
-                      Nozzle {nozzle.nozzleNumber} - {nozzle.dispensingUnitName} - {nozzle.productName} (Tank {nozzle.tankNumber})
-                    </SelectItem>
-                  ))}
+                  {nozzles.map((nozzle: Nozzle) => {
+                    const hasReading = readings.find(r => r.nozzleId === nozzle.id);
+                    return (
+                      <SelectItem key={nozzle.id} value={nozzle.id}>
+                        Nozzle {nozzle.nozzleNumber} - {nozzle.dispensingUnitName} - {nozzle.productName} (Tank {nozzle.tankNumber})
+                        {hasReading && <span className="ml-2 text-green-600">✓ Recorded</span>}
+                      </SelectItem>
+                    );
+                  })}
                 </SelectContent>
               </Select>
             </CardContent>
@@ -569,11 +627,25 @@ export default function ReadingsPage({ onBack }: ReadingsPageProps) {
               <Button 
                 onClick={handleSubmit} 
                 className="w-full" 
-                disabled={createReading.isPending}
+                disabled={createReading.isPending || updateReading.isPending}
                 data-testid="submit-reading"
               >
-                {createReading.isPending ? "Recording..." : "Record Reading"}
+                {createReading.isPending || updateReading.isPending 
+                  ? (existingReading ? "Updating..." : "Recording...") 
+                  : (existingReading ? "Update Reading" : "Record Reading")}
               </Button>
+              
+              {existingReading && !isEditable && (
+                <p className="text-xs text-amber-600 mt-2 text-center">
+                  This reading cannot be edited as the next shift has data recorded.
+                </p>
+              )}
+              
+              {existingReading && isEditable && (
+                <p className="text-xs text-green-600 mt-2 text-center">
+                  You can edit this reading until the next shift is recorded.
+                </p>
+              )}
             </CardContent>
           </Card>
           );
@@ -625,6 +697,17 @@ export default function ReadingsPage({ onBack }: ReadingsPageProps) {
                             <span className={shortage >= 0 ? 'text-red-600' : 'text-green-600'}>
                               {shortage >= 0 ? '-' : '+'}₹{Math.abs(shortage).toFixed(2)}
                             </span>
+                          </div>
+                          <div className="text-center">
+                            <button 
+                              onClick={() => {
+                                setSelectedNozzleId(reading.nozzleId);
+                                setSelectedAttendantId(reading.attendantId);
+                              }}
+                              className="text-blue-600 hover:text-blue-800 text-xs mt-1"
+                            >
+                              Edit Reading
+                            </button>
                           </div>
                         </div>
                       )}

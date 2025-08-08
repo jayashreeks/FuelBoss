@@ -407,6 +407,33 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Update reading route
+  app.patch("/api/manager/readings/:id", (req: any, res, next) => {
+    if (!req.session?.managerId || req.session?.userType !== "manager") {
+      return res.status(401).json({ message: "Manager authentication required" });
+    }
+    next();
+  }, async (req: any, res) => {
+    try {
+      const managerId = req.session.managerId;
+      const manager = await storage.getStaffById(managerId);
+      if (!manager) {
+        return res.status(401).json({ message: "Manager not found" });
+      }
+      
+      const readingData = {
+        ...req.body,
+        retailOutletId: manager.retailOutletId,
+      };
+      
+      const reading = await storage.updateNozzleReading(req.params.id, readingData);
+      res.json(reading);
+    } catch (error) {
+      console.error("Error updating reading:", error);
+      res.status(500).json({ message: "Failed to update reading" });
+    }
+  });
+
   app.get("/api/manager/nozzles/:nozzleId/last-reading", (req: any, res, next) => {
     if (!req.session?.managerId || req.session?.userType !== "manager") {
       return res.status(401).json({ message: "Manager authentication required" });
