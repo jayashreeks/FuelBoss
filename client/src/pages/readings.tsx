@@ -10,7 +10,7 @@ import ShiftDateDisplay from "@/components/ShiftDateDisplay";
 import { useShiftContext } from "@/contexts/ShiftContext";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
 interface ReadingsPageProps {
   onBack?: () => void;
@@ -48,6 +48,11 @@ interface Reading {
   shiftDate: string;
 }
 
+interface LastReading {
+  id: string;
+  currentReading: string;
+}
+
 export default function ReadingsPage({ onBack }: ReadingsPageProps) {
   const { selectedShiftType, selectedDate } = useShiftContext();
   const { toast } = useToast();
@@ -66,25 +71,25 @@ export default function ReadingsPage({ onBack }: ReadingsPageProps) {
   });
 
   // Fetch attendants
-  const { data: attendants = [], isLoading: loadingAttendants } = useQuery({
+  const { data: attendants = [], isLoading: loadingAttendants } = useQuery<Attendant[]>({
     queryKey: ["/api/manager/attendants"],
     retry: false,
   });
 
   // Fetch nozzles
-  const { data: nozzles = [], isLoading: loadingNozzles } = useQuery({
+  const { data: nozzles = [], isLoading: loadingNozzles } = useQuery<Nozzle[]>({
     queryKey: ["/api/manager/nozzles"],
     retry: false,
   });
 
   // Fetch readings for current shift and date
-  const { data: readings = [], isLoading: loadingReadings } = useQuery({
+  const { data: readings = [], isLoading: loadingReadings } = useQuery<Reading[]>({
     queryKey: ["/api/manager/readings", selectedShiftType, selectedDate],
     retry: false,
   });
 
   // Fetch last reading for selected nozzle
-  const { data: lastReading } = useQuery({
+  const { data: lastReading } = useQuery<LastReading | null>({
     queryKey: ["/api/manager/nozzles", selectedNozzleId, "last-reading"],
     enabled: !!selectedNozzleId,
     retry: false,
@@ -93,10 +98,7 @@ export default function ReadingsPage({ onBack }: ReadingsPageProps) {
   // Create reading mutation
   const createReading = useMutation({
     mutationFn: async (readingData: any) => {
-      return await apiRequest("/api/manager/readings", {
-        method: "POST",
-        body: JSON.stringify(readingData),
-      });
+      return await apiRequest("/api/manager/readings", "POST", readingData);
     },
     onSuccess: () => {
       toast({
@@ -132,19 +134,24 @@ export default function ReadingsPage({ onBack }: ReadingsPageProps) {
 
   const handleNozzleChange = (nozzleId: string) => {
     setSelectedNozzleId(nozzleId);
-    // Auto-populate previous reading if available
-    if (lastReading) {
-      setFormData(prev => ({
-        ...prev,
-        previousReading: lastReading.currentReading || "0"
-      }));
-    } else {
-      setFormData(prev => ({
-        ...prev,
-        previousReading: "0"
-      }));
-    }
   };
+
+  // Effect to handle previous reading population when lastReading data changes
+  useEffect(() => {
+    if (selectedNozzleId && lastReading !== undefined) {
+      if (lastReading && lastReading.currentReading) {
+        setFormData(prev => ({
+          ...prev,
+          previousReading: lastReading.currentReading
+        }));
+      } else {
+        setFormData(prev => ({
+          ...prev,
+          previousReading: ""
+        }));
+      }
+    }
+  }, [lastReading, selectedNozzleId]);
 
   const handleInputChange = (field: string, value: string) => {
     setFormData(prev => ({
@@ -162,10 +169,10 @@ export default function ReadingsPage({ onBack }: ReadingsPageProps) {
   };
 
   const handleSubmit = () => {
-    if (!selectedAttendantId || !selectedNozzleId || !formData.currentReading) {
+    if (!selectedAttendantId || !selectedNozzleId || !formData.currentReading || !formData.previousReading) {
       toast({
         title: "Error",
-        description: "Please fill all required fields",
+        description: "Please fill all required fields including previous reading",
         variant: "destructive",
       });
       return;
@@ -272,7 +279,40 @@ export default function ReadingsPage({ onBack }: ReadingsPageProps) {
         )}
 
         {/* Reading Form */}
-        {selectedNozzleId && (
+        {selectedNozzleId && (() => {
+          // Check if reading already exists for this nozzle and shift
+          const existingReading = readings.find((r: Reading) => 
+            r.nozzleId === selectedNozzleId && 
+            r.shiftType === selectedShiftType && 
+            r.shiftDate === selectedDate
+          );
+
+          if (existingReading) {
+            return (
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <Calculator className="h-5 w-5" />
+                    Reading Already Submitted
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="p-4 bg-green-50 border border-green-200 rounded-lg">
+                    <p className="text-green-800 font-medium">
+                      Reading for this nozzle has already been submitted for {selectedShiftType} shift on {selectedDate}.
+                    </p>
+                    <div className="mt-2 text-sm text-green-700">
+                      <p>Previous: {existingReading.previousReading}</p>
+                      <p>Current: {existingReading.currentReading}</p>
+                      <p>Total Sales: ₹{existingReading.totalSale}</p>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            );
+          }
+
+          return (
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
@@ -292,16 +332,34 @@ export default function ReadingsPage({ onBack }: ReadingsPageProps) {
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <Label htmlFor="previous-reading">Previous Reading</Label>
-                  <Input
-                    id="previous-reading"
-                    type="number"
-                    step="0.01"
-                    value={formData.previousReading}
-                    onChange={(e) => handleInputChange("previousReading", e.target.value)}
-                    data-testid="input-previous-reading"
-                    readOnly
-                    className="bg-gray-100"
-                  />
+                  {lastReading && lastReading.currentReading ? (
+                    <Input
+                      id="previous-reading"
+                      type="number"
+                      step="0.01"
+                      value={formData.previousReading}
+                      data-testid="input-previous-reading"
+                      readOnly
+                      className="bg-gray-100"
+                      placeholder="From previous shift"
+                    />
+                  ) : (
+                    <Input
+                      id="previous-reading"
+                      type="number"
+                      step="0.01"
+                      value={formData.previousReading}
+                      onChange={(e) => handleInputChange("previousReading", e.target.value)}
+                      data-testid="input-previous-reading"
+                      placeholder="Enter previous reading"
+                      className="border-orange-300 focus:border-orange-500"
+                    />
+                  )}
+                  {!lastReading && (
+                    <p className="text-xs text-orange-600 mt-1">
+                      No previous reading found. Please enter the starting reading.
+                    </p>
+                  )}
                 </div>
                 
                 <div>
@@ -422,7 +480,8 @@ export default function ReadingsPage({ onBack }: ReadingsPageProps) {
               </Button>
             </CardContent>
           </Card>
-        )}
+          );
+        })()}
 
         {/* Current Readings */}
         <Card>
