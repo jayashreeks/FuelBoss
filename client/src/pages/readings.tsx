@@ -648,34 +648,22 @@ export default function ReadingsPage({ onBack }: ReadingsPageProps) {
                 </Button>
               ) : (
                 <div className="space-y-2">
+                  <Button 
+                    onClick={handleSubmit} 
+                    className="w-full" 
+                    disabled={updateReading.isPending || !isEditable}
+                    data-testid="edit-reading"
+                  >
+                    {updateReading.isPending ? "Updating..." : (isEditable ? "Edit Reading" : "Reading Locked")}
+                  </Button>
                   {isEditable ? (
-                    <>
-                      <Button 
-                        onClick={handleSubmit} 
-                        className="w-full" 
-                        disabled={updateReading.isPending}
-                        data-testid="edit-reading"
-                      >
-                        {updateReading.isPending ? "Updating..." : "Edit Reading"}
-                      </Button>
-                      <p className="text-xs text-green-600 text-center">
-                        You can edit this reading until the next shift is recorded.
-                      </p>
-                    </>
+                    <p className="text-xs text-green-600 text-center">
+                      You can edit this reading until the next shift is recorded.
+                    </p>
                   ) : (
-                    <>
-                      <Button 
-                        className="w-full" 
-                        disabled
-                        variant="secondary"
-                        data-testid="reading-locked"
-                      >
-                        Reading Locked
-                      </Button>
-                      <p className="text-xs text-amber-600 text-center">
-                        This reading cannot be edited as the next shift has data recorded.
-                      </p>
-                    </>
+                    <p className="text-xs text-amber-600 text-center">
+                      This reading cannot be edited as the next shift has data recorded.
+                    </p>
                   )}
                 </div>
               )}
