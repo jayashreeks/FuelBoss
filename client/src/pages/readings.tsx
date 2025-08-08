@@ -230,10 +230,11 @@ export default function ReadingsPage({ onBack }: ReadingsPageProps) {
 
     // Debug: log to see what we have
     console.log("Current rates available:", currentRates);
-    console.log("Selected nozzle product ID:", selectedNozzle.productId);
+    console.log("Selected nozzle:", selectedNozzle);
+    console.log("Selected nozzle product ID:", selectedNozzle?.productId);
     
     // Find the rate for this product from current rates
-    const productRate = (currentRates as any[]).find((rate: any) => rate.productId === selectedNozzle.productId);
+    const productRate = (currentRates as any[]).find((rate: any) => rate.productId === selectedNozzle?.productId);
     console.log("Found product rate:", productRate);
     
     // If no rate found, return zeros but still calculate other values

@@ -691,6 +691,7 @@ export class DatabaseStorage implements IStorage {
         dispensingUnitName: dispensingUnits.name,
         tankNumber: tanks.tankNumber,
         productName: products.name,
+        productId: products.id, // Add productId for rate matching
       })
       .from(nozzles)
       .innerJoin(dispensingUnits, eq(nozzles.dispensingUnitId, dispensingUnits.id))
