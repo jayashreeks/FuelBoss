@@ -24,8 +24,13 @@ export default function Dashboard() {
     queryKey: ["/api/staff"],
   });
 
-  const getStaffName = (staffId: string) => {
-    const staffMember = staff.find((s: any) => s.id === staffId);
+  const getStaffName = (shift: any) => {
+    // If staffName is already included in the shift data, use it
+    if (shift.staffName) {
+      return shift.staffName;
+    }
+    // Fallback to finding staff by ID
+    const staffMember = staff.find((s: any) => s.id === shift.staffId);
     return staffMember?.name || "Unknown";
   };
 
@@ -94,7 +99,7 @@ export default function Dashboard() {
               <ShiftCard 
                 key={shift.id} 
                 shift={shift} 
-                staffName={getStaffName(shift.staffId)}
+                staffName={getStaffName(shift)}
               />
             ))
           )}

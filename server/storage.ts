@@ -413,14 +413,47 @@ export class DatabaseStorage implements IStorage {
     return manager;
   }
 
-  // Shift Sales operations
-  async getShiftSalesByRetailOutletId(retailOutletId: string, limit = 10): Promise<ShiftSales[]> {
-    return await db
-      .select()
-      .from(shiftSales)
-      .where(eq(shiftSales.retailOutletId, retailOutletId))
-      .orderBy(desc(shiftSales.shiftDate))
+  // Shift Sales operations - aggregate from nozzle readings
+  async getShiftSalesByRetailOutletId(retailOutletId: string, limit = 10): Promise<any[]> {
+    // Get distinct shift dates and types from nozzle readings
+    const shiftGroups = await db
+      .select({
+        shiftDate: nozzleReadings.shiftDate,
+        shiftType: nozzleReadings.shiftType,
+        totalCashSales: sql<string>`SUM(${nozzleReadings.cashSales})`,
+        totalCreditSales: sql<string>`SUM(${nozzleReadings.creditSales})`,
+        totalUpiSales: sql<string>`SUM(${nozzleReadings.upiSales})`,
+        totalCardSales: sql<string>`SUM(${nozzleReadings.cardSales})`,
+        totalSales: sql<string>`SUM(${nozzleReadings.totalSale})`,
+        staffId: nozzleReadings.attendantId,
+        staffName: staff.name,
+      })
+      .from(nozzleReadings)
+      .innerJoin(staff, eq(nozzleReadings.attendantId, staff.id))
+      .where(eq(nozzleReadings.retailOutletId, retailOutletId))
+      .groupBy(nozzleReadings.shiftDate, nozzleReadings.shiftType, nozzleReadings.attendantId, staff.name)
+      .orderBy(desc(nozzleReadings.shiftDate), nozzleReadings.shiftType)
       .limit(limit);
+
+    // Transform the data to match the ShiftSales interface
+    return shiftGroups.map((group) => ({
+      id: `${group.shiftDate}-${group.shiftType}-${group.staffId}`,
+      retailOutletId,
+      staffId: group.staffId,
+      staffName: group.staffName,
+      shiftDate: new Date(group.shiftDate + 'T00:00:00'), // Convert string date to Date
+      shiftType: group.shiftType,
+      startTime: new Date(group.shiftDate + 'T06:00:00'), // Mock start time
+      endTime: new Date(group.shiftDate + 'T18:00:00'), // Mock end time
+      cashSales: group.totalCashSales || "0",
+      creditSales: group.totalCreditSales || "0",
+      upiSales: group.totalUpiSales || "0",
+      cardSales: group.totalCardSales || "0",
+      totalSales: group.totalSales || "0",
+      notes: "",
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    }));
   }
 
   async createShiftSales(sales: InsertShiftSales): Promise<ShiftSales> {
