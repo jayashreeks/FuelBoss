@@ -95,6 +95,12 @@ export default function ReadingsPage({ onBack }: ReadingsPageProps) {
     retry: false,
   });
 
+  // Fetch current rates for calculations
+  const { data: currentRates = [] } = useQuery({
+    queryKey: [`/api/shifts/last-rates?date=${selectedDate}&shiftType=${selectedShiftType}`],
+    retry: false,
+  });
+
   // Create reading mutation
   const createReading = useMutation({
     mutationFn: async (readingData: any) => {
@@ -166,6 +172,44 @@ export default function ReadingsPage({ onBack }: ReadingsPageProps) {
     const upi = parseFloat(formData.upiSales) || 0;
     const card = parseFloat(formData.cardSales) || 0;
     return (cash + credit + upi + card).toFixed(2);
+  };
+
+  const calculateSalesProceeds = () => {
+    if (!selectedNozzleId || !formData.currentReading || !formData.previousReading) {
+      return { calculated: "0.00", actual: "0.00", shortage: "0.00", liters: "0.00", rate: "0.00" };
+    }
+
+    const selectedNozzle = nozzles.find(n => n.id === selectedNozzleId);
+    if (!selectedNozzle) return { calculated: "0.00", actual: "0.00", shortage: "0.00", liters: "0.00", rate: "0.00" };
+
+    // Find the rate for this product
+    const productRate = currentRates.find((rate: any) => rate.productId === selectedNozzle.productId);
+    if (!productRate) return { calculated: "0.00", actual: "0.00", shortage: "0.00", liters: "0.00", rate: "0.00" };
+
+    const currentReading = parseFloat(formData.currentReading) || 0;
+    const previousReading = parseFloat(formData.previousReading) || 0;
+    const testing = parseFloat(formData.testing) || 0;
+    
+    // Calculate liters sold
+    const litersSold = currentReading - previousReading - testing;
+    
+    // Calculate expected sales proceeds
+    const rate = parseFloat(productRate.rate) || 0;
+    const calculatedProceeds = litersSold * rate;
+    
+    // Calculate actual sales proceeds
+    const actualProceeds = parseFloat(calculateTotalSale());
+    
+    // Calculate shortage
+    const shortage = calculatedProceeds - actualProceeds;
+
+    return {
+      calculated: calculatedProceeds.toFixed(2),
+      actual: actualProceeds.toFixed(2),
+      shortage: shortage.toFixed(2),
+      liters: litersSold.toFixed(2),
+      rate: rate.toFixed(2)
+    };
   };
 
   const handleSubmit = () => {
@@ -470,6 +514,57 @@ export default function ReadingsPage({ onBack }: ReadingsPageProps) {
                 </div>
               </div>
 
+              {/* Sales Calculation Display */}
+              {formData.currentReading && formData.previousReading && (() => {
+                const calculations = calculateSalesProceeds();
+                return (
+                  <div className="space-y-3 p-4 bg-gray-50 rounded-lg border">
+                    <h4 className="font-medium text-gray-800 flex items-center gap-2">
+                      <Calculator className="h-4 w-4" />
+                      Sales Calculation
+                    </h4>
+                    
+                    <div className="grid grid-cols-2 gap-3 text-sm">
+                      <div className="space-y-1">
+                        <p className="text-gray-600">Liters Sold</p>
+                        <p className="font-medium">{calculations.liters}L</p>
+                      </div>
+                      <div className="space-y-1">
+                        <p className="text-gray-600">Rate per Liter</p>
+                        <p className="font-medium">₹{calculations.rate}</p>
+                      </div>
+                    </div>
+                    
+                    <div className="space-y-2 border-t pt-3">
+                      <div className="flex justify-between items-center">
+                        <span className="text-gray-600">Calculated Sales Proceeds:</span>
+                        <span className="font-medium text-green-700">₹{calculations.calculated}</span>
+                      </div>
+                      <div className="flex justify-between items-center">
+                        <span className="text-gray-600">Actual Sales Proceeds:</span>
+                        <span className="font-medium text-blue-700">₹{calculations.actual}</span>
+                      </div>
+                      <div className="flex justify-between items-center border-t pt-2">
+                        <span className="text-gray-600 font-medium">Shortage/Excess:</span>
+                        <span className={`font-medium ${parseFloat(calculations.shortage) >= 0 ? 'text-red-600' : 'text-green-600'}`}>
+                          {parseFloat(calculations.shortage) >= 0 ? '-' : '+'}₹{Math.abs(parseFloat(calculations.shortage)).toFixed(2)}
+                        </span>
+                      </div>
+                      {parseFloat(calculations.shortage) > 0 && (
+                        <p className="text-xs text-red-600 mt-1">
+                          Shortage indicates less cash collected than expected
+                        </p>
+                      )}
+                      {parseFloat(calculations.shortage) < 0 && (
+                        <p className="text-xs text-green-600 mt-1">
+                          Excess indicates more cash collected than expected
+                        </p>
+                      )}
+                    </div>
+                  </div>
+                );
+              })()}
+
               <Button 
                 onClick={handleSubmit} 
                 className="w-full" 
@@ -495,22 +590,46 @@ export default function ReadingsPage({ onBack }: ReadingsPageProps) {
               <div className="text-center py-4">Loading readings...</div>
             ) : readings.length > 0 ? (
               <div className="space-y-3">
-                {readings.map((reading: any) => (
-                  <div key={reading.id} className="p-3 border rounded-lg">
-                    <div className="flex justify-between items-start">
-                      <div>
-                        <p className="font-medium">Nozzle {reading.nozzle?.nozzleNumber}</p>
-                        <p className="text-sm text-gray-600">{reading.attendant?.name}</p>
-                        <p className="text-sm text-gray-600">{reading.nozzle?.productName}</p>
+                {readings.map((reading: any) => {
+                  // Calculate expected proceeds for this reading
+                  const productRate = currentRates.find((rate: any) => rate.productId === reading.nozzle?.productId);
+                  const rate = parseFloat(productRate?.rate || '0');
+                  const litersSold = parseFloat(reading.currentReading) - parseFloat(reading.previousReading) - parseFloat(reading.testing);
+                  const calculatedProceeds = litersSold * rate;
+                  const actualProceeds = parseFloat(reading.totalSale);
+                  const shortage = calculatedProceeds - actualProceeds;
+
+                  return (
+                    <div key={reading.id} className="p-3 border rounded-lg">
+                      <div className="flex justify-between items-start">
+                        <div>
+                          <p className="font-medium">Nozzle {reading.nozzle?.nozzleNumber}</p>
+                          <p className="text-sm text-gray-600">{reading.attendant?.name}</p>
+                          <p className="text-sm text-gray-600">{reading.nozzle?.productName}</p>
+                        </div>
+                        <Badge variant="secondary">₹{reading.totalSale}</Badge>
                       </div>
-                      <Badge variant="secondary">₹{reading.totalSale}</Badge>
+                      <div className="mt-2 text-sm text-gray-600 grid grid-cols-2 gap-2">
+                        <span>Reading: {reading.previousReading} → {reading.currentReading}</span>
+                        <span>Sale: {litersSold.toFixed(2)}L</span>
+                      </div>
+                      {productRate && (
+                        <div className="mt-2 p-2 bg-gray-50 rounded text-xs space-y-1">
+                          <div className="flex justify-between">
+                            <span>Expected: ₹{calculatedProceeds.toFixed(2)}</span>
+                            <span>Actual: ₹{actualProceeds.toFixed(2)}</span>
+                          </div>
+                          <div className="flex justify-between font-medium">
+                            <span>Shortage/Excess:</span>
+                            <span className={shortage >= 0 ? 'text-red-600' : 'text-green-600'}>
+                              {shortage >= 0 ? '-' : '+'}₹{Math.abs(shortage).toFixed(2)}
+                            </span>
+                          </div>
+                        </div>
+                      )}
                     </div>
-                    <div className="mt-2 text-sm text-gray-600 grid grid-cols-2 gap-2">
-                      <span>Reading: {reading.previousReading} → {reading.currentReading}</span>
-                      <span>Sale: {(parseFloat(reading.currentReading) - parseFloat(reading.previousReading) - parseFloat(reading.testing)).toFixed(2)}L</span>
-                    </div>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
             ) : (
               <div className="text-center text-gray-500 py-8" data-testid="no-readings">
