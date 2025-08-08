@@ -34,7 +34,7 @@ import {
   stockEntries,
 } from "@shared/schema";
 import { db } from "./db";
-import { eq, and, desc, sql } from "drizzle-orm";
+import { eq, and, desc, sql, gte } from "drizzle-orm";
 
 export interface IStorage {
   // User operations - mandatory for Replit Auth
@@ -199,12 +199,70 @@ export class DatabaseStorage implements IStorage {
   }
 
   // Tank operations
-  async getTanksByRetailOutletId(retailOutletId: string): Promise<Tank[]> {
-    return await db
-      .select()
+  async getTanksByRetailOutletId(retailOutletId: string): Promise<any[]> {
+    const today = new Date().toISOString().split('T')[0]; // YYYY-MM-DD format
+    
+    // Get tanks with product information
+    const tanksWithProduct = await db
+      .select({
+        id: tanks.id,
+        retailOutletId: tanks.retailOutletId,
+        productId: tanks.productId,
+        tankNumber: tanks.tankNumber,
+        capacity: tanks.capacity,
+        length: tanks.length,
+        diameter: tanks.diameter,
+        isActive: tanks.isActive,
+        createdAt: tanks.createdAt,
+        updatedAt: tanks.updatedAt,
+        productName: products.name,
+      })
       .from(tanks)
+      .innerJoin(products, eq(tanks.productId, products.id))
       .where(and(eq(tanks.retailOutletId, retailOutletId), eq(tanks.isActive, true)))
       .orderBy(tanks.tankNumber);
+
+    // Calculate current stock for each tank
+    const tanksWithStock = await Promise.all(
+      tanksWithProduct.map(async (tank) => {
+        // Get the latest stock entry for this tank
+        const latestStockEntry = await db
+          .select()
+          .from(stockEntries)
+          .where(eq(stockEntries.tankId, tank.id))
+          .orderBy(desc(stockEntries.shiftDate), desc(stockEntries.createdAt))
+          .limit(1);
+
+        // Get total fuel dispensed from nozzle readings since the stock entry
+        const stockEntryDate = latestStockEntry[0]?.shiftDate || today;
+        
+        const totalDispensed = await db
+          .select({
+            totalDispensed: sql<string>`COALESCE(SUM(${nozzleReadings.currentReading} - ${nozzleReadings.previousReading} - COALESCE(${nozzleReadings.testing}, 0)), 0)`,
+          })
+          .from(nozzleReadings)
+          .innerJoin(nozzles, eq(nozzleReadings.nozzleId, nozzles.id))
+          .where(
+            and(
+              eq(nozzles.tankId, tank.id),
+              gte(nozzleReadings.shiftDate, stockEntryDate)
+            )
+          );
+
+        // Calculate current stock: opening stock + receipts - dispensed
+        const openingStock = parseFloat(latestStockEntry[0]?.openingStock || "0");
+        const receipts = parseFloat(latestStockEntry[0]?.receipt || "0");
+        const dispensed = parseFloat(totalDispensed[0]?.totalDispensed || "0");
+        const currentStock = Math.max(0, openingStock + receipts - dispensed);
+
+        return {
+          ...tank,
+          currentStock: currentStock.toString(),
+        };
+      })
+    );
+
+    return tanksWithStock;
   }
 
   async createTank(tank: InsertTank): Promise<Tank> {
@@ -479,7 +537,7 @@ export class DatabaseStorage implements IStorage {
       return await baseQuery.where(
         and(
           eq(stockEntries.retailOutletId, retailOutletId),
-          eq(stockEntries.shiftType, shiftType),
+          sql`${stockEntries.shiftType} = ${shiftType}`,
           eq(stockEntries.shiftDate, shiftDate)
         )
       );
@@ -495,7 +553,7 @@ export class DatabaseStorage implements IStorage {
       return await baseQuery.where(
         and(
           eq(stockEntries.tankId, tankId),
-          eq(stockEntries.shiftType, shiftType),
+          sql`${stockEntries.shiftType} = ${shiftType}`,
           eq(stockEntries.shiftDate, shiftDate)
         )
       );
@@ -542,7 +600,7 @@ export class DatabaseStorage implements IStorage {
       .where(
         and(
           eq(shifts.managerId, managerId),
-          eq(shifts.shiftType, shiftType),
+          sql`${shifts.shiftType} = ${shiftType}`,
           eq(shifts.shiftDate, shiftDate)
         )
       )
@@ -560,7 +618,7 @@ export class DatabaseStorage implements IStorage {
     } else {
       await db.insert(shifts).values({
         managerId,
-        shiftType,
+        shiftType: shiftType as "morning" | "evening" | "night",
         shiftDate,
         status: "submitted",
         submittedAt: new Date(),
@@ -575,7 +633,7 @@ export class DatabaseStorage implements IStorage {
       .where(
         and(
           eq(shifts.managerId, managerId),
-          eq(shifts.shiftType, shiftType),
+          sql`${shifts.shiftType} = ${shiftType}`,
           eq(shifts.shiftDate, shiftDate),
           eq(shifts.status, "submitted")
         )
