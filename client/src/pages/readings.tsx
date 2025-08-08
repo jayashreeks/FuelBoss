@@ -394,45 +394,12 @@ export default function ReadingsPage({ onBack }: ReadingsPageProps) {
         )}
 
         {/* Reading Form */}
-        {selectedNozzleId && (() => {
-          // Check if reading already exists for this nozzle and shift
-          const existingReading = readings.find((r: Reading) => 
-            r.nozzleId === selectedNozzleId && 
-            r.shiftType === selectedShiftType && 
-            r.shiftDate === selectedDate
-          );
-
-          if (existingReading) {
-            return (
-              <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <Calculator className="h-5 w-5" />
-                    Reading Already Submitted
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="p-4 bg-green-50 border border-green-200 rounded-lg">
-                    <p className="text-green-800 font-medium">
-                      Reading for this nozzle has already been submitted for {selectedShiftType} shift on {selectedDate}.
-                    </p>
-                    <div className="mt-2 text-sm text-green-700">
-                      <p>Previous: {existingReading.previousReading}</p>
-                      <p>Current: {existingReading.currentReading}</p>
-                      <p>Total Sales: ₹{existingReading.totalSale}</p>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-            );
-          }
-
-          return (
+        {selectedNozzleId && (
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <Calculator className="h-5 w-5" />
-                Record Reading
+                {existingReading ? "Edit Reading" : "Record Reading"}
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-4" data-testid="reading-form">
@@ -669,8 +636,7 @@ export default function ReadingsPage({ onBack }: ReadingsPageProps) {
               )}
             </CardContent>
           </Card>
-          );
-        })()}
+        )}
       </div>
     </div>
   );
