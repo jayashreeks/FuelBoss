@@ -720,23 +720,11 @@ export default function ReadingsPage({ onBack }: ReadingsPageProps) {
                       <div className="text-center mt-2">
                         <button 
                           onClick={() => {
-                            console.log("Edit button clicked for reading:", reading);
-                            
                             // Always set the selected nozzle and attendant first
                             setSelectedNozzleId(reading.nozzleId);
                             setSelectedAttendantId(reading.attendantId);
                             
                             // Force populate form with reading data
-                            console.log("Setting form data:", {
-                              previousReading: reading.previousReading,
-                              currentReading: reading.currentReading,
-                              testing: reading.testing,
-                              cashSales: reading.cashSales,
-                              creditSales: reading.creditSales,
-                              upiSales: reading.upiSales,
-                              cardSales: reading.cardSales,
-                            });
-                            
                             setFormData({
                               previousReading: reading.previousReading,
                               currentReading: reading.currentReading,
@@ -748,11 +736,12 @@ export default function ReadingsPage({ onBack }: ReadingsPageProps) {
                             });
                             
                             // Scroll to form section
-                            const formSection = document.querySelector('[data-testid="reading-form"]');
-                            console.log("Form section found:", formSection);
-                            if (formSection) {
-                              formSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
-                            }
+                            setTimeout(() => {
+                              const formSection = document.querySelector('[data-testid="reading-form"]');
+                              if (formSection) {
+                                formSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                              }
+                            }, 100);
                           }}
                           className="text-blue-600 hover:text-blue-800 text-xs px-3 py-1 rounded border border-blue-200 hover:bg-blue-50"
                           data-testid={`edit-reading-${reading.nozzleId}`}
