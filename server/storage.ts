@@ -579,7 +579,7 @@ export class DatabaseStorage implements IStorage {
       whereConditions.push(eq(nozzleReadings.shiftDate, shiftDate));
     }
 
-    console.log('Query conditions:', {retailOutletId, shiftType, shiftDate});
+    console.log('[STORAGE] Query conditions:', {retailOutletId, shiftType, shiftDate});
 
     const rawReadings = await db
       .select()
@@ -587,7 +587,10 @@ export class DatabaseStorage implements IStorage {
       .where(and(...whereConditions))
       .orderBy(desc(nozzleReadings.createdAt));
 
-    console.log('Raw readings found:', rawReadings.length);
+    console.log('[STORAGE] Raw readings found:', rawReadings.length);
+    if (rawReadings.length > 0) {
+      console.log('[STORAGE] First raw reading:', rawReadings[0]);
+    }
 
     // Manually join with nozzle and attendant data
     const enrichedReadings = [];

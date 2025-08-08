@@ -327,13 +327,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(401).json({ message: "Manager not found" });
       }
       const { shiftType, shiftDate } = req.query;
-      console.log(`Fetching readings for outlet: ${manager.retailOutletId}, shift: ${shiftType}, date: ${shiftDate}`);
+      console.log(`[READINGS API] Fetching readings for outlet: ${manager.retailOutletId}, shift: ${shiftType}, date: ${shiftDate}`);
+      
       const readings = await storage.getNozzleReadings(
         manager.retailOutletId, 
         shiftType as string, 
         shiftDate as string
       );
-      console.log(`Found ${readings.length} readings:`, JSON.stringify(readings, null, 2));
+      
+      console.log(`[READINGS API] Found ${readings.length} readings`);
+      if (readings.length > 0) {
+        console.log(`[READINGS API] First reading:`, JSON.stringify(readings[0], null, 2));
+      }
+      
       res.json(readings);
     } catch (error) {
       console.error("Error fetching readings:", error);

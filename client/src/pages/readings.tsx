@@ -37,8 +37,8 @@ interface Reading {
   id: string;
   nozzleId: string;
   attendantId: string;
-  previousReading: string;
-  currentReading: string;
+  previousReading: string; // This will be renamed to openingReading in display
+  currentReading: string;  // This will be renamed to closingReading in display
   testing: string;
   totalSale: string;
   cashSales: string;
@@ -62,8 +62,8 @@ export default function ReadingsPage({ onBack }: ReadingsPageProps) {
   const [selectedAttendantId, setSelectedAttendantId] = useState<string>("");
   const [selectedNozzleId, setSelectedNozzleId] = useState<string>("");
   const [formData, setFormData] = useState({
-    previousReading: "",
-    currentReading: "",
+    previousReading: "", // Opening reading
+    currentReading: "",  // Closing reading
     testing: "0",
     cashSales: "0",
     creditSales: "0",
@@ -376,27 +376,27 @@ export default function ReadingsPage({ onBack }: ReadingsPageProps) {
 
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <Label htmlFor="previous-reading">Previous Reading</Label>
+                  <Label htmlFor="opening-reading">Opening Reading</Label>
                   {lastReading && lastReading.currentReading ? (
                     <Input
-                      id="previous-reading"
+                      id="opening-reading"
                       type="number"
                       step="0.01"
                       value={formData.previousReading}
-                      data-testid="input-previous-reading"
+                      data-testid="input-opening-reading"
                       readOnly
                       className="bg-gray-100"
                       placeholder="From previous shift"
                     />
                   ) : (
                     <Input
-                      id="previous-reading"
+                      id="opening-reading"
                       type="number"
                       step="0.01"
                       value={formData.previousReading}
                       onChange={(e) => handleInputChange("previousReading", e.target.value)}
-                      data-testid="input-previous-reading"
-                      placeholder="Enter previous reading"
+                      data-testid="input-opening-reading"
+                      placeholder="Enter opening reading"
                       className="border-orange-300 focus:border-orange-500"
                     />
                   )}
@@ -408,15 +408,15 @@ export default function ReadingsPage({ onBack }: ReadingsPageProps) {
                 </div>
                 
                 <div>
-                  <Label htmlFor="current-reading">Current Reading *</Label>
+                  <Label htmlFor="closing-reading">Closing Reading *</Label>
                   <Input
-                    id="current-reading"
+                    id="closing-reading"
                     type="number"
                     step="0.01"
                     value={formData.currentReading}
                     onChange={(e) => handleInputChange("currentReading", e.target.value)}
-                    data-testid="input-current-reading"
-                    placeholder="Enter current reading"
+                    data-testid="input-closing-reading"
+                    placeholder="Enter closing reading"
                   />
                 </div>
               </div>
