@@ -726,7 +726,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.json({ message: "Rates saved successfully", success: true });
     } catch (error) {
       console.error("Error saving rates:", error);
-      res.status(500).json({ message: "Failed to save rates", error: error.message });
+      res.status(500).json({ 
+        message: "Failed to save rates", 
+        error: error instanceof Error ? error.message : "Unknown error"
+      });
     }
   });
 
