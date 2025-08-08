@@ -227,9 +227,11 @@ export default function ReadingsPage({ onBack }: ReadingsPageProps) {
     const selectedNozzle = nozzles.find(n => n.id === selectedNozzleId);
     if (!selectedNozzle) return { calculated: "0.00", actual: "0.00", shortage: "0.00", liters: "0.00", rate: "0.00" };
 
-    // Find the rate for this product  
+    // Find the rate for this product from current rates
     const productRate = (currentRates as any[]).find((rate: any) => rate.productId === selectedNozzle.productId);
-    if (!productRate) return { calculated: "0.00", actual: "0.00", shortage: "0.00", liters: "0.00", rate: "0.00" };
+    
+    // If no rate found, return zeros but still calculate other values
+    const rate = productRate ? parseFloat(productRate.rate) || 0 : 0;
 
     const currentReading = parseFloat(formData.currentReading) || 0;
     const previousReading = parseFloat(formData.previousReading) || 0;
@@ -238,9 +240,8 @@ export default function ReadingsPage({ onBack }: ReadingsPageProps) {
     // Calculate liters sold
     const litersSold = currentReading - previousReading - testing;
     
-    // Calculate expected sales proceeds
-    const rate = parseFloat(productRate.rate) || 0;
-    const calculatedProceeds = litersSold * rate;
+    // Calculate expected sales proceeds (only if rate is available)
+    const calculatedProceeds = rate > 0 ? litersSold * rate : 0;
     
     // Calculate actual sales proceeds
     const actualProceeds = parseFloat(calculateTotalSale());
