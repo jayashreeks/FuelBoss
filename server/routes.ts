@@ -290,13 +290,22 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // Manager routes for nozzle readings
   app.get("/api/manager/nozzles", (req: any, res, next) => {
-    if (!req.session.manager) {
+    console.log("Manager nozzles request - session:", {
+      managerId: req.session?.managerId,
+      userType: req.session?.userType,
+      sessionKeys: Object.keys(req.session || {})
+    });
+    if (!req.session?.managerId || req.session?.userType !== "manager") {
       return res.status(401).json({ message: "Manager authentication required" });
     }
     next();
   }, async (req: any, res) => {
     try {
-      const manager = req.session.manager;
+      const managerId = req.session.managerId;
+      const manager = await storage.getStaffById(managerId);
+      if (!manager) {
+        return res.status(401).json({ message: "Manager not found" });
+      }
       const nozzles = await storage.getNozzlesByRetailOutletId(manager.retailOutletId);
       res.json(nozzles);
     } catch (error) {
@@ -306,13 +315,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   app.get("/api/manager/readings", (req: any, res, next) => {
-    if (!req.session.manager) {
+    if (!req.session?.managerId || req.session?.userType !== "manager") {
       return res.status(401).json({ message: "Manager authentication required" });
     }
     next();
   }, async (req: any, res) => {
     try {
-      const manager = req.session.manager;
+      const managerId = req.session.managerId;
+      const manager = await storage.getStaffById(managerId);
+      if (!manager) {
+        return res.status(401).json({ message: "Manager not found" });
+      }
       const { shiftType, shiftDate } = req.query;
       const readings = await storage.getNozzleReadings(
         manager.retailOutletId, 
@@ -327,13 +340,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   app.post("/api/manager/readings", (req: any, res, next) => {
-    if (!req.session.manager) {
+    if (!req.session?.managerId || req.session?.userType !== "manager") {
       return res.status(401).json({ message: "Manager authentication required" });
     }
     next();
   }, async (req: any, res) => {
     try {
-      const manager = req.session.manager;
+      const managerId = req.session.managerId;
+      const manager = await storage.getStaffById(managerId);
+      if (!manager) {
+        return res.status(401).json({ message: "Manager not found" });
+      }
       const readingData = {
         ...req.body,
         retailOutletId: manager.retailOutletId,
@@ -348,7 +365,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   app.get("/api/manager/nozzles/:nozzleId/last-reading", (req: any, res, next) => {
-    if (!req.session.manager) {
+    if (!req.session?.managerId || req.session?.userType !== "manager") {
       return res.status(401).json({ message: "Manager authentication required" });
     }
     next();
@@ -364,13 +381,22 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // Get attendants for nozzle readings
   app.get("/api/manager/attendants", (req: any, res, next) => {
-    if (!req.session.manager) {
+    console.log("Manager attendants request - session:", {
+      managerId: req.session?.managerId,
+      userType: req.session?.userType,
+      sessionKeys: Object.keys(req.session || {})
+    });
+    if (!req.session?.managerId || req.session?.userType !== "manager") {
       return res.status(401).json({ message: "Manager authentication required" });
     }
     next();
   }, async (req: any, res) => {
     try {
-      const manager = req.session.manager;
+      const managerId = req.session.managerId;
+      const manager = await storage.getStaffById(managerId);
+      if (!manager) {
+        return res.status(401).json({ message: "Manager not found" });
+      }
       const allStaff = await storage.getStaffByRetailOutletId(manager.retailOutletId);
       const attendants = allStaff.filter(staff => staff.role === 'attendant' && staff.isActive);
       res.json(attendants);
@@ -576,9 +602,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
         });
       }
 
-      // Create manager session (simplified for now)
+      // Create manager session with full manager data
       (req.session as any).managerId = manager.id;
       (req.session as any).userType = "manager";
+      (req.session as any).manager = {
+        id: manager.id,
+        name: manager.name,
+        role: "manager",
+        phoneNumber: manager.phoneNumber,
+        retailOutletId: manager.retailOutletId
+      };
       
       res.json({ 
         success: true, 
@@ -587,7 +620,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
           id: manager.id,
           name: manager.name,
           role: "manager",
-          phoneNumber: manager.phoneNumber
+          phoneNumber: manager.phoneNumber,
+          retailOutletId: manager.retailOutletId
         }
       });
     } catch (error) {
@@ -616,7 +650,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         id: manager.id,
         name: manager.name,
         role: "manager",
-        phoneNumber: manager.phoneNumber
+        phoneNumber: manager.phoneNumber,
+        retailOutletId: manager.retailOutletId
       });
     } catch (error) {
       console.error("Manager auth error:", error);
