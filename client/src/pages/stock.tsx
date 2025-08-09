@@ -162,6 +162,38 @@ export default function StockPage({ onBack }: StockPageProps) {
     return (
       <div className="min-h-screen bg-surface pb-20">
         <div className="bg-primary text-white p-4">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center space-x-3">
+              {onBack && (
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={onBack}
+                  className="text-white hover:bg-white/20"
+                  data-testid="back-button"
+                >
+                  <ArrowLeft className="h-5 w-5" />
+                </Button>
+              )}
+              <h1 className="text-xl font-semibold" data-testid="page-title">
+                Stock Management
+              </h1>
+            </div>
+            {/* Add spacing to prevent overlap with hamburger menu */}
+            <div className="w-12"></div>
+          </div>
+        </div>
+        <div className="p-4">
+          <div className="text-center py-8">Loading...</div>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="min-h-screen bg-surface pb-20">
+      <div className="bg-primary text-white p-4">
+        <div className="flex items-center justify-between">
           <div className="flex items-center space-x-3">
             {onBack && (
               <Button
@@ -178,32 +210,8 @@ export default function StockPage({ onBack }: StockPageProps) {
               Stock Management
             </h1>
           </div>
-        </div>
-        <div className="p-4">
-          <div className="text-center py-8">Loading...</div>
-        </div>
-      </div>
-    );
-  }
-
-  return (
-    <div className="min-h-screen bg-surface pb-20">
-      <div className="bg-primary text-white p-4">
-        <div className="flex items-center space-x-3">
-          {onBack && (
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={onBack}
-              className="text-white hover:bg-white/20"
-              data-testid="back-button"
-            >
-              <ArrowLeft className="h-5 w-5" />
-            </Button>
-          )}
-          <h1 className="text-xl font-semibold" data-testid="page-title">
-            Stock Management
-          </h1>
+          {/* Add spacing to prevent overlap with hamburger menu */}
+          <div className="w-12"></div>
         </div>
       </div>
 
