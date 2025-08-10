@@ -1,0 +1,671 @@
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FuelFlow - Petrol Pump Management</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#1976D2',
+                        'primary-dark': '#1565C0',
+                        secondary: '#FFC107',
+                        'secondary-dark': '#F57F17',
+                        surface: '#FFFFFF',
+                        background: '#FAFAFA',
+                        'on-surface': '#212121',
+                        'on-surface-variant': '#757575',
+                        success: '#4CAF50',
+                        warning: '#FF9800',
+                        error: '#F44336'
+                    },
+                    fontFamily: {
+                        'roboto': ['Roboto', 'sans-serif']
+                    }
+                }
+            }
+        };
+    </script>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+</head>
+<body class="font-roboto bg-background text-on-surface">
+    <!-- @COMPONENT: MobileApp [container for entire mobile application] -->
+    <div class="max-w-sm mx-auto bg-white min-h-screen relative">
+        
+        <!-- @COMPONENT: TopAppBar [main navigation header] -->
+        <header class="bg-primary text-white px-4 py-3 flex items-center justify-between shadow-md">
+            <button id="menuToggle" class="p-2 hover:bg-primary-dark rounded-full transition-colors">
+                <i class="fas fa-bars text-xl"></i>
+            </button>
+            <div class="flex items-center">
+                <h1 class="text-lg font-medium">FuelFlow</h1>
+            </div>
+            <div class="flex items-center space-x-2">
+                <!-- @STATE: selectedLanguage:string = 'en' -->
+                <button class="p-2 hover:bg-primary-dark rounded-full transition-colors">
+                    <span class="text-sm font-medium">EN</span>
+                </button>
+                <div class="w-8 h-8 bg-secondary rounded-full flex items-center justify-center">
+                    <span class="text-xs font-medium text-on-surface" data-bind="user.initials">RK</span>
+                </div>
+            </div>
+        </header>
+        <!-- @END_COMPONENT: TopAppBar -->
+
+        <!-- @COMPONENT: SideNavigation [slide-out menu for settings] -->
+        <div id="sideNav" class="fixed inset-0 z-50 transform -translate-x-full transition-transform duration-300 ease-in-out">
+            <div class="absolute inset-0 bg-black bg-opacity-50" id="overlay"></div>
+            <nav class="absolute left-0 top-0 h-full w-80 bg-white shadow-xl">
+                <div class="p-4 bg-primary text-white">
+                    <div class="flex items-center justify-between">
+                        <h2 class="text-lg font-medium">Settings & Config</h2>
+                        <button id="closeMenu" class="p-2 hover:bg-primary-dark rounded-full">
+                            <i class="fas fa-times"></i>
+                        </button>
+                    </div>
+                    <div class="mt-2">
+                        <p class="text-sm opacity-90" data-bind="retailOutlet.name">Rajesh Fuel Station</p>
+                        <p class="text-xs opacity-75" data-bind="retailOutlet.sapcode">SAP: 12345</p>
+                    </div>
+                </div>
+                
+                <div class="p-4 space-y-1">
+                    <!-- @FUNCTIONALITY: Each menu item should navigate to respective configuration screens -->
+                    <a href="#" class="flex items-center p-3 hover:bg-gray-100 rounded-lg transition-colors" data-mock="true">
+                        <i class="fas fa-store text-primary w-6"></i>
+                        <span class="ml-3 text-sm font-medium">Retail Outlet Details</span>
+                    </a>
+                    <a href="#" class="flex items-center p-3 hover:bg-gray-100 rounded-lg transition-colors" data-mock="true">
+                        <i class="fas fa-oil-can text-primary w-6"></i>
+                        <span class="ml-3 text-sm font-medium">Tank Management</span>
+                    </a>
+                    <a href="#" class="flex items-center p-3 hover:bg-gray-100 rounded-lg transition-colors" data-mock="true">
+                        <i class="fas fa-gas-pump text-primary w-6"></i>
+                        <span class="ml-3 text-sm font-medium">Dispensing Units</span>
+                    </a>
+                    <a href="#" class="flex items-center p-3 hover:bg-gray-100 rounded-lg transition-colors" data-mock="true">
+                        <i class="fas fa-users-cog text-primary w-6"></i>
+                        <span class="ml-3 text-sm font-medium">Manager Access</span>
+                    </a>
+                    <a href="#" class="flex items-center p-3 hover:bg-gray-100 rounded-lg transition-colors" data-mock="true">
+                        <i class="fas fa-language text-primary w-6"></i>
+                        <span class="ml-3 text-sm font-medium">Language Settings</span>
+                    </a>
+                    
+                    <div class="border-t pt-4 mt-4">
+                        <a href="#" class="flex items-center p-3 hover:bg-gray-100 rounded-lg transition-colors" data-mock="true">
+                            <i class="fas fa-cog text-on-surface-variant w-6"></i>
+                            <span class="ml-3 text-sm">General Settings</span>
+                        </a>
+                        <a href="#" class="flex items-center p-3 hover:bg-gray-100 rounded-lg transition-colors" data-mock="true">
+                            <i class="fas fa-question-circle text-on-surface-variant w-6"></i>
+                            <span class="ml-3 text-sm">Help & Support</span>
+                        </a>
+                        <a href="#" class="flex items-center p-3 hover:bg-gray-100 rounded-lg transition-colors text-error" data-mock="true">
+                            <i class="fas fa-sign-out-alt w-6"></i>
+                            <span class="ml-3 text-sm">Sign Out</span>
+                        </a>
+                    </div>
+                </div>
+            </nav>
+        </div>
+        <!-- @END_COMPONENT: SideNavigation -->
+
+        <!-- @COMPONENT: MainContent [dynamic content area] -->
+        <main class="pb-20 min-h-screen">
+            <!-- @COMPONENT: DashboardView [default view showing operational overview] -->
+            <div id="dashboardView" class="p-4 space-y-4">
+                <!-- Daily Overview Cards -->
+                <div class="grid grid-cols-2 gap-3">
+                    <div class="bg-white p-4 rounded-lg shadow-sm border border-gray-100">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <p class="text-xs text-on-surface-variant font-medium">TODAY'S SALES</p>
+                                <p class="text-xl font-bold text-success" data-bind="dashboard.todaySales">₹45,320</p>
+                            </div>
+                            <div class="w-10 h-10 bg-success bg-opacity-10 rounded-full flex items-center justify-center">
+                                <i class="fas fa-chart-line text-success"></i>
+                            </div>
+                        </div>
+                        <p class="text-xs text-success mt-1">+12% from yesterday</p>
+                    </div>
+
+                    <div class="bg-white p-4 rounded-lg shadow-sm border border-gray-100">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <p class="text-xs text-on-surface-variant font-medium">TRANSACTIONS</p>
+                                <p class="text-xl font-bold" data-bind="dashboard.todayTransactions">127</p>
+                            </div>
+                            <div class="w-10 h-10 bg-primary bg-opacity-10 rounded-full flex items-center justify-center">
+                                <i class="fas fa-receipt text-primary"></i>
+                            </div>
+                        </div>
+                        <p class="text-xs text-on-surface-variant mt-1">Active since 6:00 AM</p>
+                    </div>
+                </div>
+
+                <!-- Tank Status Overview -->
+                <div class="bg-white rounded-lg shadow-sm border border-gray-100">
+                    <div class="p-4 border-b border-gray-100">
+                        <h3 class="font-medium text-base">Tank Inventory</h3>
+                    </div>
+                    <div class="p-4 space-y-3">
+                        <!-- @MAP: tanks.map(tank => ( -->
+                        <div class="flex items-center justify-between p-3 bg-gray-50 rounded-lg" data-mock="true">
+                            <div class="flex items-center space-x-3">
+                                <div class="w-3 h-3 bg-success rounded-full"></div>
+                                <div>
+                                    <p class="font-medium text-sm">Petrol - Tank 1</p>
+                                    <p class="text-xs text-on-surface-variant">15,000L capacity</p>
+                                </div>
+                            </div>
+                            <div class="text-right">
+                                <p class="font-medium text-sm">12,450L</p>
+                                <p class="text-xs text-success">83%</p>
+                            </div>
+                        </div>
+
+                        <div class="flex items-center justify-between p-3 bg-gray-50 rounded-lg" data-mock="true">
+                            <div class="flex items-center space-x-3">
+                                <div class="w-3 h-3 bg-warning rounded-full"></div>
+                                <div>
+                                    <p class="font-medium text-sm">Diesel - Tank 2</p>
+                                    <p class="text-xs text-on-surface-variant">20,000L capacity</p>
+                                </div>
+                            </div>
+                            <div class="text-right">
+                                <p class="font-medium text-sm">6,200L</p>
+                                <p class="text-xs text-warning">31%</p>
+                            </div>
+                        </div>
+
+                        <div class="flex items-center justify-between p-3 bg-gray-50 rounded-lg" data-mock="true">
+                            <div class="flex items-center space-x-3">
+                                <div class="w-3 h-3 bg-success rounded-full"></div>
+                                <div>
+                                    <p class="font-medium text-sm">Premium - Tank 3</p>
+                                    <p class="text-xs text-on-surface-variant">10,000L capacity</p>
+                                </div>
+                            </div>
+                            <div class="text-right">
+                                <p class="font-medium text-sm">7,800L</p>
+                                <p class="text-xs text-success">78%</p>
+                            </div>
+                        </div>
+                        <!-- @END_MAP )) -->
+                    </div>
+                </div>
+
+                <!-- Quick Actions -->
+                <div class="bg-white rounded-lg shadow-sm border border-gray-100">
+                    <div class="p-4 border-b border-gray-100">
+                        <h3 class="font-medium text-base">Quick Actions</h3>
+                    </div>
+                    <div class="p-4 grid grid-cols-2 gap-3">
+                        <button class="p-4 bg-primary bg-opacity-10 rounded-lg text-center" data-event="click:navigateToDataEntry">
+                            <i class="fas fa-plus text-primary text-xl mb-2"></i>
+                            <p class="text-sm font-medium text-primary">Add Entry</p>
+                        </button>
+                        <button class="p-4 bg-secondary bg-opacity-10 rounded-lg text-center" data-event="click:navigateToReports">
+                            <i class="fas fa-chart-bar text-secondary-dark text-xl mb-2"></i>
+                            <p class="text-sm font-medium text-secondary-dark">View Reports</p>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Recent Activity -->
+                <div class="bg-white rounded-lg shadow-sm border border-gray-100">
+                    <div class="p-4 border-b border-gray-100">
+                        <h3 class="font-medium text-base">Recent Activity</h3>
+                    </div>
+                    <div class="divide-y divide-gray-100">
+                        <!-- @MAP: recentActivities.map(activity => ( -->
+                        <div class="p-4 flex items-center space-x-3" data-mock="true">
+                            <div class="w-8 h-8 bg-primary bg-opacity-10 rounded-full flex items-center justify-center">
+                                <i class="fas fa-user text-primary text-xs"></i>
+                            </div>
+                            <div class="flex-1">
+                                <p class="text-sm font-medium">Rahul Kumar updated inventory</p>
+                                <p class="text-xs text-on-surface-variant">2 hours ago</p>
+                            </div>
+                        </div>
+
+                        <div class="p-4 flex items-center space-x-3" data-mock="true">
+                            <div class="w-8 h-8 bg-success bg-opacity-10 rounded-full flex items-center justify-center">
+                                <i class="fas fa-plus text-success text-xs"></i>
+                            </div>
+                            <div class="flex-1">
+                                <p class="text-sm font-medium">New fuel delivery received</p>
+                                <p class="text-xs text-on-surface-variant">5 hours ago</p>
+                            </div>
+                        </div>
+
+                        <div class="p-4 flex items-center space-x-3" data-mock="true">
+                            <div class="w-8 h-8 bg-warning bg-opacity-10 rounded-full flex items-center justify-center">
+                                <i class="fas fa-exclamation text-warning text-xs"></i>
+                            </div>
+                            <div class="flex-1">
+                                <p class="text-sm font-medium">Low fuel alert - Diesel Tank 2</p>
+                                <p class="text-xs text-on-surface-variant">1 day ago</p>
+                            </div>
+                        </div>
+                        <!-- @END_MAP )) -->
+                    </div>
+                </div>
+            </div>
+            <!-- @END_COMPONENT: DashboardView -->
+
+            <!-- @COMPONENT: DataEntryView [daily operational data input forms] -->
+            <div id="dataEntryView" class="p-4 space-y-4 hidden">
+                <div class="bg-white rounded-lg shadow-sm border border-gray-100">
+                    <div class="p-4 border-b border-gray-100">
+                        <h3 class="font-medium text-base">Daily Data Entry</h3>
+                        <p class="text-sm text-on-surface-variant mt-1">Enter today's operational data</p>
+                    </div>
+                    
+                    <form class="p-4 space-y-4">
+                        <!-- @FUNCTIONALITY: Form should validate inputs and handle submission -->
+                        <div>
+                            <label class="block text-sm font-medium text-on-surface mb-2">Select Tank</label>
+                            <select class="w-full p-3 border border-gray-300 rounded-lg focus:border-primary focus:ring-2 focus:ring-primary focus:ring-opacity-20 outline-none" data-mock="true">
+                                <option>Petrol - Tank 1</option>
+                                <option>Diesel - Tank 2</option>
+                                <option>Premium - Tank 3</option>
+                            </select>
+                        </div>
+
+                        <div class="grid grid-cols-2 gap-3">
+                            <div>
+                                <label class="block text-sm font-medium text-on-surface mb-2">Opening Reading</label>
+                                <input type="number" placeholder="0.00" 
+                                       class="w-full p-3 border border-gray-300 rounded-lg focus:border-primary focus:ring-2 focus:ring-primary focus:ring-opacity-20 outline-none" 
+                                       data-mock="true">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-on-surface mb-2">Closing Reading</label>
+                                <input type="number" placeholder="0.00" 
+                                       class="w-full p-3 border border-gray-300 rounded-lg focus:border-primary focus:ring-2 focus:ring-primary focus:ring-opacity-20 outline-none" 
+                                       data-mock="true">
+                            </div>
+                        </div>
+
+                        <div>
+                            <label class="block text-sm font-medium text-on-surface mb-2">Sales Amount (₹)</label>
+                            <input type="number" placeholder="0.00" 
+                                   class="w-full p-3 border border-gray-300 rounded-lg focus:border-primary focus:ring-2 focus:ring-primary focus:ring-opacity-20 outline-none" 
+                                   data-mock="true">
+                        </div>
+
+                        <div>
+                            <label class="block text-sm font-medium text-on-surface mb-2">Notes (Optional)</label>
+                            <textarea placeholder="Add any additional notes..." 
+                                      class="w-full p-3 border border-gray-300 rounded-lg focus:border-primary focus:ring-2 focus:ring-primary focus:ring-opacity-20 outline-none resize-none" 
+                                      rows="3" data-mock="true"></textarea>
+                        </div>
+
+                        <button type="submit" 
+                                class="w-full bg-primary text-white py-3 rounded-lg font-medium hover:bg-primary-dark transition-colors"
+                                data-event="click:handleDataSubmit"
+                                data-implementation="Should validate form before submission">
+                            Save Entry
+                        </button>
+                    </form>
+                </div>
+
+                <!-- Recent Entries -->
+                <div class="bg-white rounded-lg shadow-sm border border-gray-100">
+                    <div class="p-4 border-b border-gray-100">
+                        <h3 class="font-medium text-base">Recent Entries</h3>
+                    </div>
+                    <div class="divide-y divide-gray-100">
+                        <!-- @MAP: recentEntries.map(entry => ( -->
+                        <div class="p-4" data-mock="true">
+                            <div class="flex justify-between items-start mb-2">
+                                <h4 class="font-medium text-sm">Petrol - Tank 1</h4>
+                                <span class="text-xs text-on-surface-variant">Today, 2:30 PM</span>
+                            </div>
+                            <div class="grid grid-cols-3 gap-2 text-xs">
+                                <div>
+                                    <span class="text-on-surface-variant">Opening:</span>
+                                    <span class="font-medium ml-1">1250.5L</span>
+                                </div>
+                                <div>
+                                    <span class="text-on-surface-variant">Closing:</span>
+                                    <span class="font-medium ml-1">1180.2L</span>
+                                </div>
+                                <div>
+                                    <span class="text-on-surface-variant">Sales:</span>
+                                    <span class="font-medium ml-1">₹5,240</span>
+                                </div>
+                            </div>
+                        </div>
+                        <!-- @END_MAP )) -->
+                    </div>
+                </div>
+            </div>
+            <!-- @END_COMPONENT: DataEntryView -->
+
+            <!-- @COMPONENT: StaffManagementView [manager and staff administration] -->
+            <div id="staffView" class="p-4 space-y-4 hidden">
+                <div class="bg-white rounded-lg shadow-sm border border-gray-100">
+                    <div class="p-4 border-b border-gray-100 flex justify-between items-center">
+                        <div>
+                            <h3 class="font-medium text-base">Staff Management</h3>
+                            <p class="text-sm text-on-surface-variant mt-1">Manage your team</p>
+                        </div>
+                        <button class="bg-primary text-white px-4 py-2 rounded-lg text-sm font-medium" data-event="click:addNewStaff">
+                            <i class="fas fa-plus mr-2"></i>Add Staff
+                        </button>
+                    </div>
+                    
+                    <div class="divide-y divide-gray-100">
+                        <!-- @MAP: staffMembers.map(staff => ( -->
+                        <div class="p-4 flex items-center justify-between" data-mock="true">
+                            <div class="flex items-center space-x-3">
+                                <div class="w-12 h-12 bg-primary bg-opacity-10 rounded-full flex items-center justify-center">
+                                    <span class="font-medium text-primary">RK</span>
+                                </div>
+                                <div>
+                                    <h4 class="font-medium text-sm">Rahul Kumar</h4>
+                                    <p class="text-xs text-on-surface-variant">Manager</p>
+                                    <p class="text-xs text-success">Active</p>
+                                </div>
+                            </div>
+                            <div class="flex items-center space-x-2">
+                                <button class="p-2 text-on-surface-variant hover:text-primary" data-event="click:editStaff">
+                                    <i class="fas fa-edit"></i>
+                                </button>
+                                <button class="p-2 text-on-surface-variant hover:text-error" data-event="click:removeStaff">
+                                    <i class="fas fa-trash"></i>
+                                </button>
+                            </div>
+                        </div>
+
+                        <div class="p-4 flex items-center justify-between" data-mock="true">
+                            <div class="flex items-center space-x-3">
+                                <div class="w-12 h-12 bg-secondary bg-opacity-10 rounded-full flex items-center justify-center">
+                                    <span class="font-medium text-secondary-dark">AS</span>
+                                </div>
+                                <div>
+                                    <h4 class="font-medium text-sm">Amit Singh</h4>
+                                    <p class="text-xs text-on-surface-variant">Operator</p>
+                                    <p class="text-xs text-warning">On Leave</p>
+                                </div>
+                            </div>
+                            <div class="flex items-center space-x-2">
+                                <button class="p-2 text-on-surface-variant hover:text-primary" data-event="click:editStaff">
+                                    <i class="fas fa-edit"></i>
+                                </button>
+                                <button class="p-2 text-on-surface-variant hover:text-error" data-event="click:removeStaff">
+                                    <i class="fas fa-trash"></i>
+                                </button>
+                            </div>
+                        </div>
+
+                        <div class="p-4 flex items-center justify-between" data-mock="true">
+                            <div class="flex items-center space-x-3">
+                                <div class="w-12 h-12 bg-success bg-opacity-10 rounded-full flex items-center justify-center">
+                                    <span class="font-medium text-success">PG</span>
+                                </div>
+                                <div>
+                                    <h4 class="font-medium text-sm">Priya Gupta</h4>
+                                    <p class="text-xs text-on-surface-variant">Cashier</p>
+                                    <p class="text-xs text-success">Active</p>
+                                </div>
+                            </div>
+                            <div class="flex items-center space-x-2">
+                                <button class="p-2 text-on-surface-variant hover:text-primary" data-event="click:editStaff">
+                                    <i class="fas fa-edit"></i>
+                                </button>
+                                <button class="p-2 text-on-surface-variant hover:text-error" data-event="click:removeStaff">
+                                    <i class="fas fa-trash"></i>
+                                </button>
+                            </div>
+                        </div>
+                        <!-- @END_MAP )) -->
+                    </div>
+                </div>
+
+                <!-- Staff Roles & Permissions -->
+                <div class="bg-white rounded-lg shadow-sm border border-gray-100">
+                    <div class="p-4 border-b border-gray-100">
+                        <h3 class="font-medium text-base">Role Permissions</h3>
+                    </div>
+                    <div class="p-4 space-y-3">
+                        <div class="flex justify-between items-center p-3 bg-gray-50 rounded-lg">
+                            <div>
+                                <p class="font-medium text-sm">Manager</p>
+                                <p class="text-xs text-on-surface-variant">Full data entry access</p>
+                            </div>
+                            <i class="fas fa-check-circle text-success"></i>
+                        </div>
+                        <div class="flex justify-between items-center p-3 bg-gray-50 rounded-lg">
+                            <div>
+                                <p class="font-medium text-sm">Operator</p>
+                                <p class="text-xs text-on-surface-variant">Limited data entry</p>
+                            </div>
+                            <i class="fas fa-check-circle text-success"></i>
+                        </div>
+                        <div class="flex justify-between items-center p-3 bg-gray-50 rounded-lg">
+                            <div>
+                                <p class="font-medium text-sm">Cashier</p>
+                                <p class="text-xs text-on-surface-variant">View only access</p>
+                            </div>
+                            <i class="fas fa-check-circle text-success"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <!-- @END_COMPONENT: StaffManagementView -->
+
+            <!-- @COMPONENT: ReportsView [basic reporting and analytics] -->
+            <div id="reportsView" class="p-4 space-y-4 hidden">
+                <!-- Date Range Selector -->
+                <div class="bg-white rounded-lg shadow-sm border border-gray-100 p-4">
+                    <h3 class="font-medium text-base mb-3">Reports & Analytics</h3>
+                    <div class="grid grid-cols-2 gap-3">
+                        <div>
+                            <label class="block text-sm font-medium text-on-surface mb-2">From Date</label>
+                            <input type="date" class="w-full p-3 border border-gray-300 rounded-lg focus:border-primary focus:ring-2 focus:ring-primary focus:ring-opacity-20 outline-none" data-mock="true">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-on-surface mb-2">To Date</label>
+                            <input type="date" class="w-full p-3 border border-gray-300 rounded-lg focus:border-primary focus:ring-2 focus:ring-primary focus:ring-opacity-20 outline-none" data-mock="true">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Sales Summary -->
+                <div class="bg-white rounded-lg shadow-sm border border-gray-100">
+                    <div class="p-4 border-b border-gray-100">
+                        <h3 class="font-medium text-base">Sales Summary (Last 7 Days)</h3>
+                    </div>
+                    <div class="p-4 space-y-3">
+                        <div class="flex justify-between items-center">
+                            <span class="text-sm text-on-surface-variant">Total Sales</span>
+                            <span class="font-bold text-lg" data-bind="reports.totalSales">₹3,21,450</span>
+                        </div>
+                        <div class="flex justify-between items-center">
+                            <span class="text-sm text-on-surface-variant">Total Volume</span>
+                            <span class="font-medium" data-bind="reports.totalVolume">4,850 L</span>
+                        </div>
+                        <div class="flex justify-between items-center">
+                            <span class="text-sm text-on-surface-variant">Transactions</span>
+                            <span class="font-medium" data-bind="reports.totalTransactions">892</span>
+                        </div>
+                        <div class="flex justify-between items-center">
+                            <span class="text-sm text-on-surface-variant">Average per Transaction</span>
+                            <span class="font-medium" data-bind="reports.avgTransaction">₹360</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Product-wise Breakdown -->
+                <div class="bg-white rounded-lg shadow-sm border border-gray-100">
+                    <div class="p-4 border-b border-gray-100">
+                        <h3 class="font-medium text-base">Product-wise Sales</h3>
+                    </div>
+                    <div class="p-4 space-y-3">
+                        <!-- @MAP: productSales.map(product => ( -->
+                        <div class="flex items-center justify-between p-3 bg-gray-50 rounded-lg" data-mock="true">
+                            <div class="flex items-center space-x-3">
+                                <div class="w-4 h-4 bg-primary rounded-full"></div>
+                                <div>
+                                    <p class="font-medium text-sm">Petrol</p>
+                                    <p class="text-xs text-on-surface-variant">2,850 L</p>
+                                </div>
+                            </div>
+                            <div class="text-right">
+                                <p class="font-medium text-sm">₹2,13,750</p>
+                                <p class="text-xs text-success">66.5%</p>
+                            </div>
+                        </div>
+
+                        <div class="flex items-center justify-between p-3 bg-gray-50 rounded-lg" data-mock="true">
+                            <div class="flex items-center space-x-3">
+                                <div class="w-4 h-4 bg-secondary rounded-full"></div>
+                                <div>
+                                    <p class="font-medium text-sm">Diesel</p>
+                                    <p class="text-xs text-on-surface-variant">1,750 L</p>
+                                </div>
+                            </div>
+                            <div class="text-right">
+                                <p class="font-medium text-sm">₹89,250</p>
+                                <p class="text-xs text-primary">27.8%</p>
+                            </div>
+                        </div>
+
+                        <div class="flex items-center justify-between p-3 bg-gray-50 rounded-lg" data-mock="true">
+                            <div class="flex items-center space-x-3">
+                                <div class="w-4 h-4 bg-success rounded-full"></div>
+                                <div>
+                                    <p class="font-medium text-sm">Premium</p>
+                                    <p class="text-xs text-on-surface-variant">250 L</p>
+                                </div>
+                            </div>
+                            <div class="text-right">
+                                <p class="font-medium text-sm">₹18,450</p>
+                                <p class="text-xs text-on-surface-variant">5.7%</p>
+                            </div>
+                        </div>
+                        <!-- @END_MAP )) -->
+                    </div>
+                </div>
+
+                <!-- Export Options -->
+                <div class="bg-white rounded-lg shadow-sm border border-gray-100">
+                    <div class="p-4 border-b border-gray-100">
+                        <h3 class="font-medium text-base">Export Reports</h3>
+                    </div>
+                    <div class="p-4 grid grid-cols-2 gap-3">
+                        <button class="p-3 border border-primary text-primary rounded-lg font-medium hover:bg-primary hover:text-white transition-colors" data-event="click:exportPDF">
+                            <i class="fas fa-file-pdf mr-2"></i>PDF Report
+                        </button>
+                        <button class="p-3 border border-success text-success rounded-lg font-medium hover:bg-success hover:text-white transition-colors" data-event="click:exportExcel">
+                            <i class="fas fa-file-excel mr-2"></i>Excel Export
+                        </button>
+                    </div>
+                </div>
+            </div>
+            <!-- @END_COMPONENT: ReportsView -->
+        </main>
+        <!-- @END_COMPONENT: MainContent -->
+
+        <!-- @COMPONENT: BottomNavigation [main navigation tabs] -->
+        <nav class="fixed bottom-0 left-1/2 transform -translate-x-1/2 w-full max-w-sm bg-white border-t border-gray-200 px-4 py-2">
+            <div class="flex justify-around">
+                <!-- @FUNCTIONALITY: Each nav item should switch between main views -->
+                <button class="nav-item flex flex-col items-center py-2 px-3 rounded-lg transition-colors text-primary bg-primary bg-opacity-10" data-view="dashboard" data-event="click:switchView">
+                    <i class="fas fa-home text-lg mb-1"></i>
+                    <span class="text-xs font-medium">Dashboard</span>
+                </button>
+                
+                <button class="nav-item flex flex-col items-center py-2 px-3 rounded-lg transition-colors text-on-surface-variant hover:text-primary hover:bg-primary hover:bg-opacity-10" data-view="dataEntry" data-event="click:switchView">
+                    <i class="fas fa-edit text-lg mb-1"></i>
+                    <span class="text-xs font-medium">Data Entry</span>
+                </button>
+                
+                <button class="nav-item flex flex-col items-center py-2 px-3 rounded-lg transition-colors text-on-surface-variant hover:text-primary hover:bg-primary hover:bg-opacity-10" data-view="staff" data-event="click:switchView">
+                    <i class="fas fa-users text-lg mb-1"></i>
+                    <span class="text-xs font-medium">Staff</span>
+                </button>
+                
+                <button class="nav-item flex flex-col items-center py-2 px-3 rounded-lg transition-colors text-on-surface-variant hover:text-primary hover:bg-primary hover:bg-opacity-10" data-view="reports" data-event="click:switchView">
+                    <i class="fas fa-chart-bar text-lg mb-1"></i>
+                    <span class="text-xs font-medium">Reports</span>
+                </button>
+            </div>
+        </nav>
+        <!-- @END_COMPONENT: BottomNavigation -->
+    </div>
+    <!-- @END_COMPONENT: MobileApp -->
+
+    <script>
+        // TODO: Implement business logic, API calls, or state management
+        (function() {
+            // Navigation functionality
+            const views = ['dashboard', 'dataEntry', 'staff', 'reports'];
+            const navItems = document.querySelectorAll('.nav-item');
+            const viewElements = {
+                dashboard: document.getElementById('dashboardView'),
+                dataEntry: document.getElementById('dataEntryView'),
+                staff: document.getElementById('staffView'),
+                reports: document.getElementById('reportsView')
+            };
+
+            function switchView(viewName) {
+                // Hide all views
+                Object.values(viewElements).forEach(el => el.classList.add('hidden'));
+                
+                // Show selected view
+                if (viewElements[viewName]) {
+                    viewElements[viewName].classList.remove('hidden');
+                }
+
+                // Update navigation states
+                navItems.forEach(item => {
+                    if (item.dataset.view === viewName) {
+                        item.classList.add('text-primary', 'bg-primary', 'bg-opacity-10');
+                        item.classList.remove('text-on-surface-variant');
+                    } else {
+                        item.classList.remove('text-primary', 'bg-primary', 'bg-opacity-10');
+                        item.classList.add('text-on-surface-variant');
+                    }
+                });
+            }
+
+            // Add click listeners to navigation items
+            navItems.forEach(item => {
+                item.addEventListener('click', function() {
+                    const viewName = this.dataset.view;
+                    switchView(viewName);
+                });
+            });
+
+            // Side navigation functionality
+            const menuToggle = document.getElementById('menuToggle');
+            const closeMenu = document.getElementById('closeMenu');
+            const sideNav = document.getElementById('sideNav');
+            const overlay = document.getElementById('overlay');
+
+            function openSideNav() {
+                sideNav.classList.remove('-translate-x-full');
+            }
+
+            function closeSideNav() {
+                sideNav.classList.add('-translate-x-full');
+            }
+
+            menuToggle.addEventListener('click', openSideNav);
+            closeMenu.addEventListener('click', closeSideNav);
+            overlay.addEventListener('click', closeSideNav);
+
+            // Initialize with dashboard view
+            switchView('dashboard');
+        })();
+    </script>
+</body>
+</html>

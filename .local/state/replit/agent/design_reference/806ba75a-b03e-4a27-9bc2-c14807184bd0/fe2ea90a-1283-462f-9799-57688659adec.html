@@ -1,0 +1,510 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FuelFlow - Petrol Pump Management</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#1976D2',
+                        secondary: '#F57C00',
+                        surface: '#FAFAFA',
+                        'on-surface': '#212121',
+                        success: '#388E3C',
+                        warning: '#F57C00',
+                        error: '#D32F2F'
+                    },
+                    fontFamily: {
+                        'roboto': ['Roboto', 'sans-serif']
+                    }
+                }
+            }
+        };
+    </script>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
+</head>
+<body class="bg-surface font-roboto text-on-surface">
+    <!-- @COMPONENT: App Container -->
+    <div class="max-w-md mx-auto bg-white min-h-screen relative">
+        
+        <!-- @COMPONENT: Header with Menu -->
+        <header class="bg-primary text-white p-4 flex items-center justify-between shadow-md">
+            <button id="menuBtn" class="text-xl">
+                <i class="fas fa-bars"></i>
+            </button>
+            <div class="flex flex-col items-center">
+                <h1 class="text-lg font-medium">FuelFlow</h1>
+                <span class="text-xs opacity-90" data-bind="user.roName">Shell Petrol Pump</span>
+            </div>
+            <div class="flex items-center space-x-2">
+                <button class="text-sm bg-white/20 px-2 py-1 rounded">
+                    <span data-bind="user.language">EN</span>
+                </button>
+                <div class="w-8 h-8 bg-white/20 rounded-full flex items-center justify-center">
+                    <i class="fas fa-user text-sm"></i>
+                </div>
+            </div>
+        </header>
+
+        <!-- @COMPONENT: Side Menu Overlay -->
+        <div id="sideMenu" class="fixed inset-0 z-50 hidden">
+            <div class="absolute inset-0 bg-black/50" onclick="closeSideMenu()"></div>
+            <div class="absolute left-0 top-0 w-80 h-full bg-white shadow-xl transform -translate-x-full transition-transform duration-300" id="menuPanel">
+                <div class="p-4 bg-primary text-white">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <h3 class="font-medium" data-bind="user.name">Rajesh Kumar</h3>
+                            <p class="text-sm opacity-90" data-bind="user.role">Owner</p>
+                        </div>
+                        <button onclick="closeSideMenu()" class="text-xl">
+                            <i class="fas fa-times"></i>
+                        </button>
+                    </div>
+                </div>
+                <nav class="p-4">
+                    <div class="space-y-2">
+                        <a href="#" class="flex items-center space-x-3 p-3 rounded-lg hover:bg-gray-100 transition-colors">
+                            <i class="fas fa-gas-pump text-secondary w-5"></i>
+                            <span>RO Details</span>
+                        </a>
+                        <a href="#" class="flex items-center space-x-3 p-3 rounded-lg hover:bg-gray-100 transition-colors">
+                            <i class="fas fa-oil-well text-secondary w-5"></i>
+                            <span>Tank Management</span>
+                        </a>
+                        <a href="#" class="flex items-center space-x-3 p-3 rounded-lg hover:bg-gray-100 transition-colors">
+                            <i class="fas fa-tachometer-alt text-secondary w-5"></i>
+                            <span>Dispensing Units</span>
+                        </a>
+                        <a href="#" class="flex items-center space-x-3 p-3 rounded-lg hover:bg-gray-100 transition-colors">
+                            <i class="fas fa-users text-secondary w-5"></i>
+                            <span>Manager Access</span>
+                        </a>
+                        <a href="#" class="flex items-center space-x-3 p-3 rounded-lg hover:bg-gray-100 transition-colors">
+                            <i class="fas fa-language text-secondary w-5"></i>
+                            <span>Language Settings</span>
+                        </a>
+                        <a href="#" class="flex items-center space-x-3 p-3 rounded-lg hover:bg-gray-100 transition-colors">
+                            <i class="fas fa-cog text-secondary w-5"></i>
+                            <span>Settings</span>
+                        </a>
+                    </div>
+                </nav>
+            </div>
+        </div>
+
+        <!-- @COMPONENT: Main Content Area -->
+        <main class="pb-16">
+            <!-- @COMPONENT: Dashboard Content -->
+            <div id="dashboardContent" class="p-4">
+                <!-- Tab Navigation -->
+                <div class="flex mb-4 bg-gray-100 rounded-lg p-1">
+                    <button class="flex-1 py-2 px-3 rounded-md bg-primary text-white text-sm font-medium transition-colors" id="inventoryTab">
+                        Tank Inventory
+                    </button>
+                    <button class="flex-1 py-2 px-3 rounded-md text-gray-600 text-sm font-medium transition-colors" id="salesTab">
+                        Shift Sales
+                    </button>
+                </div>
+
+                <!-- Tank Inventory Section -->
+                <div id="inventorySection">
+                    <div class="space-y-3">
+                        <!-- @MAP: tanks.map(tank => ( -->
+                        <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-4">
+                            <div class="flex items-center justify-between mb-3">
+                                <div class="flex items-center space-x-2">
+                                    <div class="w-3 h-3 bg-success rounded-full"></div>
+                                    <span class="font-medium text-sm" data-bind="tank.fuelType">Petrol</span>
+                                    <span class="text-xs text-gray-500" data-bind="tank.tankId">Tank 1</span>
+                                </div>
+                                <span class="text-xs bg-success/10 text-success px-2 py-1 rounded">Normal</span>
+                            </div>
+                            <div class="space-y-2">
+                                <div class="flex justify-between text-sm">
+                                    <span class="text-gray-600">Current Stock</span>
+                                    <span class="font-medium" data-bind="tank.currentStock">2,850 L</span>
+                                </div>
+                                <div class="flex justify-between text-sm">
+                                    <span class="text-gray-600">Capacity</span>
+                                    <span data-bind="tank.capacity">5,000 L</span>
+                                </div>
+                                <div class="w-full bg-gray-200 rounded-full h-2 mt-2">
+                                    <div class="bg-success h-2 rounded-full" style="width: 57%"></div>
+                                </div>
+                                <div class="text-xs text-gray-500 text-right">57% filled</div>
+                            </div>
+                        </div>
+
+                        <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-4">
+                            <div class="flex items-center justify-between mb-3">
+                                <div class="flex items-center space-x-2">
+                                    <div class="w-3 h-3 bg-warning rounded-full"></div>
+                                    <span class="font-medium text-sm" data-bind="tank.fuelType">Diesel</span>
+                                    <span class="text-xs text-gray-500" data-bind="tank.tankId">Tank 2</span>
+                                </div>
+                                <span class="text-xs bg-warning/10 text-warning px-2 py-1 rounded">Low Stock</span>
+                            </div>
+                            <div class="space-y-2">
+                                <div class="flex justify-between text-sm">
+                                    <span class="text-gray-600">Current Stock</span>
+                                    <span class="font-medium" data-bind="tank.currentStock">980 L</span>
+                                </div>
+                                <div class="flex justify-between text-sm">
+                                    <span class="text-gray-600">Capacity</span>
+                                    <span data-bind="tank.capacity">4,000 L</span>
+                                </div>
+                                <div class="w-full bg-gray-200 rounded-full h-2 mt-2">
+                                    <div class="bg-warning h-2 rounded-full" style="width: 25%"></div>
+                                </div>
+                                <div class="text-xs text-gray-500 text-right">25% filled</div>
+                            </div>
+                        </div>
+                        <!-- @END_MAP )) -->
+                    </div>
+                </div>
+
+                <!-- Shift Sales Section -->
+                <div id="salesSection" class="hidden">
+                    <div class="space-y-3">
+                        <!-- @MAP: shifts.map(shift => ( -->
+                        <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-4">
+                            <div class="flex items-center justify-between mb-3">
+                                <div>
+                                    <span class="font-medium text-sm" data-bind="shift.date">Today, 2:00 PM - 10:00 PM</span>
+                                    <p class="text-xs text-gray-500" data-bind="shift.manager">Manager: Suresh</p>
+                                </div>
+                                <span class="text-lg font-bold text-primary" data-bind="shift.totalSales">₹45,230</span>
+                            </div>
+                            <div class="grid grid-cols-2 gap-3 text-sm">
+                                <div class="flex justify-between">
+                                    <span class="text-gray-600">Cash</span>
+                                    <span data-bind="shift.cash">₹12,450</span>
+                                </div>
+                                <div class="flex justify-between">
+                                    <span class="text-gray-600">Credit</span>
+                                    <span data-bind="shift.credit">₹8,200</span>
+                                </div>
+                                <div class="flex justify-between">
+                                    <span class="text-gray-600">UPI</span>
+                                    <span data-bind="shift.upi">₹18,580</span>
+                                </div>
+                                <div class="flex justify-between">
+                                    <span class="text-gray-600">Card</span>
+                                    <span data-bind="shift.card">₹6,000</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-4">
+                            <div class="flex items-center justify-between mb-3">
+                                <div>
+                                    <span class="font-medium text-sm" data-bind="shift.date">Yesterday, 6:00 AM - 2:00 PM</span>
+                                    <p class="text-xs text-gray-500" data-bind="shift.manager">Manager: Ramesh</p>
+                                </div>
+                                <span class="text-lg font-bold text-primary" data-bind="shift.totalSales">₹38,650</span>
+                            </div>
+                            <div class="grid grid-cols-2 gap-3 text-sm">
+                                <div class="flex justify-between">
+                                    <span class="text-gray-600">Cash</span>
+                                    <span data-bind="shift.cash">₹15,200</span>
+                                </div>
+                                <div class="flex justify-between">
+                                    <span class="text-gray-600">Credit</span>
+                                    <span data-bind="shift.credit">₹5,650</span>
+                                </div>
+                                <div class="flex justify-between">
+                                    <span class="text-gray-600">UPI</span>
+                                    <span data-bind="shift.upi">₹14,300</span>
+                                </div>
+                                <div class="flex justify-between">
+                                    <span class="text-gray-600">Card</span>
+                                    <span data-bind="shift.card">₹3,500</span>
+                                </div>
+                            </div>
+                        </div>
+                        <!-- @END_MAP )) -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- @COMPONENT: Data Entry Content -->
+            <div id="dataEntryContent" class="hidden p-4">
+                <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-4 mb-4">
+                    <h3 class="font-medium mb-4">Shift Data Entry</h3>
+                    
+                    <div class="space-y-4">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Select Shift</label>
+                            <select class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent">
+                                <option>6:00 AM - 2:00 PM</option>
+                                <option>2:00 PM - 10:00 PM</option>
+                                <option>10:00 PM - 6:00 AM</option>
+                            </select>
+                        </div>
+
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Manager</label>
+                            <select class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent">
+                                <option>Suresh Kumar</option>
+                                <option>Ramesh Singh</option>
+                                <option>Prakash Yadav</option>
+                            </select>
+                        </div>
+
+                        <div class="grid grid-cols-2 gap-3">
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Cash Sales</label>
+                                <input type="number" placeholder="0" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Credit Sales</label>
+                                <input type="number" placeholder="0" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent">
+                            </div>
+                        </div>
+
+                        <div class="grid grid-cols-2 gap-3">
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">UPI Sales</label>
+                                <input type="number" placeholder="0" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Card Sales</label>
+                                <input type="number" placeholder="0" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent">
+                            </div>
+                        </div>
+
+                        <button class="w-full bg-primary text-white py-3 rounded-lg font-medium hover:bg-blue-700 transition-colors">
+                            Submit Data
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- @COMPONENT: Staff Management Content -->
+            <div id="staffContent" class="hidden p-4">
+                <div class="flex items-center justify-between mb-4">
+                    <h3 class="font-medium">Staff Management</h3>
+                    <button class="bg-primary text-white px-4 py-2 rounded-lg text-sm">
+                        <i class="fas fa-plus mr-1"></i> Add Staff
+                    </button>
+                </div>
+
+                <div class="space-y-3">
+                    <!-- @MAP: staff.map(member => ( -->
+                    <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-4">
+                        <div class="flex items-center justify-between">
+                            <div class="flex items-center space-x-3">
+                                <div class="w-10 h-10 bg-primary/10 rounded-full flex items-center justify-center">
+                                    <i class="fas fa-user text-primary"></i>
+                                </div>
+                                <div>
+                                    <p class="font-medium text-sm" data-bind="staff.name">Suresh Kumar</p>
+                                    <p class="text-xs text-gray-500" data-bind="staff.role">Manager</p>
+                                    <p class="text-xs text-gray-500" data-bind="staff.phone">+91 98765 43210</p>
+                                </div>
+                            </div>
+                            <div class="flex items-center space-x-2">
+                                <span class="text-xs bg-success/10 text-success px-2 py-1 rounded">Active</span>
+                                <button class="text-gray-400">
+                                    <i class="fas fa-ellipsis-v"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-4">
+                        <div class="flex items-center justify-between">
+                            <div class="flex items-center space-x-3">
+                                <div class="w-10 h-10 bg-primary/10 rounded-full flex items-center justify-center">
+                                    <i class="fas fa-user text-primary"></i>
+                                </div>
+                                <div>
+                                    <p class="font-medium text-sm" data-bind="staff.name">Ramesh Singh</p>
+                                    <p class="text-xs text-gray-500" data-bind="staff.role">Operator</p>
+                                    <p class="text-xs text-gray-500" data-bind="staff.phone">+91 87654 32109</p>
+                                </div>
+                            </div>
+                            <div class="flex items-center space-x-2">
+                                <span class="text-xs bg-success/10 text-success px-2 py-1 rounded">Active</span>
+                                <button class="text-gray-400">
+                                    <i class="fas fa-ellipsis-v"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- @END_MAP )) -->
+                </div>
+            </div>
+
+            <!-- @COMPONENT: Reports Content -->
+            <div id="reportsContent" class="hidden p-4">
+                <div class="space-y-4">
+                    <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-4">
+                        <h3 class="font-medium mb-4">Sales Overview</h3>
+                        <div class="grid grid-cols-2 gap-4 text-center">
+                            <div>
+                                <p class="text-2xl font-bold text-primary" data-bind="reports.weeklySales">₹2,84,560</p>
+                                <p class="text-sm text-gray-600">This Week</p>
+                            </div>
+                            <div>
+                                <p class="text-2xl font-bold text-secondary" data-bind="reports.monthlySales">₹11,23,440</p>
+                                <p class="text-sm text-gray-600">This Month</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-4">
+                        <h3 class="font-medium mb-4">Payment Methods</h3>
+                        <div class="space-y-3">
+                            <div class="flex items-center justify-between">
+                                <span class="text-sm text-gray-600">UPI</span>
+                                <div class="flex items-center space-x-2">
+                                    <div class="w-20 h-2 bg-gray-200 rounded-full">
+                                        <div class="w-16 h-2 bg-primary rounded-full"></div>
+                                    </div>
+                                    <span class="text-sm font-medium">45%</span>
+                                </div>
+                            </div>
+                            <div class="flex items-center justify-between">
+                                <span class="text-sm text-gray-600">Cash</span>
+                                <div class="flex items-center space-x-2">
+                                    <div class="w-20 h-2 bg-gray-200 rounded-full">
+                                        <div class="w-12 h-2 bg-secondary rounded-full"></div>
+                                    </div>
+                                    <span class="text-sm font-medium">30%</span>
+                                </div>
+                            </div>
+                            <div class="flex items-center justify-between">
+                                <span class="text-sm text-gray-600">Card</span>
+                                <div class="flex items-center space-x-2">
+                                    <div class="w-20 h-2 bg-gray-200 rounded-full">
+                                        <div class="w-8 h-2 bg-success rounded-full"></div>
+                                    </div>
+                                    <span class="text-sm font-medium">15%</span>
+                                </div>
+                            </div>
+                            <div class="flex items-center justify-between">
+                                <span class="text-sm text-gray-600">Credit</span>
+                                <div class="flex items-center space-x-2">
+                                    <div class="w-20 h-2 bg-gray-200 rounded-full">
+                                        <div class="w-4 h-2 bg-warning rounded-full"></div>
+                                    </div>
+                                    <span class="text-sm font-medium">10%</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+
+        <!-- @COMPONENT: Bottom Navigation -->
+        <nav class="fixed bottom-0 left-0 right-0 max-w-md mx-auto bg-white border-t border-gray-200 px-4 py-2">
+            <div class="flex items-center justify-around">
+                <button class="nav-item active flex flex-col items-center py-2 px-3" data-target="dashboardContent">
+                    <i class="fas fa-tachometer-alt text-lg mb-1"></i>
+                    <span class="text-xs">Dashboard</span>
+                </button>
+                <button class="nav-item flex flex-col items-center py-2 px-3" data-target="dataEntryContent">
+                    <i class="fas fa-edit text-lg mb-1"></i>
+                    <span class="text-xs">Data Entry</span>
+                </button>
+                <button class="nav-item flex flex-col items-center py-2 px-3" data-target="staffContent">
+                    <i class="fas fa-users text-lg mb-1"></i>
+                    <span class="text-xs">Staff</span>
+                </button>
+                <button class="nav-item flex flex-col items-center py-2 px-3" data-target="reportsContent">
+                    <i class="fas fa-chart-bar text-lg mb-1"></i>
+                    <span class="text-xs">Reports</span>
+                </button>
+            </div>
+        </nav>
+    </div>
+
+    <script>
+        (function() {
+            // Bottom Navigation
+            const navItems = document.querySelectorAll('.nav-item');
+            const contentSections = document.querySelectorAll('[id$="Content"]');
+
+            navItems.forEach(item => {
+                item.addEventListener('click', function() {
+                    const target = this.getAttribute('data-target');
+                    
+                    // Remove active class from all nav items
+                    navItems.forEach(nav => nav.classList.remove('active'));
+                    // Add active class to clicked item
+                    this.classList.add('active');
+                    
+                    // Hide all content sections
+                    contentSections.forEach(section => section.classList.add('hidden'));
+                    // Show target section
+                    document.getElementById(target).classList.remove('hidden');
+                });
+            });
+
+            // Dashboard Tab Navigation
+            const inventoryTab = document.getElementById('inventoryTab');
+            const salesTab = document.getElementById('salesTab');
+            const inventorySection = document.getElementById('inventorySection');
+            const salesSection = document.getElementById('salesSection');
+
+            inventoryTab.addEventListener('click', function() {
+                inventoryTab.classList.add('bg-primary', 'text-white');
+                inventoryTab.classList.remove('text-gray-600');
+                salesTab.classList.remove('bg-primary', 'text-white');
+                salesTab.classList.add('text-gray-600');
+                
+                inventorySection.classList.remove('hidden');
+                salesSection.classList.add('hidden');
+            });
+
+            salesTab.addEventListener('click', function() {
+                salesTab.classList.add('bg-primary', 'text-white');
+                salesTab.classList.remove('text-gray-600');
+                inventoryTab.classList.remove('bg-primary', 'text-white');
+                inventoryTab.classList.add('text-gray-600');
+                
+                salesSection.classList.remove('hidden');
+                inventorySection.classList.add('hidden');
+            });
+
+            // Side Menu
+            const menuBtn = document.getElementById('menuBtn');
+            const sideMenu = document.getElementById('sideMenu');
+            const menuPanel = document.getElementById('menuPanel');
+
+            menuBtn.addEventListener('click', function() {
+                sideMenu.classList.remove('hidden');
+                setTimeout(() => {
+                    menuPanel.classList.remove('-translate-x-full');
+                }, 10);
+            });
+
+            window.closeSideMenu = function() {
+                menuPanel.classList.add('-translate-x-full');
+                setTimeout(() => {
+                    sideMenu.classList.add('hidden');
+                }, 300);
+            };
+
+            // Add active state styling
+            const style = document.createElement('style');
+            style.textContent = `
+                .nav-item.active {
+                    color: #1976D2;
+                }
+                .nav-item:not(.active) {
+                    color: #666;
+                }
+            `;
+            document.head.appendChild(style);
+        })();
+    </script>
+</body>
+</html>
