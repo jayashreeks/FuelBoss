@@ -1,0 +1,12 @@
+{
+    "extends": "../tsconfig.json",
+    "compilerOptions": {
+      "noEmit": false,
+      "outDir": "../dist/server",
+      "lib": ["esnext"],
+      "jsx": "react-jsx",
+      "types": ["node"],
+      "moduleResolution": "node",
+      "jsx": "react-jsx",
+    }
+  }

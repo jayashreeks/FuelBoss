@@ -1,0 +1,10 @@
+{
+    "extends": "../tsconfig.json",
+    "compilerOptions": {
+      "noEmit": false,
+      "outDir": "../dist/client",
+      "lib": ["esnext", "dom", "dom.iterable"],
+      "jsx": "react-jsx",
+      "types": ["node", "vite/client"]
+    }
+  }
