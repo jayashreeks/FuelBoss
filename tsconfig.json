@@ -9,7 +9,6 @@
     "strict": true,
     "esModuleInterop": true,
     "skipLibCheck": true,
-    "allowImportingTsExtensions": true,
     "moduleResolution": "bundler",
     "baseUrl": ".",
     "paths": {
