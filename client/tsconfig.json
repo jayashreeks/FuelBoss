@@ -1,6 +1,7 @@
 {
     "extends": "../tsconfig.json",
     "compilerOptions": {
+      "noImplicitAny": false,
       "noEmit": false,
       "outDir": "../dist/client",
       "lib": ["esnext", "dom", "dom.iterable"],
