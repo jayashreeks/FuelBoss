@@ -8,7 +8,7 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { Eye, EyeOff, AlertCircle, Building2, User } from "lucide-react";
+import { Eye, EyeOff, AlertCircle, Building2, User, Chrome } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { apiRequest } from "@/lib/queryClient";
 
@@ -46,14 +46,19 @@ export default function Login() {
 
   const selectedRole = form.watch("role");
 
+  const handleGoogleLogin = () => {
+    // Redirect to Google OAuth
+    window.location.href = "/api/auth/google";
+  };
+
   const onSubmit = async (data: LoginForm) => {
     setIsLoading(true);
     setError(null);
     
     try {
       if (data.role === "dealer") {
-        // Redirect to Replit Auth for dealer login
-        window.location.href = "/api/login";
+        // Redirect to Google OAuth for dealer login
+        handleGoogleLogin();
       } else {
         // Manager login via API
         const response = await apiRequest("/api/manager/login", "POST", {
@@ -128,77 +133,91 @@ export default function Login() {
                 )}
               />
 
-              <FormField
-                control={form.control}
-                name="phoneNumber"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>
-                      {selectedRole === "dealer" ? "Phone Number" : "Phone Number (Login ID)"}
-                    </FormLabel>
-                    <FormControl>
-                      <Input 
-                        placeholder={selectedRole === "dealer" 
-                          ? "Enter your phone number" 
-                          : "Enter manager phone number"
-                        }
-                        {...field} 
-                        data-testid="input-phone-number"
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              {selectedRole === "manager" && (
-                <FormField
-                  control={form.control}
-                  name="password"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Password</FormLabel>
-                      <FormControl>
-                        <div className="relative">
+              {selectedRole === "dealer" ? (
+                // Google OAuth login for dealers
+                <div className="space-y-4">
+                  <Button
+                    type="button"
+                    onClick={handleGoogleLogin}
+                    className="w-full bg-white text-gray-700 border border-gray-300 hover:bg-gray-50 flex items-center justify-center space-x-2"
+                    data-testid="button-google-login"
+                  >
+                    <Chrome className="h-5 w-5" />
+                    <span>Sign in with Google</span>
+                  </Button>
+                  <div className="text-center text-sm text-gray-600">
+                    Secure authentication via Google
+                  </div>
+                </div>
+              ) : (
+                // Manager login form
+                <>
+                  <FormField
+                    control={form.control}
+                    name="phoneNumber"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Phone Number (Login ID)</FormLabel>
+                        <FormControl>
                           <Input 
-                            type={showPassword ? "text" : "password"}
-                            placeholder="Enter your password" 
+                            placeholder="Enter manager phone number"
                             {...field} 
-                            data-testid="input-password"
+                            data-testid="input-phone-number"
                           />
-                          <Button
-                            type="button"
-                            variant="ghost"
-                            size="icon"
-                            className="absolute right-2 top-1/2 transform -translate-y-1/2 h-8 w-8"
-                            onClick={() => setShowPassword(!showPassword)}
-                            data-testid="toggle-password"
-                          >
-                            {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-                          </Button>
-                        </div>
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-              )}
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
 
-              <Button
-                type="submit"
-                disabled={isLoading}
-                className="w-full bg-primary text-white"
-                data-testid="button-login"
-              >
-                {isLoading ? "Signing in..." : `Sign in as ${selectedRole === "dealer" ? "Dealer" : "Manager"}`}
-              </Button>
+                  <FormField
+                    control={form.control}
+                    name="password"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Password</FormLabel>
+                        <FormControl>
+                          <div className="relative">
+                            <Input 
+                              type={showPassword ? "text" : "password"}
+                              placeholder="Enter your password" 
+                              {...field} 
+                              data-testid="input-password"
+                            />
+                            <Button
+                              type="button"
+                              variant="ghost"
+                              size="icon"
+                              className="absolute right-2 top-1/2 transform -translate-y-1/2 h-8 w-8"
+                              onClick={() => setShowPassword(!showPassword)}
+                              data-testid="toggle-password"
+                            >
+                              {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                            </Button>
+                          </div>
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  <Button
+                    type="submit"
+                    disabled={isLoading}
+                    className="w-full bg-primary text-white"
+                    data-testid="button-login"
+                  >
+                    {isLoading ? "Signing in..." : "Sign in as Manager"}
+                  </Button>
+                </>
+              )}
             </form>
           </Form>
 
           {selectedRole === "dealer" && (
             <div className="mt-4 p-3 bg-blue-50 rounded-lg">
               <p className="text-xs text-blue-700">
-                Dealers will be redirected to secure authentication. Managers use credentials provided by the dealer.
+                Dealers will be redirected to secure Google authentication. Managers use credentials provided by the dealer.
               </p>
             </div>
           )}

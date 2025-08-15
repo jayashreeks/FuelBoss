@@ -145,6 +145,7 @@ export default function SettingsPage({ onBack }: SettingsPageProps) {
                 <SelectContent>
                   <SelectItem value="en">English</SelectItem>
                   <SelectItem value="hi">हिंदी (Hindi)</SelectItem>
+                  <SelectItem value="kn">ಕನ್ನಡ (Kannada)</SelectItem>
                 </SelectContent>
               </Select>
             </div>

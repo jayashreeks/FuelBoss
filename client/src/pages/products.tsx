@@ -36,13 +36,12 @@ export default function ProductsPage({ onBack }: ProductsPageProps) {
 
   const createMutation = useMutation({
     mutationFn: async (data: InsertProduct) => {
-      const response = await apiRequest("/api/products", "POST", data);
-      return response.json();
+      return await apiRequest("/api/products", "POST", data);
     },
     onSuccess: () => {
       toast({
         title: t("common.success"),
-        description: "Product created successfully",
+        description: t("products.productCreatedSuccess"),
       });
       setIsDialogOpen(false);
       resetForm();
@@ -59,13 +58,12 @@ export default function ProductsPage({ onBack }: ProductsPageProps) {
 
   const updateMutation = useMutation({
     mutationFn: async (data: { id: string; product: Partial<InsertProduct> }) => {
-      const response = await apiRequest(`/api/products/${data.id}`, "PUT", data.product);
-      return response.json();
+      return await apiRequest(`/api/products/${data.id}`, "PUT", data.product);
     },
     onSuccess: () => {
       toast({
         title: t("common.success"),
-        description: "Product updated successfully",
+        description: t("products.productUpdatedSuccess"),
       });
       setIsDialogOpen(false);
       resetForm();
@@ -82,13 +80,12 @@ export default function ProductsPage({ onBack }: ProductsPageProps) {
 
   const deleteMutation = useMutation({
     mutationFn: async (id: string) => {
-      const response = await apiRequest(`/api/products/${id}`, "DELETE");
-      return response.json();
+      return await apiRequest(`/api/products/${id}`, "DELETE");
     },
     onSuccess: () => {
       toast({
         title: t("common.success"),
-        description: "Product deleted successfully",
+        description: t("products.productDeletedSuccess"),
       });
       queryClient.invalidateQueries({ queryKey: ["/api/products"] });
     },
@@ -117,7 +114,7 @@ export default function ProductsPage({ onBack }: ProductsPageProps) {
     if (!formData.name.trim()) {
       toast({
         title: t("common.error"),
-        description: "Product name is required",
+        description: t("products.productNameRequired"),
         variant: "destructive",
       });
       return;
@@ -126,7 +123,7 @@ export default function ProductsPage({ onBack }: ProductsPageProps) {
     if (!formData.pricePerLiter || parseFloat(formData.pricePerLiter) <= 0) {
       toast({
         title: t("common.error"),
-        description: "Valid price is required",
+        description: t("products.validPriceRequired"),
         variant: "destructive",
       });
       return;
@@ -150,7 +147,7 @@ export default function ProductsPage({ onBack }: ProductsPageProps) {
   };
 
   const handleDelete = (id: string, productName: string) => {
-    if (window.confirm(`Are you sure you want to delete "${productName}"? This action cannot be undone.`)) {
+    if (window.confirm(t("products.deleteConfirmation", { productName }))) {
       deleteMutation.mutate(id);
     }
   };
@@ -195,7 +192,7 @@ export default function ProductsPage({ onBack }: ProductsPageProps) {
             <ArrowLeft className="h-5 w-5" />
           </Button>
           <h1 className="text-xl font-semibold" data-testid="page-title">
-            Products
+            {t("products.title")}
           </h1>
         </div>
 
@@ -203,23 +200,23 @@ export default function ProductsPage({ onBack }: ProductsPageProps) {
           <DialogTrigger asChild>
             <Button onClick={resetForm} data-testid="add-product-button">
               <Plus className="h-4 w-4 mr-2" />
-              Add Product
+              {t("products.addProduct")}
             </Button>
           </DialogTrigger>
           <DialogContent>
             <DialogHeader>
               <DialogTitle>
-                {editingProduct ? "Edit Product" : "Add New Product"}
+                {editingProduct ? t("products.editProduct") : t("products.addNewProduct")}
               </DialogTitle>
             </DialogHeader>
             <form onSubmit={handleSubmit} className="space-y-4">
               <div className="space-y-2">
-                <Label htmlFor="name">Product Name</Label>
+                <Label htmlFor="name">{t("products.productName")}</Label>
                 <Input
                   id="name"
                   value={formData.name}
                   onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                  placeholder="Enter product name"
+                  placeholder={t("products.enterProductName")}
                   required
                   data-testid="input-product-name"
                 />
@@ -228,7 +225,7 @@ export default function ProductsPage({ onBack }: ProductsPageProps) {
 
 
               <div className="space-y-2">
-                <Label htmlFor="pricePerLiter">Price per Liter (₹)</Label>
+                <Label htmlFor="pricePerLiter">{t("products.pricePerLiter")} (₹)</Label>
                 <Input
                   id="pricePerLiter"
                   type="number"
@@ -276,14 +273,14 @@ export default function ProductsPage({ onBack }: ProductsPageProps) {
             <CardContent className="p-8 text-center">
               <Package className="h-12 w-12 mx-auto text-gray-400 mb-4" />
               <h3 className="text-lg font-semibold text-gray-600 mb-2">
-                No Products Added
+                {t("products.noProducts")}
               </h3>
               <p className="text-gray-500 mb-4">
-                Add your first product to start managing fuel inventory
+                {t("products.noProductsDescription")}
               </p>
               <Button onClick={() => setIsDialogOpen(true)}>
                 <Plus className="h-4 w-4 mr-2" />
-                Add Product
+                {t("products.addProduct")}
               </Button>
             </CardContent>
           </Card>
@@ -319,7 +316,7 @@ export default function ProductsPage({ onBack }: ProductsPageProps) {
               <CardContent>
                 <div className="text-sm">
                   <div>
-                    <p className="text-gray-600">Price per Liter</p>
+                    <p className="text-gray-600">{t("products.pricePerLiter")}</p>
                     <p className="font-medium text-lg">₹{parseFloat(product.pricePerLiter).toFixed(2)}</p>
                   </div>
                 </div>

@@ -11,6 +11,7 @@
   },
   "menu": {
     "roDetails": "RO Details",
+    "products": "Products",
     "tankManagement": "Tank Management",
     "dispensingUnits": "Dispensing Units",
     "managerAccess": "Manager Access",
@@ -70,6 +71,7 @@
     "error": "Error occurred",
     "success": "Success",
     "saving": "Saving...",
+    "update": "Update",
     "petrol": "Petrol",
     "diesel": "Diesel",
     "premium": "Premium",
@@ -160,6 +162,23 @@
     "manageStaff": "Staff",
     "editPrices": "Pricing",
     "viewFinancials": "Financial"
+  },
+  "products": {
+    "title": "Products",
+    "addProduct": "Add Product",
+    "editProduct": "Edit Product",
+    "addNewProduct": "Add New Product",
+    "productName": "Product Name",
+    "pricePerLiter": "Price per Liter",
+    "enterProductName": "Enter product name",
+    "validPriceRequired": "Valid price is required",
+    "productNameRequired": "Product name is required",
+    "deleteConfirmation": "Are you sure you want to delete \"{productName}\"? This action cannot be undone.",
+    "noProducts": "No Products Added",
+    "noProductsDescription": "Add your first product to start managing fuel inventory",
+    "productCreatedSuccess": "Product created successfully",
+    "productUpdatedSuccess": "Product updated successfully",
+    "productDeletedSuccess": "Product deleted successfully"
   },
   "settings": {
     "language": "Language Settings",

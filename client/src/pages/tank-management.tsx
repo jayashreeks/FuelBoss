@@ -56,8 +56,7 @@ export default function TankManagementPage({ onBack }: TankManagementPageProps) 
 
   const createMutation = useMutation({
     mutationFn: async (data: TankForm) => {
-      const response = await apiRequest("/api/tanks", "POST", data);
-      return response.json();
+      return await apiRequest("/api/tanks", "POST", data);
     },
     onSuccess: () => {
       toast({
@@ -79,8 +78,7 @@ export default function TankManagementPage({ onBack }: TankManagementPageProps) 
 
   const updateMutation = useMutation({
     mutationFn: async ({ id, data }: { id: string; data: TankForm }) => {
-      const response = await apiRequest(`/api/tanks/${id}`, "PUT", data);
-      return response.json();
+      return await apiRequest(`/api/tanks/${id}`, "PUT", data);
     },
     onSuccess: () => {
       toast({
@@ -103,8 +101,7 @@ export default function TankManagementPage({ onBack }: TankManagementPageProps) 
 
   const deleteMutation = useMutation({
     mutationFn: async (id: string) => {
-      const response = await apiRequest(`/api/tanks/${id}`, "DELETE");
-      return response.json();
+      return await apiRequest(`/api/tanks/${id}`, "DELETE");
     },
     onSuccess: () => {
       toast({

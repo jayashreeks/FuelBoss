@@ -46,7 +46,7 @@ export function SideMenu({ onMenuItemClick, currentUser, userRole = "dealer" }: 
     },
     {
       id: "products",
-      label: "Products",
+      label: t("menu.products"),
       icon: Package,
     },
     {
@@ -178,6 +178,7 @@ export function SideMenu({ onMenuItemClick, currentUser, userRole = "dealer" }: 
                     <SelectContent>
                       <SelectItem value="en">English</SelectItem>
                       <SelectItem value="hi">हिन्दी</SelectItem>
+                      <SelectItem value="kn">ಕನ್ನಡ</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>

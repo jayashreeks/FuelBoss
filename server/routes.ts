@@ -1,7 +1,7 @@
 import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
-import { setupAuth, isAuthenticated } from "./replitAuth";
+import { setupAuth, isAuthenticated } from "./googleAuth";
 import {
   insertRetailOutletSchema,
   insertProductSchema,
@@ -19,8 +19,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Auth routes
   app.get('/api/auth/user', isAuthenticated, async (req: any, res) => {
     try {
-      const userId = req.user.claims.sub;
-      const user = await storage.getUser(userId);
+      const user = req.user;
       res.json(user);
     } catch (error) {
       console.error("Error fetching user:", error);
@@ -31,7 +30,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Retail Outlet routes
   app.get('/api/retail-outlet', isAuthenticated, async (req: any, res) => {
     try {
-      const userId = req.user.claims.sub;
+      const userId = req.user.id;
       const outlet = await storage.getRetailOutletByOwnerId(userId);
       res.json(outlet);
     } catch (error) {
@@ -42,7 +41,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.post('/api/retail-outlet', isAuthenticated, async (req: any, res) => {
     try {
-      const userId = req.user.claims.sub;
+      const userId = req.user.id;
       const validatedData = insertRetailOutletSchema.parse({
         ...req.body,
         ownerId: userId,
@@ -70,7 +69,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Product routes
   app.get('/api/products', isAuthenticated, async (req: any, res) => {
     try {
-      const userId = req.user.claims.sub;
+      const userId = req.user.id;
       const outlet = await storage.getRetailOutletByOwnerId(userId);
       if (!outlet) {
         return res.status(404).json({ message: "Retail outlet not found" });
@@ -107,7 +106,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.post('/api/products', isAuthenticated, async (req: any, res) => {
     try {
-      const userId = req.user.claims.sub;
+      const userId = req.user.id;
       const outlet = await storage.getRetailOutletByOwnerId(userId);
       if (!outlet) {
         return res.status(404).json({ message: "Retail outlet not found" });
@@ -150,7 +149,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Tank routes
   app.get('/api/tanks', isAuthenticated, async (req: any, res) => {
     try {
-      const userId = req.user.claims.sub;
+      const userId = req.user.id;
       const outlet = await storage.getRetailOutletByOwnerId(userId);
       if (!outlet) {
         return res.status(404).json({ message: "Retail outlet not found" });
@@ -165,7 +164,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.post('/api/tanks', isAuthenticated, async (req: any, res) => {
     try {
-      const userId = req.user.claims.sub;
+      const userId = req.user.id;
       const outlet = await storage.getRetailOutletByOwnerId(userId);
       if (!outlet) {
         return res.status(404).json({ message: "Retail outlet not found" });
@@ -214,7 +213,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Dispensing Unit routes
   app.get('/api/dispensing-units', isAuthenticated, async (req: any, res) => {
     try {
-      const userId = req.user.claims.sub;
+      const userId = req.user.id;
       const outlet = await storage.getRetailOutletByOwnerId(userId);
       if (!outlet) {
         return res.status(404).json({ message: "Retail outlet not found" });
@@ -229,7 +228,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.post('/api/dispensing-units', isAuthenticated, async (req: any, res) => {
     try {
-      const userId = req.user.claims.sub;
+      const userId = req.user.id;
       const outlet = await storage.getRetailOutletByOwnerId(userId);
       if (!outlet) {
         return res.status(404).json({ message: "Retail outlet not found" });
@@ -479,7 +478,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Staff routes
   app.get('/api/staff', isAuthenticated, async (req: any, res) => {
     try {
-      const userId = req.user.claims.sub;
+      const userId = req.user.id;
       const outlet = await storage.getRetailOutletByOwnerId(userId);
       if (!outlet) {
         return res.status(404).json({ message: "Retail outlet not found" });
@@ -494,7 +493,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.post('/api/staff', isAuthenticated, async (req: any, res) => {
     try {
-      const userId = req.user.claims.sub;
+      const userId = req.user.id;
       const outlet = await storage.getRetailOutletByOwnerId(userId);
       if (!outlet) {
         return res.status(404).json({ message: "Retail outlet not found" });
@@ -513,7 +512,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.put('/api/staff/:id', isAuthenticated, async (req: any, res) => {
     try {
-      const userId = req.user.claims.sub;
+      const userId = req.user.id;
       const outlet = await storage.getRetailOutletByOwnerId(userId);
       if (!outlet) {
         return res.status(404).json({ message: "Retail outlet not found" });
@@ -555,7 +554,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Shift Sales routes
   app.get('/api/shift-sales', isAuthenticated, async (req: any, res) => {
     try {
-      const userId = req.user.claims.sub;
+      const userId = req.user.id;
       const outlet = await storage.getRetailOutletByOwnerId(userId);
       if (!outlet) {
         return res.status(404).json({ message: "Retail outlet not found" });
@@ -571,7 +570,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.post('/api/shift-sales', isAuthenticated, async (req: any, res) => {
     try {
-      const userId = req.user.claims.sub;
+      const userId = req.user.id;
       const outlet = await storage.getRetailOutletByOwnerId(userId);
       if (!outlet) {
         return res.status(404).json({ message: "Retail outlet not found" });
@@ -590,7 +589,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.get('/api/sales-stats', isAuthenticated, async (req: any, res) => {
     try {
-      const userId = req.user.claims.sub;
+      const userId = req.user.id;
       const outlet = await storage.getRetailOutletByOwnerId(userId);
       if (!outlet) {
         return res.status(404).json({ message: "Retail outlet not found" });

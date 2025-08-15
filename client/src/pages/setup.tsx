@@ -46,7 +46,7 @@ export default function Setup({ onComplete }: SetupProps) {
 
   const mutation = useMutation({
     mutationFn: async (data: SetupForm) => {
-      await apiRequest("POST", "/api/retail-outlet", data);
+      await apiRequest("/api/retail-outlet", "POST", data);
     },
     onSuccess: () => {
       toast({

@@ -61,9 +61,12 @@ function MainApp() {
 
   // Show setup if dealer is authenticated but no retail outlet
   useEffect(() => {
+    console.log("Setup check:", { isAuthenticated, outletLoading, retailOutlet, showSetup });
     if (isAuthenticated && !outletLoading && !retailOutlet) {
+      console.log("Setting showSetup to true");
       setShowSetup(true);
     } else {
+      console.log("Setting showSetup to false");
       setShowSetup(false);
     }
   }, [isAuthenticated, outletLoading, retailOutlet]);
@@ -137,6 +140,7 @@ function MainApp() {
   }
 
   if (showSetup) {
+    console.log("Rendering Setup component");
     return <Setup onComplete={handleSetupComplete} />;
   }
 

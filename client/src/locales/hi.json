@@ -12,6 +12,7 @@
   "menu": {
     "roDetails": "आरओ विवरण",
     "tankManagement": "टैंक प्रबंधन",
+    "products": "उत्पाद",
     "dispensingUnits": "डिस्पेंसिंग यूनिट",
     "managerAccess": "मैनेजर एक्सेस",
     "languageSettings": "भाषा सेटिंग्स",
@@ -70,6 +71,7 @@
     "error": "त्रुटि हुई",
     "success": "सफलता",
     "saving": "सेव हो रहा है...",
+    "update": "अपडेट करें",
     "petrol": "पेट्रोल",
     "diesel": "डीजल",
     "premium": "प्रीमियम",
@@ -160,6 +162,23 @@
     "manageStaff": "स्टाफ",
     "editPrices": "मूल्य निर्धारण",
     "viewFinancials": "वित्तीय"
+  },
+  "products": {
+    "title": "उत्पाद",
+    "addProduct": "उत्पाद जोड़ें",
+    "editProduct": "उत्पाद संपादित करें",
+    "addNewProduct": "नया उत्पाद जोड़ें",
+    "productName": "उत्पाद का नाम",
+    "pricePerLiter": "प्रति लीटर कीमत",
+    "enterProductName": "उत्पाद का नाम दर्ज करें",
+    "validPriceRequired": "मान्य कीमत आवश्यक है",
+    "productNameRequired": "उत्पाद का नाम आवश्यक है",
+    "deleteConfirmation": "क्या आप वाकई \"{productName}\" को हटाना चाहते हैं? यह कार्रवाई पूर्ववत नहीं की जा सकती।",
+    "noProducts": "कोई उत्पाद नहीं जोड़ा गया",
+    "noProductsDescription": "ईंधन इन्वेंटरी प्रबंधन शुरू करने के लिए अपना पहला उत्पाद जोड़ें",
+    "productCreatedSuccess": "उत्पाद सफलतापूर्वक बनाया गया",
+    "productUpdatedSuccess": "उत्पाद सफलतापूर्वक अपडेट किया गया",
+    "productDeletedSuccess": "उत्पाद सफलतापूर्वक हटाया गया"
   },
   "settings": {
     "language": "भाषा सेटिंग्स",
