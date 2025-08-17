@@ -61,7 +61,8 @@ export default function StockPage({ onBack }: StockPageProps) {
   // Create stock entry mutation
   const createStockEntry = useMutation({
     mutationFn: async (data: any) => {
-      const response = await fetch("/api/manager/stock", {
+      const API_BASE = import.meta.env.VITE_API_URL || '';
+      const response = await fetch(`${API_BASE}/api/manager/stock`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(data),
@@ -81,7 +82,8 @@ export default function StockPage({ onBack }: StockPageProps) {
   // Update stock entry mutation
   const updateStockEntry = useMutation({
     mutationFn: async ({ id, data }: { id: string; data: any }) => {
-      const response = await fetch(`/api/manager/stock/${id}`, {
+      const API_BASE = import.meta.env.VITE_API_URL || '';
+      const response = await fetch(`${API_BASE}/api/manager/stock/${id}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(data),

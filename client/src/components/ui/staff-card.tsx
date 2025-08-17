@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { MoreVertical, User, Edit2, Trash2, Eye, EyeOff } from "lucide-react";
 import { useTranslation } from "react-i18next";
-import type { Staff } from "@shared/schema";
+import type { Staff } from "@/types";
 
 interface StaffCardProps {
   staffMember: Staff;

@@ -16,7 +16,7 @@ import { useTranslation } from "react-i18next";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
 import { isUnauthorizedError } from "@/lib/authUtils";
-import type { Staff } from "@shared/schema";
+import type { Staff } from "@/types";
 
 const staffSchema = z.object({
   name: z.string().min(1, "Name is required"),
@@ -78,7 +78,7 @@ export default function StaffManagement() {
           variant: "destructive",
         });
         setTimeout(() => {
-          window.location.href = "/api/login";
+          window.location.href = "/login";
         }, 500);
         return;
       }
@@ -112,7 +112,7 @@ export default function StaffManagement() {
           variant: "destructive",
         });
         setTimeout(() => {
-          window.location.href = "/api/login";
+          window.location.href = "/login";
         }, 500);
         return;
       }
@@ -142,9 +142,9 @@ export default function StaffManagement() {
           title: "Unauthorized",
           description: "You are logged out. Logging in again...",
           variant: "destructive",
-        });
+      });
         setTimeout(() => {
-          window.location.href = "/api/login";
+          window.location.href = "/login";
         }, 500);
         return;
       }

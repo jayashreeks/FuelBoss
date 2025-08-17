@@ -52,8 +52,8 @@ export default function UnifiedLogin() {
     
     try {
       if (data.role === "dealer") {
-        // Redirect to Replit Auth for dealer login
-        window.location.href = "/api/login";
+        // Redirect to Google OAuth for dealer login
+        window.location.href = "/api/auth/google";
       } else {
         // Manager login via API
         const response = await apiRequest("/api/manager/login", "POST", {

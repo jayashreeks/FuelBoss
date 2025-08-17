@@ -20,7 +20,7 @@ interface SettingsPageProps {
 export default function SettingsPage({ onBack }: SettingsPageProps) {
   const { t, i18n } = useTranslation();
   const { toast } = useToast();
-  const { user } = useAuth();
+  const { user, logout } = useAuth();
   const queryClient = useQueryClient();
 
   const [fuelPrices, setFuelPrices] = useState({
@@ -93,7 +93,7 @@ export default function SettingsPage({ onBack }: SettingsPageProps) {
   };
 
   const handleLogout = () => {
-    window.location.href = "/api/logout";
+    logout();
   };
 
   if (isLoading) {

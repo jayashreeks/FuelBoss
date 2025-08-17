@@ -7,7 +7,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { useTranslation } from "react-i18next";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { AlertCircle } from "lucide-react";
-import type { Tank, ShiftSales } from "@shared/schema";
+import type { Tank, ShiftSales } from "@/types";
 
 export default function Dashboard() {
   const { t } = useTranslation();

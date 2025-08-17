@@ -21,9 +21,13 @@ export function useAuth() {
 
   const logout = async () => {
     try {
-      await fetch("/api/logout", { method: "GET" });
+      const API_BASE = import.meta.env.VITE_API_URL || '';
+      await fetch(`${API_BASE}/api/logout`, { 
+        method: "GET",
+        credentials: "include"
+      });
       queryClient.clear(); // Clear all queries
-      window.location.href = "/"; // Redirect to home
+      window.location.href = "/dashboard"; // Redirect to dashboard
     } catch (error) {
       console.error("Logout error:", error);
     }

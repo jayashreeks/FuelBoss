@@ -218,8 +218,8 @@ export async function setupAuth(app: Express) {
 
   app.get("/api/auth/google/callback", 
     passport.authenticate("google", { 
-      failureRedirect: "/login",
-      successReturnToOrRedirect: "/"
+      failureRedirect: `${process.env.CLIENT_ORIGIN}/login`,
+      successReturnToOrRedirect: process.env.CLIENT_ORIGIN || "http://localhost:5173"
     })
   );
 

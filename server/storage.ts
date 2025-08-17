@@ -32,7 +32,7 @@ import {
   type StockEntry,
   type InsertStockEntry,
   stockEntries,
-} from "@shared/schema";
+} from "./shared/schema";
 import { db } from "./db";
 import { eq, and, desc, sql, gte } from "drizzle-orm";
 

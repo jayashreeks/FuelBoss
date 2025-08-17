@@ -64,7 +64,8 @@ export default function SummaryPage({ onBack }: SummaryPageProps) {
   // Submit shift data mutation
   const submitShiftData = useMutation({
     mutationFn: async () => {
-      const response = await fetch("/api/manager/submit-shift", {
+      const API_BASE = import.meta.env.VITE_API_URL || '';
+      const response = await fetch(`${API_BASE}/api/manager/submit-shift`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({

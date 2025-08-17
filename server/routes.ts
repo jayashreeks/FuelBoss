@@ -10,7 +10,7 @@ import {
   insertNozzleSchema,
   insertStaffSchema,
   insertShiftSalesSchema,
-} from "@shared/schema";
+} from "./shared/schema";
 
 export async function registerRoutes(app: Express): Promise<Server> {
   // Auth middleware

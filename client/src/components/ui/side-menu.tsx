@@ -27,7 +27,7 @@ interface SideMenuProps {
 
 export function SideMenu({ onMenuItemClick, currentUser, userRole = "dealer" }: SideMenuProps) {
   const { t, i18n } = useTranslation();
-  const { user } = useAuth();
+  const { user, logout } = useAuth();
   const [open, setOpen] = useState(false);
   
   const displayUser = currentUser || user;
@@ -90,7 +90,8 @@ export function SideMenu({ onMenuItemClick, currentUser, userRole = "dealer" }: 
     if (userRole === "manager") {
       try {
         // Manager logout - clear session via API
-        await fetch("/api/manager/logout", {
+        const API_BASE = import.meta.env.VITE_API_URL || '';
+        await fetch(`${API_BASE}/api/manager/logout`, {
           method: "POST",
           headers: { "Content-Type": "application/json" }
         });
@@ -99,8 +100,8 @@ export function SideMenu({ onMenuItemClick, currentUser, userRole = "dealer" }: 
       }
       window.location.href = "/login";
     } else {
-      // Dealer logout via Replit Auth
-      window.location.href = "/api/logout";
+      // Dealer logout via Google OAuth
+      logout();
     }
   };
 

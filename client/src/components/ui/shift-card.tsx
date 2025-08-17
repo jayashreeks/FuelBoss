@@ -1,6 +1,6 @@
 import { Card, CardContent } from "@/components/ui/card";
 import { useTranslation } from "react-i18next";
-import type { ShiftSales } from "@shared/schema";
+import type { ShiftSales } from "@/types";
 import { format } from "date-fns";
 
 interface ShiftCardProps {

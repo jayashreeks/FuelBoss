@@ -2,7 +2,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 import { useTranslation } from "react-i18next";
-import type { Tank } from "@shared/schema";
+import type { Tank } from "@/types";
 
 interface TankCardProps {
   tank: Tank;
