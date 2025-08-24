@@ -12,9 +12,28 @@ import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
 import { useAuth } from "@/hooks/useAuth";
 import { ArrowLeft, Settings, Languages, DollarSign, Shield, Fuel, LogOut } from "lucide-react";
+import { useEffect } from "react";
 
 interface SettingsPageProps {
   onBack: () => void;
+}
+
+interface FuelPrices {
+  petrolPrice: number;
+  dieselPrice: number;
+  cngPrice: number;
+}
+
+interface AppSettings {
+  enableNotifications: boolean;
+  autoBackup: boolean;
+  showLowStockAlerts: boolean;
+  requireShiftConfirmation: boolean;
+}
+
+interface SettingsData {
+  fuelPrices: FuelPrices;
+  appSettings: AppSettings;
 }
 
 export default function SettingsPage({ onBack }: SettingsPageProps) {
@@ -36,17 +55,33 @@ export default function SettingsPage({ onBack }: SettingsPageProps) {
     requireShiftConfirmation: true,
   });
 
-  const { data: settings, isLoading } = useQuery({
+  
+  // const { data: settings, isLoading } = useQuery({
+  //   queryKey: ["/api/settings"],
+  //   onSuccess: (data) => {
+  //     if (data?.fuelPrices) {
+  //       setFuelPrices(data.fuelPrices);
+  //     }
+  //     if (data?.appSettings) {
+  //       setAppSettings(data.appSettings);
+  //     }
+  //   },
+  // });
+
+  const { data: settings, isLoading } = useQuery<SettingsData>({
     queryKey: ["/api/settings"],
-    onSuccess: (data) => {
-      if (data?.fuelPrices) {
-        setFuelPrices(data.fuelPrices);
-      }
-      if (data?.appSettings) {
-        setAppSettings(data.appSettings);
-      }
-    },
   });
+
+  useEffect(() => {
+    if (settings?.fuelPrices) {
+      setFuelPrices(settings.fuelPrices);
+    }
+    if (settings?.appSettings) {
+      setAppSettings(settings.appSettings);
+    }
+  }, [settings]);
+
+
 
   const updateSettingsMutation = useMutation({
     mutationFn: async (data: any) => {
