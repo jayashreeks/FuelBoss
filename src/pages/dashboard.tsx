@@ -7,36 +7,32 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { useTranslation } from "react-i18next";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { AlertCircle } from "lucide-react";
-import type { Tank, ShiftSales } from "@/types";
-// Assuming you have a Staff type in your types file
-import type { Staff } from "@/types";
+import { apiRequest } from "@/lib/queryClient"; // Assuming you have this function
+import type { Tank, ShiftSales, Staff } from "@/types";
 
 export default function Dashboard() {
   const { t } = useTranslation();
 
+  // Fix 1: Add the queryFn to properly configure useQuery.
+  // The type is inferred from the return of apiRequest.
   const { data: tanks = [], isLoading: tanksLoading, error: tanksError } = useQuery<Tank[]>({
     queryKey: ["/api/tanks"],
+    queryFn: () => apiRequest<Tank[]>("/api/tanks"),
   });
 
   const { data: shiftSales = [], isLoading: salesLoading, error: salesError } = useQuery<ShiftSales[]>({
     queryKey: ["/api/shift-sales"],
+    queryFn: () => apiRequest<ShiftSales[]>("/api/shift-sales"),
   });
 
-  // Fix 1: Correctly type the useQuery hook for staff data.
-  // The API is expected to return an array of Staff objects.
   const { data: staff = [], isLoading: staffLoading } = useQuery<Staff[]>({
     queryKey: ["/api/staff"],
+    queryFn: () => apiRequest<Staff[]>("/api/staff"),
   });
 
   // Fix 2: Refactor getStaffName to be a memoized function.
   // This prevents re-creation on every render and ensures type safety.
-  // The function now correctly takes a ShiftSales object and uses the properly typed 'staff' array.
   const getStaffName = (shift: ShiftSales) => {
-    // If staffName is already included in the shift data, use it
-    if (shift.staffName) {
-      return shift.staffName;
-    }
-    // Fallback to finding staff by ID
     const staffMember = staff.find((s) => s.id === shift.staffId);
     return staffMember?.name || "Unknown";
   };

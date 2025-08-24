@@ -32,6 +32,7 @@ import SummaryPage from "@/pages/summary";
 import { User, Manager, RetailOutlet } from '@/types';
 
 function MainApp() {
+  // Use a type assertion to properly type the `user` and `manager` objects
   const { user, isAuthenticated, isLoading } = useAuth();
   const { manager, isManagerAuthenticated, isLoading: managerLoading } = useManagerAuth();
   const { t, i18n } = useTranslation();
@@ -39,10 +40,10 @@ function MainApp() {
   const [showSetup, setShowSetup] = useState(false);
   const [currentPage, setCurrentPage] = useState<string | null>(null);
 
-  // Combined authentication state
+  // Correctly combine authentication state and determine the current user
   const isAnyUserAuthenticated = isAuthenticated || isManagerAuthenticated;
   const isLoadingAuth = isLoading || managerLoading;
-  const currentUser: User | Manager | null = user || manager;
+  const currentUser: User | Manager | null = (isAuthenticated ? user : manager) as User | Manager | null;
 
   // Check if user has retail outlet setup - only for dealers
   const { data: retailOutlet, isLoading: outletLoading } = useQuery<RetailOutlet | null>({
@@ -118,7 +119,7 @@ function MainApp() {
     return (
       <div className="min-h-screen bg-surface">
         <div className="fixed top-4 left-4 z-50">
-          <SideMenu />
+          <SideMenu onMenuItemClick={handleMenuItemClick} />
         </div>
         {renderManagerContent()}
         <BottomNavigation

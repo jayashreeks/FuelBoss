@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { ArrowLeft, Package, Save, Edit3 } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -59,23 +59,29 @@ export default function StockPage({ onBack }: StockPageProps) {
     queryFn: () => apiRequest<StockEntry[]>(`/api/manager/stock?shiftType=${selectedShiftType}&shiftDate=${selectedDate}`),
     enabled: !!selectedShiftType && !!selectedDate,
   });
-
-  // Fix 2: Use a single useEffect hook to initialize formData
-  useEffect(() => {
-    const initialData: Record<string, any> = {};
-    if (tanks.length > 0) {
-      tanks.forEach(tank => {
-        const existingEntry = stockEntries.find(entry => entry.tankId === tank.id);
-        initialData[tank.id] = {
-          openingStock: existingEntry?.openingStock ?? "",
-          receipt: existingEntry?.receipt ?? "",
-          invoiceValue: existingEntry?.invoiceValue ?? "",
-        };
-      });
-    }
-    setFormData(initialData);
+  
+  // Fix 2: Use useMemo to efficiently initialize formData and handle data changes
+  const initialFormData = useMemo(() => {
+    const initialData: Record<string, {
+      openingStock: string;
+      receipt: string;
+      invoiceValue: string;
+    }> = {};
+    tanks.forEach(tank => {
+      const existingEntry = stockEntries.find(entry => entry.tankId === tank.id);
+      initialData[tank.id] = {
+        openingStock: existingEntry?.openingStock ?? "",
+        receipt: existingEntry?.receipt ?? "",
+        invoiceValue: existingEntry?.invoiceValue ?? "",
+      };
+    });
+    return initialData;
   }, [tanks, stockEntries]);
-
+  
+  // Update state only when memoized value changes
+  useEffect(() => {
+    setFormData(initialFormData);
+  }, [initialFormData]);
 
   // Use a unified mutation function to reduce code duplication
   const stockMutation = useMutation({
@@ -91,7 +97,7 @@ export default function StockPage({ onBack }: StockPageProps) {
       toast({ title: "Success", description: "Stock entry saved successfully" });
       queryClient.invalidateQueries({ queryKey: ["/api/manager/stock"] });
     },
-    onError: (error) => {
+    onError: (error: any) => { // Explicitly type error
       toast({ title: "Error", description: `Failed to save stock entry: ${error.message}`, variant: "destructive" });
     },
   });

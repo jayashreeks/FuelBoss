@@ -1,8 +1,9 @@
 import { useQuery } from "@tanstack/react-query";
 import { getQueryFn } from "@/lib/queryClient";
+import { Manager } from "@/types";
 
 export function useManagerAuth() {
-  const { data: manager, isLoading } = useQuery({
+  const { data: manager, isLoading } = useQuery<Manager|null>({
     queryKey: ["/api/auth/manager"],
     queryFn: getQueryFn({ on401: "returnNull" }),
     retry: false,
