@@ -11,11 +11,11 @@ interface ShiftCardProps {
 export function ShiftCard({ shift, staffName }: ShiftCardProps) {
   const { t } = useTranslation();
   
-  const totalSales = parseFloat(shift.totalSales || "0");
-  const cashSales = parseFloat(shift.cashSales || "0");
-  const creditSales = parseFloat(shift.creditSales || "0");
-  const upiSales = parseFloat(shift.upiSales || "0");
-  const cardSales = parseFloat(shift.cardSales || "0");
+const totalSales = shift.totalSales || 0;
+const cashSales = shift.cashSales || 0;
+const creditSales = shift.creditSales || 0;
+const upiSales = shift.upiSales || 0;
+const cardSales = shift.cardSales || 0;
 
   const formatCurrency = (amount: number) => {
     return `₹${amount.toLocaleString()}`;

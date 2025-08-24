@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { ArrowLeft, Package, Save, Edit3 } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -8,7 +8,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
 import ShiftDateDisplay from "@/components/ShiftDateDisplay";
 import { useShiftContext } from "@/contexts/ShiftContext";
-import { apiRequest } from "@/lib/queryClient"; // Assuming you have a reusable fetcher
+import { apiRequest } from "@/lib/queryClient";
 
 interface StockPageProps {
   onBack?: () => void;
@@ -48,7 +48,7 @@ export default function StockPage({ onBack }: StockPageProps) {
     invoiceValue: string;
   }>>({});
 
-  // Fix 1: Correctly type the useQuery hooks to return arrays
+  // Fix 1: Add queryFn to properly type the useQuery hooks
   const { data: tanks = [], isLoading: tanksLoading } = useQuery<Tank[]>({
     queryKey: ["/api/manager/tanks"],
     queryFn: () => apiRequest<Tank[]>("/api/manager/tanks"),
@@ -60,8 +60,8 @@ export default function StockPage({ onBack }: StockPageProps) {
     enabled: !!selectedShiftType && !!selectedDate,
   });
 
-  // Use a memoized value for initial data to avoid re-initializing on every render
-  const initialFormData = useMemo(() => {
+  // Fix 2: Use a single useEffect hook to initialize formData
+  useEffect(() => {
     const initialData: Record<string, any> = {};
     if (tanks.length > 0) {
       tanks.forEach(tank => {
@@ -73,15 +73,11 @@ export default function StockPage({ onBack }: StockPageProps) {
         };
       });
     }
-    return initialData;
+    setFormData(initialData);
   }, [tanks, stockEntries]);
 
-  // Fix 2: Use a single useEffect hook with correct dependencies
-  useEffect(() => {
-    setFormData(initialFormData);
-  }, [initialFormData]);
 
-  // Fix 3: Use a unified mutation function to reduce code duplication
+  // Use a unified mutation function to reduce code duplication
   const stockMutation = useMutation({
     mutationFn: async ({ tankId, data }: { tankId: string; data: any }) => {
       const existingEntry = stockEntries.find(entry => entry.tankId === tankId);
@@ -195,7 +191,7 @@ export default function StockPage({ onBack }: StockPageProps) {
 
         <div className="space-y-4">
           <h2 className="text-lg font-semibold">Tank Stock Information</h2>
-          
+
           {tanks.length === 0 ? (
             <div className="text-center text-gray-500 py-8" data-testid="no-tanks">
               No tanks available. Please add tanks in Tank Management first.

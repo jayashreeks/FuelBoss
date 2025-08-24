@@ -1,13 +1,11 @@
 import { useState, useEffect } from "react";
-import { Switch, Route } from "wouter";
-import { QueryClientProvider } from "@tanstack/react-query";
+import { QueryClientProvider, useQuery } from "@tanstack/react-query";
 import { queryClient } from "./lib/queryClient";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { useAuth } from "@/hooks/useAuth";
 import { useManagerAuth } from "@/hooks/useManagerAuth";
 import { ShiftProvider } from "@/contexts/ShiftContext";
-import { useQuery } from "@tanstack/react-query";
 import { BottomNavigation } from "@/components/ui/bottom-navigation";
 import { SideMenu } from "@/components/ui/side-menu";
 import { useTranslation } from "react-i18next";
@@ -20,18 +18,18 @@ import DataEntry from "@/pages/data-entry";
 import StaffManagement from "@/pages/staff-management";
 import Reports from "@/pages/reports";
 import Setup from "@/pages/setup";
-import NotFound from "@/pages/not-found";
 import RODetailsPage from "@/pages/ro-details";
 import ProductsPage from "@/pages/products";
 import TankManagementPage from "@/pages/tank-management";
 import DispensingUnitsPage from "@/pages/dispensing-units";
-
 import SettingsPage from "@/pages/settings";
 import ShiftPage from "@/pages/shift";
 import ReadingsPage from "@/pages/readings";
 import StockPage from "@/pages/stock";
-import DensityPage from "@/pages/density";
 import SummaryPage from "@/pages/summary";
+
+// Types
+import { User, Manager, RetailOutlet } from '@/types';
 
 function MainApp() {
   const { user, isAuthenticated, isLoading } = useAuth();
@@ -40,16 +38,16 @@ function MainApp() {
   const [activeTab, setActiveTab] = useState("dashboard");
   const [showSetup, setShowSetup] = useState(false);
   const [currentPage, setCurrentPage] = useState<string | null>(null);
-  
+
   // Combined authentication state
   const isAnyUserAuthenticated = isAuthenticated || isManagerAuthenticated;
   const isLoadingAuth = isLoading || managerLoading;
-  const currentUser = user || manager;
+  const currentUser: User | Manager | null = user || manager;
 
   // Check if user has retail outlet setup - only for dealers
-  const { data: retailOutlet, isLoading: outletLoading } = useQuery({
+  const { data: retailOutlet, isLoading: outletLoading } = useQuery<RetailOutlet | null>({
     queryKey: ["/api/retail-outlet"],
-    enabled: isAuthenticated && !!user, // Only dealers need retail outlet
+    enabled: isAuthenticated && !!user,
     retry: false,
   });
 
@@ -61,12 +59,9 @@ function MainApp() {
 
   // Show setup if dealer is authenticated but no retail outlet
   useEffect(() => {
-    console.log("Setup check:", { isAuthenticated, outletLoading, retailOutlet, showSetup });
     if (isAuthenticated && !outletLoading && !retailOutlet) {
-      console.log("Setting showSetup to true");
       setShowSetup(true);
     } else {
-      console.log("Setting showSetup to false");
       setShowSetup(false);
     }
   }, [isAuthenticated, outletLoading, retailOutlet]);
@@ -76,7 +71,6 @@ function MainApp() {
   };
 
   const handleMenuItemClick = (item: string) => {
-    console.log("Menu item clicked:", item);
     setCurrentPage(item);
   };
 
@@ -96,16 +90,13 @@ function MainApp() {
   }
 
   if (!isAnyUserAuthenticated) {
-    // Show login screen directly for all non-authenticated users
     return <Login />;
   }
 
-  // Managers skip setup and go directly to their allowed functions
   if (isManagerAuthenticated && !isAuthenticated) {
     const renderManagerContent = () => {
-      // Default to shift tab if no page selected
       const managerPage = currentPage || "shift";
-      
+
       switch (managerPage) {
         case "shift":
           return <ShiftPage />;
@@ -140,12 +131,10 @@ function MainApp() {
   }
 
   if (showSetup) {
-    console.log("Rendering Setup component");
     return <Setup onComplete={handleSetupComplete} />;
   }
 
   const renderActiveContent = () => {
-    // If a menu page is selected, show that instead of tab content
     if (currentPage) {
       switch (currentPage) {
         case "roDetails":
@@ -156,7 +145,6 @@ function MainApp() {
           return <TankManagementPage onBack={handleBackToMain} />;
         case "dispensingUnits":
           return <DispensingUnitsPage onBack={handleBackToMain} />;
-
         case "settings":
           return <SettingsPage onBack={handleBackToMain} />;
         case "shift":
@@ -172,7 +160,6 @@ function MainApp() {
       }
     }
 
-    // Otherwise show tab-based content
     switch (activeTab) {
       case "dashboard":
         return <Dashboard />;
@@ -189,7 +176,6 @@ function MainApp() {
 
   return (
     <div className="max-w-md mx-auto bg-white min-h-screen relative">
-      {/* Header */}
       <header className="bg-primary text-white p-4 flex items-center justify-between shadow-md">
         <SideMenu onMenuItemClick={handleMenuItemClick} />
         <div className="flex flex-col items-center">
@@ -197,7 +183,7 @@ function MainApp() {
             {t("app.name")}
           </h1>
           <span className="text-xs opacity-90" data-testid="app-header-subtitle">
-            {(retailOutlet as any)?.name || "Petrol Pump"}
+            {retailOutlet?.name || "Petrol Pump"}
           </span>
         </div>
         <div className="flex items-center space-x-2">
@@ -205,41 +191,30 @@ function MainApp() {
             <span>{i18n.language?.toUpperCase() || "EN"}</span>
           </button>
           <div className="w-8 h-8 bg-white/20 rounded-full flex items-center justify-center">
-            {(user as any)?.profileImageUrl ? (
-              <img 
-                src={(user as any).profileImageUrl} 
-                alt="Profile" 
+            {currentUser?.profileImageUrl ? (
+              <img
+                src={currentUser.profileImageUrl}
+                alt="Profile"
                 className="w-8 h-8 rounded-full object-cover"
                 data-testid="user-avatar"
               />
             ) : (
               <div className="text-sm" data-testid="user-avatar-fallback">
-                {((user as any)?.firstName || (user as any)?.email || "U").charAt(0).toUpperCase()}
+                {(currentUser?.firstName || currentUser?.email || "U").charAt(0).toUpperCase()}
               </div>
             )}
           </div>
         </div>
       </header>
 
-      {/* Main Content */}
       <main className="min-h-screen bg-surface">
         {renderActiveContent()}
       </main>
 
-      {/* Bottom Navigation - hide when viewing menu pages */}
       {!currentPage && (
         <BottomNavigation currentPage={activeTab} onNavigate={setActiveTab} userType="dealer" />
       )}
     </div>
-  );
-}
-
-function Router() {
-  return (
-    <Switch>
-      <Route path="/" component={MainApp} />
-      <Route component={NotFound} />
-    </Switch>
   );
 }
 
@@ -249,7 +224,7 @@ function App() {
       <TooltipProvider>
         <ShiftProvider>
           <Toaster />
-          <Router />
+          <MainApp />
         </ShiftProvider>
       </TooltipProvider>
     </QueryClientProvider>

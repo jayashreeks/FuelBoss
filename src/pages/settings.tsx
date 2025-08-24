@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useTranslation } from "react-i18next";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
@@ -11,8 +11,7 @@ import { Separator } from "@/components/ui/separator";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
 import { useAuth } from "@/hooks/useAuth";
-import { ArrowLeft, Settings, Languages, DollarSign, Shield, Fuel, LogOut } from "lucide-react";
-import { useEffect } from "react";
+import { ArrowLeft, Settings, Languages, DollarSign, Shield, LogOut } from "lucide-react";
 import type { SettingsData } from "@/types";
 
 interface SettingsPageProps {
@@ -22,6 +21,8 @@ interface SettingsPageProps {
 export default function SettingsPage({ onBack }: SettingsPageProps) {
   const { t, i18n } = useTranslation();
   const { toast } = useToast();
+  // Fix 1: Directly destructure 'user' from the useAuth hook.
+  // The 'user' object is already of type 'User | null'.
   const { user, logout } = useAuth();
   const queryClient = useQueryClient();
 
@@ -38,40 +39,29 @@ export default function SettingsPage({ onBack }: SettingsPageProps) {
     requireShiftConfirmation: true,
   });
 
-  
-  // const { data: settings, isLoading } = useQuery({
-  //   queryKey: ["/api/settings"],
-  //   onSuccess: (data) => {
-  //     if (data?.fuelPrices) {
-  //       setFuelPrices(data.fuelPrices);
-  //     }
-  //     if (data?.appSettings) {
-  //       setAppSettings(data.appSettings);
-  //     }
-  //   },
-  // });
-
+  // Fetch settings data with a specific type and queryFn
   const { data: settings, isLoading } = useQuery<SettingsData>({
     queryKey: ["/api/settings"],
+    queryFn: () => apiRequest("/api/settings", "GET"),
   });
 
+  // Use a more robust useEffect to initialize state when data is available
   useEffect(() => {
-    if (settings?.fuelPrices) {
-      setFuelPrices(settings.fuelPrices);
-    }
-    if (settings?.appSettings) {
-      setAppSettings(settings.appSettings);
+    if (settings) {
+      if (settings.fuelPrices) {
+        setFuelPrices(settings.fuelPrices);
+      }
+      if (settings.appSettings) {
+        setAppSettings(settings.appSettings);
+      }
     }
   }, [settings]);
 
-
-
+  // Correct the mutationFn to use apiRequest correctly.
   const updateSettingsMutation = useMutation({
-    mutationFn: async (data: any) => {
-      return apiRequest("/api/settings", {
-        method: "PATCH",
-        body: data,
-      });
+    mutationFn: async (data: Partial<SettingsData>) => {
+      // The apiRequest function should take URL, method, and data separately
+      return apiRequest("/api/settings", "PATCH", data);
     },
     onSuccess: () => {
       toast({
@@ -339,10 +329,11 @@ export default function SettingsPage({ onBack }: SettingsPageProps) {
           <CardContent>
             <div className="space-y-4">
               <div className="flex items-center space-x-3 p-3 bg-gray-50 rounded-lg">
+                {/* Fix 2: Remove the nested 'user' property access. */}
                 {user?.profileImageUrl ? (
-                  <img 
-                    src={user.profileImageUrl} 
-                    alt="Profile" 
+                  <img
+                    src={user.profileImageUrl}
+                    alt="Profile"
                     className="w-10 h-10 rounded-full object-cover"
                   />
                 ) : (

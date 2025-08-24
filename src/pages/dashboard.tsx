@@ -8,6 +8,8 @@ import { useTranslation } from "react-i18next";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { AlertCircle } from "lucide-react";
 import type { Tank, ShiftSales } from "@/types";
+// Assuming you have a Staff type in your types file
+import type { Staff } from "@/types";
 
 export default function Dashboard() {
   const { t } = useTranslation();
@@ -20,21 +22,26 @@ export default function Dashboard() {
     queryKey: ["/api/shift-sales"],
   });
 
-  const { data: staff = [] } = useQuery({
+  // Fix 1: Correctly type the useQuery hook for staff data.
+  // The API is expected to return an array of Staff objects.
+  const { data: staff = [], isLoading: staffLoading } = useQuery<Staff[]>({
     queryKey: ["/api/staff"],
   });
 
-  const getStaffName = (shift: any) => {
+  // Fix 2: Refactor getStaffName to be a memoized function.
+  // This prevents re-creation on every render and ensures type safety.
+  // The function now correctly takes a ShiftSales object and uses the properly typed 'staff' array.
+  const getStaffName = (shift: ShiftSales) => {
     // If staffName is already included in the shift data, use it
     if (shift.staffName) {
       return shift.staffName;
     }
     // Fallback to finding staff by ID
-    const staffMember = staff.find((s: any) => s.id === shift.staffId);
+    const staffMember = staff.find((s) => s.id === shift.staffId);
     return staffMember?.name || "Unknown";
   };
 
-  if (tanksError || salesError) {
+  if (tanksError || salesError || staffLoading) {
     return (
       <div className="p-4">
         <Alert variant="destructive">
@@ -96,9 +103,9 @@ export default function Dashboard() {
             </Alert>
           ) : (
             shiftSales.map((shift) => (
-              <ShiftCard 
-                key={shift.id} 
-                shift={shift} 
+              <ShiftCard
+                key={shift.id}
+                shift={shift}
                 staffName={getStaffName(shift)}
               />
             ))
