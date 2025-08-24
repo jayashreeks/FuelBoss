@@ -29,7 +29,7 @@ export type Product = {
   id: string;
   retailOutletId: string;
   name: string;
-  pricePerLiter: string;
+  pricePerLiter: number; // Changed from string to number
   isActive?: boolean | null;
   createdAt?: Date | null;
   updatedAt?: Date | null;
@@ -38,7 +38,7 @@ export type Product = {
 export type InsertProduct = {
   retailOutletId: string;
   name: string;
-  pricePerLiter: string;
+  pricePerLiter: number; // Changed from string to number
   isActive?: boolean | null;
 };
 
@@ -46,15 +46,34 @@ export type Tank = {
   id: string;
   retailOutletId: string;
   productId: string;
-  tankNumber: string;
-  capacity: string;
-  length: string;
-  diameter: string;
+  tankNumber: number; // Changed from string to number
+  capacity: number; // Changed from string to number
+  length: number; // Changed from string to number
+  diameter: number; // Changed from string to number
   isActive?: boolean | null;
   createdAt?: Date | null;
   updatedAt?: Date | null;
-  currentStock?: string;
+  currentStock?: number; // Changed from string to number
   productName?: string;
+  fuelType?: string; // Added to match the tank-card.tsx error
+};
+
+interface FuelPrices {
+  petrolPrice: number;
+  dieselPrice: number;
+  cngPrice: number;
+}
+
+interface AppSettings {
+  enableNotifications: boolean;
+  autoBackup: boolean;
+  showLowStockAlerts: boolean;
+  requireShiftConfirmation: boolean;
+}
+
+export type SettingsData = {
+  fuelPrices: FuelPrices;
+  appSettings: AppSettings;
 };
 
 export type Staff = {
@@ -78,11 +97,11 @@ export type ShiftSales = {
   shiftType: string;
   startTime: Date;
   endTime: Date;
-  cashSales?: string | null;
-  creditSales?: string | null;
-  upiSales?: string | null;
-  cardSales?: string | null;
-  totalSales?: string | null;
+  cashSales?: number | null; // Changed from string to number
+  creditSales?: number | null; // Changed from string to number
+  upiSales?: number | null; // Changed from string to number
+  cardSales?: number | null; // Changed from string to number
+  totalSales?: number | null; // Changed from string to number
   notes?: string | null;
   createdAt?: Date | null;
   updatedAt?: Date | null;
@@ -116,14 +135,14 @@ export type NozzleReading = {
   attendantId: string;
   shiftType: string;
   shiftDate: string;
-  previousReading: string;
-  currentReading: string;
-  testing?: string | null;
-  totalSale: string;
-  cashSales?: string | null;
-  creditSales?: string | null;
-  upiSales?: string | null;
-  cardSales?: string | null;
+  previousReading: number; // Changed from string to number
+  currentReading: number; // Changed from string to number
+  testing?: number | null; // Changed from string to number
+  totalSale: number; // Changed from string to number
+  cashSales?: number | null; // Changed from string to number
+  creditSales?: number | null; // Changed from string to number
+  upiSales?: number | null; // Changed from string to number
+  cardSales?: number | null; // Changed from string to number
   createdAt?: Date | null;
   updatedAt?: Date | null;
 };
@@ -156,9 +175,20 @@ export type StockEntry = {
   managerId: string;
   shiftType: "morning" | "evening" | "night";
   shiftDate: string;
-  openingStock: string;
-  receipt: string;
-  invoiceValue: string;
+  openingStock: number; // Changed from string to number
+  receipt: number; // Changed from string to number
+  invoiceValue: number; // Changed from string to number
   createdAt?: Date | null;
   updatedAt?: Date | null;
 };
+
+export interface ReportData {
+  paymentMethodBreakdown: {
+    cash: number;
+    card: number;
+    upi: number;
+    credit: number;
+  };
+  weeklySales: Array<{ date: string; total: number }>;
+  monthlySales: Array<{ month: string; total: number }>;
+}

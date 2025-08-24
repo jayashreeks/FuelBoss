@@ -13,27 +13,10 @@ import { apiRequest } from "@/lib/queryClient";
 import { useAuth } from "@/hooks/useAuth";
 import { ArrowLeft, Settings, Languages, DollarSign, Shield, Fuel, LogOut } from "lucide-react";
 import { useEffect } from "react";
+import type { SettingsData } from "@/types";
 
 interface SettingsPageProps {
   onBack: () => void;
-}
-
-interface FuelPrices {
-  petrolPrice: number;
-  dieselPrice: number;
-  cngPrice: number;
-}
-
-interface AppSettings {
-  enableNotifications: boolean;
-  autoBackup: boolean;
-  showLowStockAlerts: boolean;
-  requireShiftConfirmation: boolean;
-}
-
-interface SettingsData {
-  fuelPrices: FuelPrices;
-  appSettings: AppSettings;
 }
 
 export default function SettingsPage({ onBack }: SettingsPageProps) {
