@@ -48,19 +48,20 @@ export default function StockPage({ onBack }: StockPageProps) {
     invoiceValue: string;
   }>>({});
 
-  // Fix 1: Add queryFn to properly type the useQuery hooks
-  const { data: tanks = [], isLoading: tanksLoading } = useQuery<Tank[]>({
+  // Fix: Remove the explicit type argument <Tank[]>
+  const { data: tanks = [], isLoading: tanksLoading } = useQuery({
     queryKey: ["/api/manager/tanks"],
     queryFn: () => apiRequest<Tank[]>("/api/manager/tanks"),
   });
 
-  const { data: stockEntries = [], isLoading: stockLoading } = useQuery<StockEntry[]>({
+  // Fix: Remove the explicit type argument <StockEntry[]>
+  const { data: stockEntries = [], isLoading: stockLoading } = useQuery({
     queryKey: ["/api/manager/stock", selectedShiftType, selectedDate],
     queryFn: () => apiRequest<StockEntry[]>(`/api/manager/stock?shiftType=${selectedShiftType}&shiftDate=${selectedDate}`),
     enabled: !!selectedShiftType && !!selectedDate,
   });
   
-  // Fix 2: Use useMemo to efficiently initialize formData and handle data changes
+  // The rest of your code is correctly structured.
   const initialFormData = useMemo(() => {
     const initialData: Record<string, {
       openingStock: string;
@@ -83,7 +84,6 @@ export default function StockPage({ onBack }: StockPageProps) {
     setFormData(initialFormData);
   }, [initialFormData]);
 
-  // Use a unified mutation function to reduce code duplication
   const stockMutation = useMutation({
     mutationFn: async ({ tankId, data }: { tankId: string; data: any }) => {
       const existingEntry = stockEntries.find(entry => entry.tankId === tankId);
@@ -97,7 +97,7 @@ export default function StockPage({ onBack }: StockPageProps) {
       toast({ title: "Success", description: "Stock entry saved successfully" });
       queryClient.invalidateQueries({ queryKey: ["/api/manager/stock"] });
     },
-    onError: (error: any) => { // Explicitly type error
+    onError: (error: any) => {
       toast({ title: "Error", description: `Failed to save stock entry: ${error.message}`, variant: "destructive" });
     },
   });

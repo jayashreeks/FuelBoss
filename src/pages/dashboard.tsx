@@ -7,31 +7,31 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { useTranslation } from "react-i18next";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { AlertCircle } from "lucide-react";
-import { apiRequest } from "@/lib/queryClient"; // Assuming you have this function
+import { apiRequest } from "@/lib/queryClient"; 
 import type { Tank, ShiftSales, Staff } from "@/types";
 
 export default function Dashboard() {
   const { t } = useTranslation();
 
-  // Fix 1: Add the queryFn to properly configure useQuery.
-  // The type is inferred from the return of apiRequest.
-  const { data: tanks = [], isLoading: tanksLoading, error: tanksError } = useQuery<Tank[]>({
+  // Fix: Remove the explicit type argument <Tank[]>
+  const { data: tanks = [], isLoading: tanksLoading, error: tanksError } = useQuery({
     queryKey: ["/api/tanks"],
     queryFn: () => apiRequest<Tank[]>("/api/tanks"),
   });
 
-  const { data: shiftSales = [], isLoading: salesLoading, error: salesError } = useQuery<ShiftSales[]>({
+  // Fix: Remove the explicit type argument <ShiftSales[]>
+  const { data: shiftSales = [], isLoading: salesLoading, error: salesError } = useQuery({
     queryKey: ["/api/shift-sales"],
     queryFn: () => apiRequest<ShiftSales[]>("/api/shift-sales"),
   });
 
-  const { data: staff = [], isLoading: staffLoading } = useQuery<Staff[]>({
+  // Fix: Remove the explicit type argument <Staff[]>
+  const { data: staff = [], isLoading: staffLoading } = useQuery({
     queryKey: ["/api/staff"],
     queryFn: () => apiRequest<Staff[]>("/api/staff"),
   });
 
-  // Fix 2: Refactor getStaffName to be a memoized function.
-  // This prevents re-creation on every render and ensures type safety.
+  // This function is fine as long as your 'staff' data is correctly typed.
   const getStaffName = (shift: ShiftSales) => {
     const staffMember = staff.find((s) => s.id === shift.staffId);
     return staffMember?.name || "Unknown";
