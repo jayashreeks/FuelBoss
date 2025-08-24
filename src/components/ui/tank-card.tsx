@@ -11,8 +11,8 @@ interface TankCardProps {
 export function TankCard({ tank }: TankCardProps) {
   const { t } = useTranslation();
   
-  const currentStock = parseFloat(tank.currentStock || "0");
-  const capacity = parseFloat(tank.capacity);
+  const currentStock = parseFloat(tank.currentStock?.toString() || "0");
+  const capacity = parseFloat(tank.capacity?.toString());
   const fillPercentage = (currentStock / capacity) * 100;
   
   const getStatusColor = () => {

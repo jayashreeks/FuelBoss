@@ -5,11 +5,12 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { AlertCircle } from "lucide-react";
 import { useTranslation } from "react-i18next";
+import { ReportData } from "@/types";
 
 export default function Reports() {
   const { t } = useTranslation();
 
-  const { data: stats, isLoading, error } = useQuery({
+  const { data: stats, isLoading, error } = useQuery<ReportData>({
     queryKey: ["/api/sales-stats"],
   });
 
@@ -17,7 +18,8 @@ export default function Reports() {
     return `₹${amount.toLocaleString()}`;
   };
 
-  const calculatePercentages = (breakdown: any) => {
+  // Explicitly type the breakdown parameter to avoid errors
+  const calculatePercentages = (breakdown: ReportData['paymentMethodBreakdown']) => {
     const total = breakdown.cash + breakdown.credit + breakdown.upi + breakdown.card;
     if (total === 0) return { cash: 0, credit: 0, upi: 0, card: 0 };
     
@@ -51,7 +53,13 @@ export default function Reports() {
     );
   }
 
-  const percentages = stats ? calculatePercentages(stats.paymentMethodBreakdown) : null;
+  // Calculate totals from arrays as defined in your types.ts
+  const weeklyTotal = stats?.weeklySales.reduce((acc, sale) => acc + sale.total, 0) || 0;
+  const monthlyTotal = stats?.monthlySales.reduce((acc, sale) => acc + sale.total, 0) || 0;
+
+  // Check if stats and paymentMethodBreakdown exist before calculating percentages
+  const percentages = stats && stats.paymentMethodBreakdown ? calculatePercentages(stats.paymentMethodBreakdown) : null;
+  const hasBreakdownData = stats && Object.values(stats.paymentMethodBreakdown).some(value => value > 0);
 
   return (
     <div className="p-4 pb-20">
@@ -70,13 +78,13 @@ export default function Reports() {
             <div className="grid grid-cols-2 gap-4 text-center">
               <div>
                 <p className="text-2xl font-bold text-primary" data-testid="weekly-sales">
-                  {stats ? formatCurrency(stats.weeklySales) : "₹0"}
+                  {formatCurrency(weeklyTotal)}
                 </p>
                 <p className="text-sm text-gray-600">{t("reports.thisWeek")}</p>
               </div>
               <div>
                 <p className="text-2xl font-bold text-secondary" data-testid="monthly-sales">
-                  {stats ? formatCurrency(stats.monthlySales) : "₹0"}
+                  {formatCurrency(monthlyTotal)}
                 </p>
                 <p className="text-sm text-gray-600">{t("reports.thisMonth")}</p>
               </div>
@@ -91,7 +99,7 @@ export default function Reports() {
             </CardTitle>
           </CardHeader>
           <CardContent>
-            {!stats || !percentages ? (
+            {!hasBreakdownData ? (
               <Alert>
                 <AlertCircle className="h-4 w-4" />
                 <AlertDescription>
@@ -103,39 +111,39 @@ export default function Reports() {
                 <div className="flex items-center justify-between">
                   <span className="text-sm text-gray-600">{t("common.upi")}</span>
                   <div className="flex items-center space-x-2">
-                    <Progress value={percentages.upi} className="w-20 h-2" data-testid="progress-upi" />
+                    <Progress value={percentages?.upi} className="w-20 h-2" data-testid="progress-upi" />
                     <span className="text-sm font-medium w-10 text-right" data-testid="percentage-upi">
-                      {percentages.upi.toFixed(0)}%
+                      {percentages?.upi.toFixed(0)}%
                     </span>
                   </div>
                 </div>
-                
+
                 <div className="flex items-center justify-between">
                   <span className="text-sm text-gray-600">{t("common.cash")}</span>
                   <div className="flex items-center space-x-2">
-                    <Progress value={percentages.cash} className="w-20 h-2" data-testid="progress-cash" />
+                    <Progress value={percentages?.cash} className="w-20 h-2" data-testid="progress-cash" />
                     <span className="text-sm font-medium w-10 text-right" data-testid="percentage-cash">
-                      {percentages.cash.toFixed(0)}%
+                      {percentages?.cash.toFixed(0)}%
                     </span>
                   </div>
                 </div>
-                
+
                 <div className="flex items-center justify-between">
                   <span className="text-sm text-gray-600">{t("common.card")}</span>
                   <div className="flex items-center space-x-2">
-                    <Progress value={percentages.card} className="w-20 h-2" data-testid="progress-card" />
+                    <Progress value={percentages?.card} className="w-20 h-2" data-testid="progress-card" />
                     <span className="text-sm font-medium w-10 text-right" data-testid="percentage-card">
-                      {percentages.card.toFixed(0)}%
+                      {percentages?.card.toFixed(0)}%
                     </span>
                   </div>
                 </div>
-                
+
                 <div className="flex items-center justify-between">
                   <span className="text-sm text-gray-600">{t("common.credit")}</span>
                   <div className="flex items-center space-x-2">
-                    <Progress value={percentages.credit} className="w-20 h-2" data-testid="progress-credit" />
+                    <Progress value={percentages?.credit} className="w-20 h-2" data-testid="progress-credit" />
                     <span className="text-sm font-medium w-10 text-right" data-testid="percentage-credit">
-                      {percentages.credit.toFixed(0)}%
+                      {percentages?.credit.toFixed(0)}%
                     </span>
                   </div>
                 </div>

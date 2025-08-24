@@ -27,7 +27,7 @@ export default function ProductsPage({ onBack }: ProductsPageProps) {
   const [formData, setFormData] = useState<InsertProduct>({
     retailOutletId: "",
     name: "",
-    pricePerLiter: "0",
+    pricePerLiter: 0,
   });
 
   const { data: products = [], isLoading } = useQuery<Product[]>({
@@ -102,7 +102,7 @@ export default function ProductsPage({ onBack }: ProductsPageProps) {
     setFormData({
       retailOutletId: "",
       name: "",
-      pricePerLiter: "0",
+      pricePerLiter: 0,
     });
     setEditingProduct(null);
   };
@@ -120,7 +120,7 @@ export default function ProductsPage({ onBack }: ProductsPageProps) {
       return;
     }
     
-    if (!formData.pricePerLiter || parseFloat(formData.pricePerLiter) <= 0) {
+    if (formData.pricePerLiter === null || formData.pricePerLiter <= 0) {
       toast({
         title: t("common.error"),
         description: t("products.validPriceRequired"),
@@ -215,7 +215,10 @@ export default function ProductsPage({ onBack }: ProductsPageProps) {
                 <Input
                   id="name"
                   value={formData.name}
-                  onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                  onChange={(e) => setFormData({ 
+                    ...formData, 
+                    pricePerLiter: parseFloat(e.target.value) || 0, // Converts string to number
+                  })}
                   placeholder={t("products.enterProductName")}
                   required
                   data-testid="input-product-name"
@@ -231,7 +234,10 @@ export default function ProductsPage({ onBack }: ProductsPageProps) {
                   type="number"
                   step="0.01"
                   value={formData.pricePerLiter}
-                  onChange={(e) => setFormData({ ...formData, pricePerLiter: e.target.value })}
+                  onChange={(e) => setFormData({ 
+                    ...formData, 
+                    pricePerLiter: parseFloat(e.target.value) || 0, // Converts string to number
+                    })}
                   placeholder="0.00"
                   required
                   data-testid="input-price"
@@ -317,7 +323,7 @@ export default function ProductsPage({ onBack }: ProductsPageProps) {
                 <div className="text-sm">
                   <div>
                     <p className="text-gray-600">{t("products.pricePerLiter")}</p>
-                    <p className="font-medium text-lg">₹{parseFloat(product.pricePerLiter).toFixed(2)}</p>
+                    <p className="font-medium text-lg">₹{product.pricePerLiter.toFixed(2)}</p>
                   </div>
                 </div>
               </CardContent>

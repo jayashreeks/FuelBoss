@@ -13,6 +13,15 @@ export type User = {
   updatedAt?: Date | null;
 };
 
+export type Manager = {
+  id: string;
+  email?: string | null;
+  firstName?: string | null;
+  role?: string | null;
+  profileImageUrl?: string | null;
+  // Add other manager-specific fields as needed
+};
+
 export type RetailOutlet = {
   id: string;
   ownerId: string;
