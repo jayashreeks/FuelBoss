@@ -16,19 +16,19 @@ export default function Dashboard() {
   // Fix: Removed the explicit type argument <Tank[]>
   const { data: tanks = [], isLoading: tanksLoading, error: tanksError } = useQuery({
     queryKey: ["/api/tanks"],
-    queryFn: () => apiRequest<Tank[]>("/api/tanks"),
+    queryFn: () => apiRequest("/api/tanks"),
   });
 
   // Fix: Removed the explicit type argument <ShiftSales[]>
   const { data: shiftSales = [], isLoading: salesLoading, error: salesError } = useQuery({
     queryKey: ["/api/shift-sales"],
-    queryFn: () => apiRequest<ShiftSales[]>("/api/shift-sales"),
+    queryFn: () => apiRequest("/api/shift-sales"),
   });
 
   // Fix: Removed the explicit type argument <Staff[]>
   const { data: staff = [], isLoading: staffLoading } = useQuery({
     queryKey: ["/api/staff"],
-    queryFn: () => apiRequest<Staff[]>("/api/staff"),
+    queryFn: () => apiRequest("/api/staff"),
   });
 
   const getStaffName = (shift: ShiftSales) => {

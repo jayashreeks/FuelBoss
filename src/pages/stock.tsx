@@ -51,13 +51,13 @@ export default function StockPage({ onBack }: StockPageProps) {
   // Fix: Remove the explicit type argument <Tank[]>
   const { data: tanks = [], isLoading: tanksLoading } = useQuery({
     queryKey: ["/api/manager/tanks"],
-    queryFn: () => apiRequest<Tank[]>("/api/manager/tanks"),
+    queryFn: () => apiRequest("/api/manager/tanks"),
   });
 
   // Fix: Remove the explicit type argument <StockEntry[]>
   const { data: stockEntries = [], isLoading: stockLoading } = useQuery({
     queryKey: ["/api/manager/stock", selectedShiftType, selectedDate],
-    queryFn: () => apiRequest<StockEntry[]>(`/api/manager/stock?shiftType=${selectedShiftType}&shiftDate=${selectedDate}`),
+    queryFn: () => apiRequest(`/api/manager/stock?shiftType=${selectedShiftType}&shiftDate=${selectedDate}`),
     enabled: !!selectedShiftType && !!selectedDate,
   });
   
