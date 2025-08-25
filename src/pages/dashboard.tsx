@@ -13,25 +13,24 @@ import type { Tank, ShiftSales, Staff } from "@/types";
 export default function Dashboard() {
   const { t } = useTranslation();
 
-  // Fix: Remove the explicit type argument <Tank[]>
+  // Fix: Removed the explicit type argument <Tank[]>
   const { data: tanks = [], isLoading: tanksLoading, error: tanksError } = useQuery({
     queryKey: ["/api/tanks"],
     queryFn: () => apiRequest<Tank[]>("/api/tanks"),
   });
 
-  // Fix: Remove the explicit type argument <ShiftSales[]>
+  // Fix: Removed the explicit type argument <ShiftSales[]>
   const { data: shiftSales = [], isLoading: salesLoading, error: salesError } = useQuery({
     queryKey: ["/api/shift-sales"],
     queryFn: () => apiRequest<ShiftSales[]>("/api/shift-sales"),
   });
 
-  // Fix: Remove the explicit type argument <Staff[]>
+  // Fix: Removed the explicit type argument <Staff[]>
   const { data: staff = [], isLoading: staffLoading } = useQuery({
     queryKey: ["/api/staff"],
     queryFn: () => apiRequest<Staff[]>("/api/staff"),
   });
 
-  // This function is fine as long as your 'staff' data is correctly typed.
   const getStaffName = (shift: ShiftSales) => {
     const staffMember = staff.find((s) => s.id === shift.staffId);
     return staffMember?.name || "Unknown";

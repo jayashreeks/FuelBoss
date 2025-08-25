@@ -19,6 +19,7 @@ export type Manager = {
   firstName?: string | null;
   role?: string | null;
   profileImageUrl?: string | null;
+  language?: string | null;
   // Add other manager-specific fields as needed
 };
 
