@@ -19,7 +19,7 @@ export function useAuth() {
   });
 
   const login = () => {
-    window.location.href = "/api/auth/google";
+    window.location.href = `${import.meta.env.VITE_API_URL}/api/auth/google`;
   };
 
   const logout = async () => {
