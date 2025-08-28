@@ -1,3 +1,4 @@
+// login.tsx
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -12,12 +13,14 @@ import { Eye, EyeOff, AlertCircle, Building2, User, Chrome } from "lucide-react"
 import { useTranslation } from "react-i18next";
 import { apiRequest } from "@/lib/queryClient";
 
+// 🚨 Add this line to access the Vercel environment variable
+const API_URL = import.meta.env.VITE_API_URL;
+
 const loginSchema = z.object({
   role: z.enum(["dealer", "manager"]),
   phoneNumber: z.string().min(1, "Phone number is required"),
   password: z.string().optional(),
 }).refine((data) => {
-  // Password is required for managers
   if (data.role === "manager") {
     return data.password && data.password.length > 0;
   }
@@ -47,14 +50,18 @@ export default function Login() {
   const selectedRole = form.watch("role");
 
   const handleGoogleLogin = () => {
-    // Redirect to Google OAuth
-    window.location.href = "/api/auth/google";
+    // 🚨 FIX: Redirect to the full backend URL, not a relative path
+    if (API_URL) {
+      window.location.href = `${API_URL}/api/auth/google`;
+    } else {
+      setError("API URL not configured.");
+    }
   };
 
   const onSubmit = async (data: LoginForm) => {
     setIsLoading(true);
     setError(null);
-    
+
     try {
       if (data.role === "dealer") {
         // Redirect to Google OAuth for dealer login
@@ -65,9 +72,8 @@ export default function Login() {
           phoneNumber: data.phoneNumber,
           password: data.password,
         });
-        
+
         if (response.success) {
-          // Redirect to manager dashboard
           window.location.reload();
         } else {
           setError(response.message || "Invalid manager credentials");
@@ -98,7 +104,7 @@ export default function Login() {
               <AlertDescription>{error}</AlertDescription>
             </Alert>
           )}
-          
+
           <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
               <FormField
@@ -134,7 +140,6 @@ export default function Login() {
               />
 
               {selectedRole === "dealer" ? (
-                // Google OAuth login for dealers
                 <div className="space-y-4">
                   <Button
                     type="button"
@@ -150,7 +155,6 @@ export default function Login() {
                   </div>
                 </div>
               ) : (
-                // Manager login form
                 <>
                   <FormField
                     control={form.control}
@@ -159,9 +163,9 @@ export default function Login() {
                       <FormItem>
                         <FormLabel>Phone Number (Login ID)</FormLabel>
                         <FormControl>
-                          <Input 
+                          <Input
                             placeholder="Enter manager phone number"
-                            {...field} 
+                            {...field}
                             data-testid="input-phone-number"
                           />
                         </FormControl>
@@ -178,10 +182,10 @@ export default function Login() {
                         <FormLabel>Password</FormLabel>
                         <FormControl>
                           <div className="relative">
-                            <Input 
+                            <Input
                               type={showPassword ? "text" : "password"}
-                              placeholder="Enter your password" 
-                              {...field} 
+                              placeholder="Enter your password"
+                              {...field}
                               data-testid="input-password"
                             />
                             <Button

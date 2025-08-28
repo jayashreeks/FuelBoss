@@ -12,6 +12,8 @@ import { Eye, EyeOff, AlertCircle, Building2, User } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { apiRequest } from "@/lib/queryClient";
 
+const API_URL = import.meta.env.VITE_API_URL;
+
 const loginSchema = z.object({
   role: z.enum(["dealer", "manager"]),
   phoneNumber: z.string().min(1, "Phone number is required"),
@@ -52,8 +54,12 @@ export default function UnifiedLogin() {
     
     try {
       if (data.role === "dealer") {
-        // Redirect to Google OAuth for dealer login
-        window.location.href = "/api/auth/google";
+        // 🚨 FIX: Redirect to the full backend URL for dealer login
+        if (API_URL) {
+          window.location.href = `${API_URL}/api/auth/google`;
+        } else {
+          setError("API URL not configured.");
+        }
       } else {
         // Manager login via API
         const response = await apiRequest("/api/manager/login", "POST", {
