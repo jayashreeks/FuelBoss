@@ -48,7 +48,7 @@ export type Product = {
 export type InsertProduct = {
   retailOutletId: string;
   name: string;
-  pricePerLiter: number; // Changed from string to number
+  pricePerLiter: string; // Changed from string to number
   isActive?: boolean | null;
 };
 

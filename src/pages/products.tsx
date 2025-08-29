@@ -16,11 +16,11 @@ import type { Product, InsertProduct, RetailOutlet } from "@/types";
 import { userInfo } from "os";
 
 interface ProductsPageProps {
-  onBack: () => void;
-  retailOutlet: RetailOutlet | null;
+  onBack: () => void,
+  retailOutlet: RetailOutlet;
 }
 
-export default function ProductsPage({ onBack,retailOutlet }: ProductsPageProps) {
+export default function ProductsPage({ onBack, retailOutlet }: ProductsPageProps) {
   const { t } = useTranslation();
   const { toast } = useToast();
   const queryClient = useQueryClient();
@@ -28,9 +28,9 @@ export default function ProductsPage({ onBack,retailOutlet }: ProductsPageProps)
   const [editingProduct, setEditingProduct] = useState<Product | null>(null);
 
   const [formData, setFormData] = useState<InsertProduct>({
-    retailOutletId: "",
+    retailOutletId: retailOutlet.id,
     name: "",
-    pricePerLiter: 0,
+    pricePerLiter: "0",
   });
 
   const { data: products = [], isLoading } = useQuery<Product[]>({
@@ -103,9 +103,9 @@ export default function ProductsPage({ onBack,retailOutlet }: ProductsPageProps)
 
   const resetForm = () => {
     setFormData({
-      retailOutletId: "",
+      retailOutletId: retailOutlet.id,
       name: "",
-      pricePerLiter: 0,
+      pricePerLiter: "0",
     });
     setEditingProduct(null);
   };
@@ -123,7 +123,7 @@ export default function ProductsPage({ onBack,retailOutlet }: ProductsPageProps)
       return;
     }
     
-    if (formData.pricePerLiter === null || formData.pricePerLiter <= 0) {
+    if (formData.pricePerLiter === null || parseFloat(formData.pricePerLiter) <= 0) {
       toast({
         title: t("common.error"),
         description: t("products.validPriceRequired"),
@@ -131,17 +131,12 @@ export default function ProductsPage({ onBack,retailOutlet }: ProductsPageProps)
       });
       return;
     }
-
-    ;
-    const productDataWithId = {
-      ...formData,
-      retailOutletId: retailOutlet.id,
-   };
+    console.log("Form Data Submitted:", formData); // Debugging line
 
     if (editingProduct) {
-      updateMutation.mutate({ id: editingProduct.id, product: productDataWithId });
+      updateMutation.mutate({ id: editingProduct.id, product: formData });
     } else {
-      createMutation.mutate(productDataWithId);
+      createMutation.mutate(formData);
     }
   };
 
@@ -150,7 +145,7 @@ export default function ProductsPage({ onBack,retailOutlet }: ProductsPageProps)
     setFormData({
       retailOutletId: product.retailOutletId,
       name: product.name,
-      pricePerLiter: product.pricePerLiter,
+      pricePerLiter: product.pricePerLiter.toString(),
     });
     setIsDialogOpen(true);
   };
@@ -245,7 +240,7 @@ export default function ProductsPage({ onBack,retailOutlet }: ProductsPageProps)
                   value={formData.pricePerLiter}
                   onChange={(e) => setFormData({ 
                     ...formData, 
-                    pricePerLiter: parseFloat(e.target.value) || 0, // Converts string to number
+                    pricePerLiter: e.target.value || "0", // Converts string to number
                     })}
                   placeholder="0.00"
                   required
@@ -332,7 +327,7 @@ export default function ProductsPage({ onBack,retailOutlet }: ProductsPageProps)
                 <div className="text-sm">
                   <div>
                     <p className="text-gray-600">{t("products.pricePerLiter")}</p>
-                    <p className="font-medium text-lg">₹{product.pricePerLiter.toFixed(2)}</p>
+                    <p className="font-medium text-lg">₹{product.pricePerLiter}</p>
                   </div>
                 </div>
               </CardContent>
