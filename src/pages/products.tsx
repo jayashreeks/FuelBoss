@@ -12,6 +12,7 @@ import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
 import { ArrowLeft, Plus, Edit, Trash2, Package } from "lucide-react";
 import type { Product, InsertProduct } from "@/types";
+import { userInfo } from "os";
 
 interface ProductsPageProps {
   onBack: () => void;
@@ -128,6 +129,8 @@ export default function ProductsPage({ onBack }: ProductsPageProps) {
       });
       return;
     }
+
+    console.log("retailOutletId"+formData.retailOutletId);
 
     if (editingProduct) {
       updateMutation.mutate({ id: editingProduct.id, product: formData });
