@@ -11,14 +11,16 @@ import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
 import { ArrowLeft, Plus, Edit, Trash2, Package } from "lucide-react";
-import type { Product, InsertProduct } from "@/types";
+import type { Product, InsertProduct, RetailOutlet } from "@/types";
+
 import { userInfo } from "os";
 
 interface ProductsPageProps {
   onBack: () => void;
+  retailOutlet: RetailOutlet | null;
 }
 
-export default function ProductsPage({ onBack }: ProductsPageProps) {
+export default function ProductsPage({ onBack,retailOutlet }: ProductsPageProps) {
   const { t } = useTranslation();
   const { toast } = useToast();
   const queryClient = useQueryClient();
@@ -130,12 +132,16 @@ export default function ProductsPage({ onBack }: ProductsPageProps) {
       return;
     }
 
-    console.log("retailOutletId"+formData.retailOutletId);
+    ;
+    const productDataWithId = {
+      ...formData,
+      retailOutletId: retailOutlet.id,
+   };
 
     if (editingProduct) {
-      updateMutation.mutate({ id: editingProduct.id, product: formData });
+      updateMutation.mutate({ id: editingProduct.id, product: productDataWithId });
     } else {
-      createMutation.mutate(formData);
+      createMutation.mutate(productDataWithId);
     }
   };
 
