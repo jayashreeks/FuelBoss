@@ -217,7 +217,7 @@ export default function ProductsPage({ onBack }: ProductsPageProps) {
                   value={formData.name}
                   onChange={(e) => setFormData({ 
                     ...formData, 
-                    pricePerLiter: parseFloat(e.target.value) || 0, // Converts string to number
+                    name: e.target.value,
                   })}
                   placeholder={t("products.enterProductName")}
                   required
