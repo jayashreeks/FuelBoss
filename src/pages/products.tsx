@@ -16,11 +16,10 @@ import type { Product, InsertProduct, RetailOutlet } from "@/types";
 import { userInfo } from "os";
 
 interface ProductsPageProps {
-  onBack: () => void,
-  retailOutlet: RetailOutlet;
+  onBack: () => void
 }
 
-export default function ProductsPage({ onBack, retailOutlet }: ProductsPageProps) {
+export default function ProductsPage({ onBack }: ProductsPageProps) {
   const { t } = useTranslation();
   const { toast } = useToast();
   const queryClient = useQueryClient();
@@ -28,7 +27,7 @@ export default function ProductsPage({ onBack, retailOutlet }: ProductsPageProps
   const [editingProduct, setEditingProduct] = useState<Product | null>(null);
 
   const [formData, setFormData] = useState<InsertProduct>({
-    retailOutletId: retailOutlet.id,
+    retailOutletId: "",
     name: "",
     pricePerLiter: "0",
   });
@@ -103,7 +102,7 @@ export default function ProductsPage({ onBack, retailOutlet }: ProductsPageProps
 
   const resetForm = () => {
     setFormData({
-      retailOutletId: retailOutlet.id,
+      retailOutletId: "",
       name: "",
       pricePerLiter: "0",
     });
