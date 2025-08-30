@@ -335,6 +335,8 @@ export default function ReadingsPage({ onBack }: ReadingsPageProps) {
                 <ArrowLeft className="h-5 w-5" />
               </Button>
             )}
+          </div>
+          <div className="flex items-center space-x-3">
             <h1 className="text-xl font-semibold" data-testid="page-title">
               Nozzle Readings
             </h1>

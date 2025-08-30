@@ -28,7 +28,7 @@ export function useAuth() {
       //    This resolves the 'Property 'env' does not exist on type 'ImportMeta'' error.
       const API_BASE = import.meta.env.VITE_API_URL || '';
       await fetch(`${API_BASE}/api/logout`, {
-        method: "GET",
+        method: "POST",
         credentials: "include"
       });
       queryClient.clear();
