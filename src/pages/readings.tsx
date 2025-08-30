@@ -322,7 +322,7 @@ export default function ReadingsPage({ onBack }: ReadingsPageProps) {
   return (
     <div className="min-h-screen bg-surface pb-20">
       <div className="bg-primary text-white p-4">
-        <div className="flex items-center justify-between">
+        <div className="flex items-center">
           <div className="flex items-center space-x-3">
             {onBack && (
               <Button
@@ -336,11 +336,9 @@ export default function ReadingsPage({ onBack }: ReadingsPageProps) {
               </Button>
             )}
           </div>
-          <div className="flex items-center space-x-3">
-            <h1 className="text-xl font-semibold" data-testid="page-title">
-              Nozzle Readings
-            </h1>
-          </div>
+          <h1 className="flex-grow text-xl font-semibold text-center" data-testid="page-title">
+            Nozzle Readings
+          </h1>
         </div>
       </div>
 
