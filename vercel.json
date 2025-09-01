@@ -12,14 +12,7 @@
   "routes": [
     {
       "src": "/(.*)",
-      "dest": "/index.html",
-      "has": [
-        {
-          "type": "header",
-          "key": "accept",
-          "value": "text/html"
-        }
-      ]
+      "dest": "/index.html"
     }
   ]
 }
