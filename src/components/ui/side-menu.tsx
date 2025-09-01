@@ -20,12 +20,12 @@ import { useAuth } from "@/hooks/useAuth";
 import { useState } from "react";
 
 interface SideMenuProps {
-  onMenuItemClick?: (item: string) => void;
+  onNavigate?: (page: string) => void; // <-- updated prop name
   currentUser?: any;
   userRole?: "dealer" | "manager";
 }
 
-export function SideMenu({ onMenuItemClick, currentUser, userRole = "dealer" }: SideMenuProps) {
+export function SideMenu({ onNavigate, currentUser, userRole = "dealer" }: SideMenuProps) {
   const { t, i18n } = useTranslation();
   const { user, logout } = useAuth();
   const [open, setOpen] = useState(false);
@@ -82,7 +82,7 @@ export function SideMenu({ onMenuItemClick, currentUser, userRole = "dealer" }: 
   const menuItems = userRole === "manager" ? managerMenuItems : dealerMenuItems;
 
   const handleMenuItemClick = (itemId: string) => {
-    onMenuItemClick?.(itemId);
+    onNavigate?.(itemId); // <-- use new prop name
     setOpen(false);
   };
 

@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useEffect } from "react";
 import { QueryClientProvider, useQuery } from "@tanstack/react-query";
 import { queryClient } from "./lib/queryClient";
 import { Toaster } from "@/components/ui/toaster";
@@ -10,6 +10,14 @@ import { BottomNavigation } from "@/components/ui/bottom-navigation";
 import { SideMenu } from "@/components/ui/side-menu";
 import { useTranslation } from "react-i18next";
 import "./lib/i18n";
+import {
+  BrowserRouter as Router,
+  Routes,
+  Route,
+  Navigate,
+  useNavigate,
+  useLocation,
+} from "react-router-dom";
 
 // Pages
 import Login from "@/pages/login";
@@ -32,13 +40,11 @@ import SummaryPage from "@/pages/summary";
 import { User, Manager, RetailOutlet } from '@/types';
 
 function MainApp() {
-  // Use a type assertion to properly type the `user` and `manager` objects
   const { user, isAuthenticated, isLoading } = useAuth();
   const { manager, isManagerAuthenticated, isLoading: managerLoading } = useManagerAuth();
   const { t, i18n } = useTranslation();
-  const [activeTab, setActiveTab] = useState("dashboard");
-  const [showSetup, setShowSetup] = useState(false);
-  const [currentPage, setCurrentPage] = useState<string | null>(null);
+  const navigate = useNavigate();
+  const location = useLocation();
 
   // Correctly combine authentication state and determine the current user
   const isAnyUserAuthenticated = isAuthenticated || isManagerAuthenticated;
@@ -59,25 +65,7 @@ function MainApp() {
   }, [currentUser, i18n]);
 
   // Show setup if dealer is authenticated but no retail outlet
-  useEffect(() => {
-    if (isAuthenticated && !outletLoading && !retailOutlet) {
-      setShowSetup(true);
-    } else {
-      setShowSetup(false);
-    }
-  }, [isAuthenticated, outletLoading, retailOutlet]);
-
-  const handleSetupComplete = () => {
-    setShowSetup(false);
-  };
-
-  const handleMenuItemClick = (item: string) => {
-    setCurrentPage(item);
-  };
-
-  const handleBackToMain = () => {
-    setCurrentPage(null);
-  };
+  const showSetup = isAuthenticated && !outletLoading && !retailOutlet;
 
   if (isLoadingAuth || (isAuthenticated && outletLoading)) {
     return (
@@ -94,91 +82,42 @@ function MainApp() {
     return <Login />;
   }
 
-  if (isManagerAuthenticated && !isAuthenticated) {
-    const renderManagerContent = () => {
-      const managerPage = currentPage || "shift";
-
-      switch (managerPage) {
-        case "shift":
-          return <ShiftPage />;
-        case "readings":
-          return <ReadingsPage />;
-        case "stock":
-          return <StockPage />;
-        case "summary":
-          return <SummaryPage />;
-        case "dataEntry":
-          return <DataEntry />;
-        case "reports":
-          return <Reports />;
-        default:
-          return <ShiftPage />;
-      }
-    };
-
-    return (
-      <div className="min-h-screen bg-surface">
-        <div className="fixed top-4 left-4 z-50">
-          <SideMenu onMenuItemClick={handleMenuItemClick} />
-        </div>
-        {renderManagerContent()}
-        <BottomNavigation
-          currentPage={currentPage || "shift"}
-          onNavigate={handleMenuItemClick}
-          userType="manager"
-        />
-      </div>
-    );
-  }
-
   if (showSetup) {
-    return <Setup onComplete={handleSetupComplete} />;
+    return <Setup onComplete={() => window.location.reload()} />;
   }
 
-  const renderActiveContent = () => {
-    if (currentPage) {
-      switch (currentPage) {
-        case "roDetails":
-          return <RODetailsPage onBack={handleBackToMain} />;
-        case "products":
-          return <ProductsPage onBack={handleBackToMain} />;
-        case "tankManagement":
-          return <TankManagementPage onBack={handleBackToMain} />;
-        case "dispensingUnits":
-          return <DispensingUnitsPage onBack={handleBackToMain} />;
-        case "settings":
-          return <SettingsPage onBack={handleBackToMain} />;
-        case "shift":
-          return <ShiftPage onBack={handleBackToMain} />;
-        case "readings":
-          return <ReadingsPage onBack={handleBackToMain} />;
-        case "stock":
-          return <StockPage onBack={handleBackToMain} />;
-        case "summary":
-          return <SummaryPage onBack={handleBackToMain} />;
-        default:
-          return <Dashboard />;
-      }
-    }
-
-    switch (activeTab) {
-      case "dashboard":
-        return <Dashboard />;
-      case "dataEntry":
-        return <DataEntry onNavigate={handleMenuItemClick} />;
-      case "staff":
-        return <StaffManagement />;
-      case "reports":
-        return <Reports />;
-      default:
-        return <Dashboard />;
-    }
+  const pageToRoute: Record<string, string> = {
+    dashboard: "/dashboard",
+    dataEntry: "/data-entry",
+    staffManagement: "/staff-management",
+    reports: "/reports",
+    roDetails: "/ro-details",
+    products: "/products",
+    tankManagement: "/tank-management",
+    dispensingUnits: "/dispensing-units",
+    settings: "/settings",
+    shift: "/shift",
+    readings: "/readings",
+    stock: "/stock",
+    summary: "/summary",
+    // Manager routes (if needed)
+    managerShift: "/manager/shift",
+    managerReadings: "/manager/readings",
+    managerStock: "/manager/stock",
+    managerSummary: "/manager/summary",
+    managerDataEntry: "/manager/data-entry",
+    managerReports: "/manager/reports",
   };
 
   return (
     <div className="max-w-md mx-auto bg-white min-h-screen relative">
       <header className="bg-primary text-white p-4 flex items-center justify-between shadow-md">
-        <SideMenu onMenuItemClick={handleMenuItemClick} />
+        <SideMenu
+          onNavigate={(page) => {
+            const route = pageToRoute[page] || "/dashboard";
+            navigate(route);
+          }}
+        />
         <div className="flex flex-col items-center">
           <h1 className="text-lg font-medium" data-testid="app-header-title">
             {t("app.name")}
@@ -209,12 +148,60 @@ function MainApp() {
       </header>
 
       <main className="min-h-screen bg-surface">
-        {renderActiveContent()}
+        <Routes>
+          <Route path="/" element={<Dashboard />} />
+          <Route path="/dashboard" element={<Dashboard />} />
+          <Route path="/data-entry" element={<DataEntry />} />
+          <Route path="/staff-management" element={<StaffManagement />} />
+          <Route path="/reports" element={<Reports />} />
+          <Route
+            path="/ro-details"
+            element={<RODetailsPage onBack={() => navigate("/dashboard")} />}
+          />
+          <Route
+            path="/products"
+            element={<ProductsPage onBack={() => navigate("/dashboard")} />}
+          />
+          <Route
+            path="/tank-management"
+            element={<TankManagementPage onBack={() => navigate("/dashboard")} />}
+          />
+          <Route
+            path="/dispensing-units"
+            element={<DispensingUnitsPage onBack={() => navigate("/dashboard")} />}
+          />
+          <Route
+            path="/settings"
+            element={<SettingsPage onBack={() => navigate("/dashboard")} />}
+          />
+          <Route path="/shift" element={<ShiftPage />} />
+          <Route path="/readings" element={<ReadingsPage />} />
+          <Route path="/stock" element={<StockPage />} />
+          <Route path="/summary" element={<SummaryPage />} />
+          {/* Manager routes */}
+          {isManagerAuthenticated && !isAuthenticated && (
+            <>
+              <Route path="/manager/shift" element={<ShiftPage />} />
+              <Route path="/manager/readings" element={<ReadingsPage />} />
+              <Route path="/manager/stock" element={<StockPage />} />
+              <Route path="/manager/summary" element={<SummaryPage />} />
+              <Route path="/manager/data-entry" element={<DataEntry />} />
+              <Route path="/manager/reports" element={<Reports />} />
+              <Route path="/manager/*" element={<Navigate to="/manager/shift" />} />
+            </>
+          )}
+          {/* Fallback */}
+          <Route path="*" element={<Navigate to="/" />} />
+        </Routes>
       </main>
 
-      {!currentPage && (
-        <BottomNavigation currentPage={activeTab} onNavigate={setActiveTab} userType="dealer" />
-      )}
+      <BottomNavigation
+        currentPage={location.pathname}
+        onNavigate={(page) => {
+          const route = pageToRoute[page] || "/dashboard";
+          navigate(route);
+        }}
+      />
     </div>
   );
 }
@@ -225,7 +212,9 @@ function App() {
       <TooltipProvider>
         <ShiftProvider>
           <Toaster />
-          <MainApp />
+          <Router>
+            <MainApp />
+          </Router>
         </ShiftProvider>
       </TooltipProvider>
     </QueryClientProvider>

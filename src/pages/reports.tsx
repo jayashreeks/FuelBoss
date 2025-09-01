@@ -54,8 +54,13 @@ export default function Reports() {
   }
 
   // Calculate totals from arrays as defined in your types.ts
-  const weeklyTotal = stats?.weeklySales.reduce((acc, sale) => acc + sale.total, 0) || 0;
-  const monthlyTotal = stats?.monthlySales.reduce((acc, sale) => acc + sale.total, 0) || 0;
+  const weeklyTotal = Array.isArray(stats?.weeklySales)
+  ? stats.weeklySales.reduce((acc, sale) => acc + sale.total, 0)
+  : 0;
+
+  const monthlyTotal = Array.isArray(stats?.monthlySales)
+  ? stats.monthlySales.reduce((acc, sale) => acc + sale.total, 0)
+  : 0;
 
   // Check if stats and paymentMethodBreakdown exist before calculating percentages
   const percentages = stats && stats.paymentMethodBreakdown ? calculatePercentages(stats.paymentMethodBreakdown) : null;
