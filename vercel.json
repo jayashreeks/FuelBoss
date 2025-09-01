@@ -1,14 +1,25 @@
 {
+  "builds": [
+    {
+      "src": "package.json",
+      "use": "@vercel/static-build",
+      "config": {
+        "buildCommand": "npm run build"
+      }
+    }
+  ],
   "routes": [
     {
-      "src": "/[^\\.]+",
-      "dest": "/",
-      "status": 200
+      "src": "/_next/static/(.*)",
+      "dest": "/_next/static/$1"
+    },
+    {
+      "src": "/static/(.*)",
+      "dest": "/static/$1"
     },
     {
       "src": "/.*",
-      "dest": "/",
-      "status": 200
+      "dest": "/index.html"
     }
   ]
 }
