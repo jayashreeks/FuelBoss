@@ -161,7 +161,7 @@ export default function SummaryPage({ onBack }: SummaryPageProps) {
     return (
       <div className="min-h-screen bg-surface pb-20">
         <div className="bg-primary text-white p-4">
-          <div className="flex items-center justify-between">
+          <div className="flex items-center">
             <div className="flex items-center space-x-3">
               {onBack && (
                 <Button
@@ -174,10 +174,10 @@ export default function SummaryPage({ onBack }: SummaryPageProps) {
                   <ArrowLeft className="h-5 w-5" />
                 </Button>
               )}
-              <h1 className="text-xl font-semibold" data-testid="page-title">
-                Shift Summary
-              </h1>
             </div>
+            <h1 className="text-xl font-semibold" data-testid="page-title">
+              Shift Summary
+            </h1>
             {/* Add spacing to prevent overlap with hamburger menu */}
             <div className="w-12"></div>
           </div>

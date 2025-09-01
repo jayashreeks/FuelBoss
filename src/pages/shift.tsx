@@ -147,7 +147,7 @@ export default function ShiftPage({ onBack }: ShiftPageProps) {
   return (
     <div className="min-h-screen bg-surface pb-20">
       <div className="bg-primary text-white p-4">
-        <div className="flex items-center justify-between">
+        <div className="flex items-center">
           <div className="flex items-center space-x-3">
             {onBack && (
               <Button
@@ -160,10 +160,11 @@ export default function ShiftPage({ onBack }: ShiftPageProps) {
                 <ArrowLeft className="h-5 w-5" />
               </Button>
             )}
-            <h1 className="text-xl font-semibold" data-testid="page-title">
-              Shift Management
-            </h1>
           </div>
+          <h1 className="text-xl font-semibold" data-testid="page-title">
+            Shift Management
+          </h1>
+          
           <div className="w-12"></div>
         </div>
       </div>
