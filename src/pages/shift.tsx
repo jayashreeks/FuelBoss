@@ -161,7 +161,7 @@ export default function ShiftPage({ onBack }: ShiftPageProps) {
               </Button>
             )}
           </div>
-          <h1 className="text-xl font-semibold" data-testid="page-title">
+          <h1 className="flex-grow text-xl font-semibold text-center" data-testid="page-title">
             Shift Management
           </h1>
           

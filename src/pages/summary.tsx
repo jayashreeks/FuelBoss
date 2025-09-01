@@ -175,7 +175,7 @@ export default function SummaryPage({ onBack }: SummaryPageProps) {
                 </Button>
               )}
             </div>
-            <h1 className="text-xl font-semibold" data-testid="page-title">
+            <h1 className="flex-grow text-xl font-semibold text-center" data-testid="page-title">
               Shift Summary
             </h1>
             {/* Add spacing to prevent overlap with hamburger menu */}
