@@ -90,6 +90,7 @@ function MainApp() {
     dashboard: "/dashboard",
     dataEntry: "/data-entry",
     staffManagement: "/staff-management",
+    staff: "/staff-management",
     reports: "/reports",
     roDetails: "/ro-details",
     products: "/products",
@@ -151,7 +152,12 @@ function MainApp() {
         <Routes>
           <Route path="/" element={<Dashboard />} />
           <Route path="/dashboard" element={<Dashboard />} />
-          <Route path="/data-entry" element={<DataEntry />} />
+          <Route path="/data-entry" element={<DataEntry 
+              onNavigate={(page) => {
+              const route = pageToRoute[page] || "/dashboard"; // Fallback to dashboard
+              navigate(route);
+              }}
+          />} />
           <Route path="/staff-management" element={<StaffManagement />} />
           <Route path="/reports" element={<Reports />} />
           <Route
@@ -174,9 +180,15 @@ function MainApp() {
             path="/settings"
             element={<SettingsPage onBack={() => navigate("/dashboard")} />}
           />
-          <Route path="/shift" element={<ShiftPage />} />
-          <Route path="/readings" element={<ReadingsPage />} />
-          <Route path="/stock" element={<StockPage />} />
+          <Route 
+            path="/shift" 
+            element={<ShiftPage onBack={() => navigate("/data-entry")} />} />
+          <Route 
+            path="/readings"
+            element={<ReadingsPage onBack={() => navigate("/data-entry")} />} />
+          <Route 
+            path="/stock" 
+            element={<StockPage onBack={() => navigate("/data-entry")} />} />
           <Route path="/summary" element={<SummaryPage />} />
           {/* Manager routes */}
           {isManagerAuthenticated && !isAuthenticated && (

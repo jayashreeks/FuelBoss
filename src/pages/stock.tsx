@@ -42,11 +42,6 @@ export default function StockPage({ onBack }: StockPageProps) {
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const [editingEntries, setEditingEntries] = useState<Record<string, boolean>>({});
-  const [formData, setFormData] = useState<Record<string, {
-    openingStock: string;
-    receipt: string;
-    invoiceValue: string;
-  }>>({});
 
   // Fix: Remove the explicit type argument <Tank[]>
   const { data: tanks = [], isLoading: tanksLoading } = useQuery({
@@ -79,10 +74,9 @@ export default function StockPage({ onBack }: StockPageProps) {
     return initialData;
   }, [tanks, stockEntries]);
   
-  // Update state only when memoized value changes
-  useEffect(() => {
-    setFormData(initialFormData);
-  }, [initialFormData]);
+  // 🚨 FIX: Initialize state with the memoized value directly,
+  // so it only runs once per component lifecycle.
+  const [formData, setFormData] = useState(initialFormData);
 
   const stockMutation = useMutation({
     mutationFn: async ({ tankId, data }: { tankId: string; data: any }) => {
