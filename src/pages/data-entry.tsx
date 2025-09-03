@@ -17,7 +17,7 @@ export default function DataEntry({ onNavigate }: DataEntryProps) {
     },
     {
       id: "readings",
-      title: "Tank Readings",
+      title: "Nozzle Readings",
       description: "Record tank level measurements and readings",
       icon: Gauge,
       color: "bg-green-50 border-green-200 hover:bg-green-100",

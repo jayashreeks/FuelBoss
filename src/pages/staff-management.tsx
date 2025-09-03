@@ -339,7 +339,7 @@ export default function StaffManagement() {
               <Skeleton key={i} className="h-20 w-full" />
             ))}
           </div>
-        ) : staff.length === 0 ? (
+        ) : staff?.length === 0 ? (
           <Alert>
             <AlertCircle className="h-4 w-4" />
             <AlertDescription>
@@ -348,7 +348,7 @@ export default function StaffManagement() {
           </Alert>
         ) : (
           staff
-            .filter((member) => member.isActive) // Only show active staff
+            ?.filter((member) => member.isActive) // Only show active staff
             .map((member) => (
               <StaffCard 
                 key={member.id} 

@@ -55,7 +55,7 @@ interface LastReading {
 }
 
 export default function ReadingsPage({ onBack }: ReadingsPageProps) {
-  const { selectedShiftType, selectedDate } = useShiftContext();
+  const { selectedShiftType, selectedDate, setSelectedShiftType, setSelectedDate } = useShiftContext();
   const { toast } = useToast();
   const queryClient = useQueryClient();
   
@@ -160,50 +160,36 @@ export default function ReadingsPage({ onBack }: ReadingsPageProps) {
   // Check if reading exists for this nozzle and shift
   const existingReading = readings.find(r => r.nozzleId === selectedNozzleId);
 
-  // Effect to handle previous reading population when lastReading data changes
   useEffect(() => {
-    if (selectedNozzleId && lastReading !== undefined && !existingReading) {
-      // Only populate from lastReading if we're not editing an existing reading
-      if (lastReading && lastReading.currentReading) {
-        setFormData(prev => ({
-          ...prev,
-          previousReading: lastReading.currentReading
-        }));
-      } else {
-        setFormData(prev => ({
-          ...prev,
-          previousReading: ""
-        }));
+     if (selectedNozzleId) {
+       if (existingReading) {
+         // If an existing reading is found, populate the form with its data
+         setFormData({
+            previousReading: existingReading.previousReading,
+            currentReading: existingReading.currentReading,
+            testing: existingReading.testing,
+            cashSales: existingReading.cashSales,
+            creditSales: existingReading.creditSales,
+            upiSales: existingReading.upiSales,
+            cardSales: existingReading.cardSales,
+         });
+         setSelectedAttendantId(existingReading.attendantId);
+       } else {
+         // If no existing reading, reset form and use lastReading for previousReading
+         setFormData({
+          previousReading: lastReading?.currentReading ?? "",
+          currentReading: "",
+          testing: "0",
+          cashSales: "0",
+          creditSales: "0",
+          upiSales: "0",
+          cardSales: "0"
+         });
+         // Do not reset attendantId here as it's selected independently
       }
-    }
-  }, [lastReading, selectedNozzleId, existingReading]);
-  
-  // Effect to populate form with existing reading data when editing
-  useEffect(() => {
-    if (existingReading && selectedNozzleId === existingReading.nozzleId) {
-      setFormData({
-        previousReading: existingReading.previousReading,
-        currentReading: existingReading.currentReading,
-        testing: existingReading.testing,
-        cashSales: existingReading.cashSales,
-        creditSales: existingReading.creditSales,
-        upiSales: existingReading.upiSales,
-        cardSales: existingReading.cardSales,
-      });
-      setSelectedAttendantId(existingReading.attendantId);
-    } else if (selectedNozzleId && !existingReading) {
-      // Reset form for new reading
-      setFormData({
-        previousReading: "",
-        currentReading: "",
-        testing: "0",
-        cashSales: "0",
-        creditSales: "0",
-        upiSales: "0",
-        cardSales: "0"
-      });
-    }
-  }, [existingReading, selectedNozzleId]);
+     }
+   }, [selectedNozzleId, existingReading, lastReading]); // 🚨 Update dependencies
+
 
   const handleInputChange = (field: string, value: string) => {
     setFormData(prev => ({
@@ -343,10 +329,46 @@ export default function ReadingsPage({ onBack }: ReadingsPageProps) {
       </div>
 
       <div className="p-4 space-y-4">
-        <ShiftDateDisplay
+        {/* <ShiftDateDisplay
           selectedShiftType={selectedShiftType}
           selectedDate={selectedDate}
-        />
+        /> */}
+        {/* Shift Selection */}
+        <div className="bg-white rounded-lg shadow-sm p-6">
+          <h2 className="text-lg font-semibold mb-4">Select Shift</h2>
+          <div className="space-y-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <Label htmlFor="shift-date">Date</Label>
+                <Input
+                  id="shift-date"
+                  type="date"
+                  value={selectedDate}
+                  onChange={(e) => setSelectedDate(e.target.value)}
+                  className="mt-1"
+                  data-testid="shift-date-select"
+                />
+              </div>
+              
+              <div>
+                <Label htmlFor="shift-type">Shift Type</Label>
+                <Select 
+                  value={selectedShiftType} 
+                  onValueChange={(value: 'morning' | 'evening' | 'night') => setSelectedShiftType(value)}
+                >
+                  <SelectTrigger className="mt-1" data-testid="shift-type-select">
+                    <SelectValue placeholder="Select shift type" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="morning">Morning Shift (6 AM - 2 PM)</SelectItem>
+                    <SelectItem value="evening">Evening Shift (2 PM - 10 PM)</SelectItem>
+                    <SelectItem value="night">Night Shift (10 PM - 6 AM)</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+          </div>
+        </div>
 
         {/* Attendant Selection */}
         <Card>

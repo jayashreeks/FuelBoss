@@ -182,6 +182,7 @@ export default function SummaryPage({ onBack }: SummaryPageProps) {
             <div className="w-12"></div>
           </div>
         </div>
+        
         <div className="p-4">
           <div className="text-center py-8">Loading...</div>
         </div>

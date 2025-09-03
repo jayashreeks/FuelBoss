@@ -9,6 +9,7 @@ import { useToast } from "@/hooks/use-toast";
 import ShiftDateDisplay from "@/components/ShiftDateDisplay";
 import { useShiftContext } from "@/contexts/ShiftContext";
 import { apiRequest } from "@/lib/queryClient";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 interface StockPageProps {
   onBack?: () => void;
@@ -38,7 +39,7 @@ interface StockEntry {
 }
 
 export default function StockPage({ onBack }: StockPageProps) {
-  const { selectedShiftType, selectedDate } = useShiftContext();
+  const { selectedShiftType, selectedDate, setSelectedShiftType, setSelectedDate } = useShiftContext();
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const [editingEntries, setEditingEntries] = useState<Record<string, boolean>>({});
@@ -162,11 +163,48 @@ export default function StockPage({ onBack }: StockPageProps) {
         </div>
       </div>
 
-      <div className="p-4">
-        <ShiftDateDisplay
+      <div className="p-4 space-y-6">
+        {/* <ShiftDateDisplay
           selectedShiftType={selectedShiftType}
           selectedDate={selectedDate}
-        />
+        /> */}
+
+        {/* Shift Selection */}
+        <div className="bg-white rounded-lg shadow-sm p-6">
+          <h2 className="text-lg font-semibold mb-4">Select Shift</h2>
+          <div className="space-y-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <Label htmlFor="shift-date">Date</Label>
+                <Input
+                  id="shift-date"
+                  type="date"
+                  value={selectedDate}
+                  onChange={(e) => setSelectedDate(e.target.value)}
+                  className="mt-1"
+                  data-testid="shift-date-select"
+                />
+              </div>
+              
+              <div>
+                <Label htmlFor="shift-type">Shift Type</Label>
+                <Select 
+                  value={selectedShiftType} 
+                  onValueChange={(value: 'morning' | 'evening' | 'night') => setSelectedShiftType(value)}
+                >
+                  <SelectTrigger className="mt-1" data-testid="shift-type-select">
+                    <SelectValue placeholder="Select shift type" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="morning">Morning Shift (6 AM - 2 PM)</SelectItem>
+                    <SelectItem value="evening">Evening Shift (2 PM - 10 PM)</SelectItem>
+                    <SelectItem value="night">Night Shift (10 PM - 6 AM)</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+          </div>
+        </div>
 
         <div className="grid grid-cols-2 gap-4 mb-6">
           <Card className="bg-white rounded-lg shadow-sm p-4">

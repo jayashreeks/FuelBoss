@@ -86,29 +86,62 @@ function MainApp() {
     return <Setup onComplete={() => window.location.reload()} />;
   }
 
-  const pageToRoute: Record<string, string> = {
-    dashboard: "/dashboard",
-    dataEntry: "/data-entry",
-    staffManagement: "/staff-management",
-    staff: "/staff-management",
-    reports: "/reports",
-    roDetails: "/ro-details",
-    products: "/products",
-    tankManagement: "/tank-management",
-    dispensingUnits: "/dispensing-units",
-    settings: "/settings",
-    shift: "/shift",
-    readings: "/readings",
-    stock: "/stock",
-    summary: "/summary",
-    // Manager routes (if needed)
-    managerShift: "/manager/shift",
-    managerReadings: "/manager/readings",
-    managerStock: "/manager/stock",
-    managerSummary: "/manager/summary",
-    managerDataEntry: "/manager/data-entry",
-    managerReports: "/manager/reports",
+  // Define route objects for both user types
+  // 💡 FIX: Updated route paths for manager
+  const dealerRoutes = [
+      { path: "/", component: Dashboard },
+      { path: "/dashboard", component: Dashboard },
+      { path: "/data-entry", component: DataEntry, props: { onNavigate: (page: string) => navigate(pageToRoute[page] || "/dashboard") } },
+      { path: "/staff-management", component: StaffManagement },
+      { path: "/reports", component: Reports },
+      { path: "/ro-details", component: RODetailsPage, props: { onBack: () => navigate("/dashboard") } },
+      { path: "/products", component: ProductsPage, props: { onBack: () => navigate("/dashboard") } },
+      { path: "/tank-management", component: TankManagementPage, props: { onBack: () => navigate("/dashboard") } },
+      { path: "/dispensing-units", component: DispensingUnitsPage, props: { onBack: () => navigate("/dashboard") } },
+      { path: "/settings", component: SettingsPage, props: { onBack: () => navigate("/dashboard") } },
+      { path: "/shift", component: ShiftPage, props: { onBack: () => navigate("/data-entry") } },
+      { path: "/readings", component: ReadingsPage, props: { onBack: () => navigate("/data-entry") } },
+      { path: "/stock", component: StockPage, props: { onBack: () => navigate("/data-entry") } },
+      { path: "/summary", component: SummaryPage },
+  ];
+  
+  const managerRoutes = [
+      { path: "/", component: ShiftPage },
+      { path: "/manager/shift", component: ShiftPage },
+      { path: "/manager/readings", component: ReadingsPage },
+      { path: "/manager/stock", component: StockPage },
+      { path: "/manager/summary", component: SummaryPage },
+  ];
+  
+  const routesToRender = isManagerAuthenticated ? managerRoutes : dealerRoutes;
+
+  const currentUserType = isManagerAuthenticated ? 'manager' : 'dealer';
+
+  const dealerPageToRoute: Record<string, string> = {
+      dashboard: "/dashboard",
+      dataEntry: "/data-entry",
+      staffManagement: "/staff-management",
+      reports: "/reports",
+      roDetails: "/ro-details",
+      products: "/products",
+      tankManagement: "/tank-management",
+      dispensingUnits: "/dispensing-units",
+      settings: "/settings",
+      shift: "/shift",
+      readings: "/readings",
+      stock: "/stock",
+      summary: "/summary",
   };
+  
+  // 💡 FIX: This maps manager's bottom nav IDs to the correct prefixed URLs
+  const managerPageToRoute: Record<string, string> = {
+      shift: "/manager/shift",
+      readings: "/manager/readings",
+      stock: "/manager/stock",
+      summary: "/manager/summary",
+  };
+  
+  const pageToRoute = isManagerAuthenticated ? managerPageToRoute : dealerPageToRoute;
 
   return (
     <div className="max-w-md mx-auto bg-white min-h-screen relative">
@@ -150,58 +183,13 @@ function MainApp() {
 
       <main className="min-h-screen bg-surface">
         <Routes>
-          <Route path="/" element={<Dashboard />} />
-          <Route path="/dashboard" element={<Dashboard />} />
-          <Route path="/data-entry" element={<DataEntry 
-              onNavigate={(page) => {
-              const route = pageToRoute[page] || "/dashboard"; // Fallback to dashboard
-              navigate(route);
-              }}
-          />} />
-          <Route path="/staff-management" element={<StaffManagement />} />
-          <Route path="/reports" element={<Reports />} />
-          <Route
-            path="/ro-details"
-            element={<RODetailsPage onBack={() => navigate("/dashboard")} />}
-          />
-          <Route
-            path="/products"
-            element={<ProductsPage onBack={() => navigate("/dashboard")} />}
-          />
-          <Route
-            path="/tank-management"
-            element={<TankManagementPage onBack={() => navigate("/dashboard")} />}
-          />
-          <Route
-            path="/dispensing-units"
-            element={<DispensingUnitsPage onBack={() => navigate("/dashboard")} />}
-          />
-          <Route
-            path="/settings"
-            element={<SettingsPage onBack={() => navigate("/dashboard")} />}
-          />
-          <Route 
-            path="/shift" 
-            element={<ShiftPage onBack={() => navigate("/data-entry")} />} />
-          <Route 
-            path="/readings"
-            element={<ReadingsPage onBack={() => navigate("/data-entry")} />} />
-          <Route 
-            path="/stock" 
-            element={<StockPage onBack={() => navigate("/data-entry")} />} />
-          <Route path="/summary" element={<SummaryPage />} />
-          {/* Manager routes */}
-          {isManagerAuthenticated && !isAuthenticated && (
-            <>
-              <Route path="/manager/shift" element={<ShiftPage />} />
-              <Route path="/manager/readings" element={<ReadingsPage />} />
-              <Route path="/manager/stock" element={<StockPage />} />
-              <Route path="/manager/summary" element={<SummaryPage />} />
-              <Route path="/manager/data-entry" element={<DataEntry />} />
-              <Route path="/manager/reports" element={<Reports />} />
-              <Route path="/manager/*" element={<Navigate to="/manager/shift" />} />
-            </>
-          )}
+          {routesToRender.map((route, index) => (
+            <Route
+              key={index}
+              path={route.path}
+              element={<route.component {...route.props} />}
+            />
+          ))}
           {/* Fallback */}
           <Route path="*" element={<Navigate to="/" />} />
         </Routes>
@@ -213,6 +201,7 @@ function MainApp() {
           const route = pageToRoute[page] || "/dashboard";
           navigate(route);
         }}
+         userType={currentUserType} 
       />
     </div>
   );
