@@ -120,7 +120,7 @@ function MainApp() {
   const dealerPageToRoute: Record<string, string> = {
       dashboard: "/dashboard",
       dataEntry: "/data-entry",
-      staffManagement: "/staff-management",
+      staff: "/staff-management",
       reports: "/reports",
       roDetails: "/ro-details",
       products: "/products",

@@ -158,7 +158,7 @@ export default function ReadingsPage({ onBack }: ReadingsPageProps) {
   };
 
   // Check if reading exists for this nozzle and shift
-  const existingReading = readings.find(r => r.nozzleId === selectedNozzleId);
+  const existingReading = readings?.find(r => r.nozzleId === selectedNozzleId);
 
   useEffect(() => {
      if (selectedNozzleId) {
@@ -211,7 +211,7 @@ export default function ReadingsPage({ onBack }: ReadingsPageProps) {
       return { calculated: "0.00", actual: "0.00", shortage: "0.00", liters: "0.00", rate: "0.00" };
     }
 
-    const selectedNozzle = nozzles.find(n => n.id === selectedNozzleId);
+    const selectedNozzle = nozzles?.find(n => n.id === selectedNozzleId);
     if (!selectedNozzle) return { calculated: "0.00", actual: "0.00", shortage: "0.00", liters: "0.00", rate: "0.00" };
 
     // Debug: log to see what we have
@@ -266,7 +266,7 @@ export default function ReadingsPage({ onBack }: ReadingsPageProps) {
     retry: false,
   });
   
-  const isEditable = !nextShift || nextShiftReadings.length === 0;
+  const isEditable = !nextShift || (nextShiftReadings?.length || 0) === 0;
 
   const handleSubmit = () => {
     if (!selectedAttendantId || !selectedNozzleId || !formData.currentReading || !formData.previousReading) {
@@ -302,8 +302,15 @@ export default function ReadingsPage({ onBack }: ReadingsPageProps) {
     }
   };
 
-  const selectedNozzle = nozzles.find((n: Nozzle) => n.id === selectedNozzleId);
-  const selectedAttendant = attendants.find((a: Attendant) => a.id === selectedAttendantId);
+  // 🐛 FIX: Add checks for loading states and null data
+  if (loadingAttendants || loadingNozzles || loadingReadings) {
+    return <div className="p-4 text-center text-gray-500">Loading...</div>;
+  }
+  
+  // 🐛 FIX: Add optional chaining `?.`
+  const selectedNozzle = nozzles?.find((n: Nozzle) => n.id === selectedNozzleId);
+  const selectedAttendant = attendants?.find((a: Attendant) => a.id === selectedAttendantId);
+
 
   return (
     <div className="min-h-screen bg-surface pb-20">
@@ -384,7 +391,7 @@ export default function ReadingsPage({ onBack }: ReadingsPageProps) {
                 <SelectValue placeholder="Choose attendant..." />
               </SelectTrigger>
               <SelectContent>
-                {attendants.map((attendant: Attendant) => (
+                {attendants?.map((attendant: Attendant) => (
                   <SelectItem key={attendant.id} value={attendant.id}>
                     {attendant.name} ({attendant.phoneNumber})
                   </SelectItem>
